@@ -39,6 +39,13 @@ self: super: {
   unix = null;
   xhtml = null;
 
+  # Test suite does not compile.
+  cereal = dontCheck super.cereal;
+  # Test suite requires older QuickCheck.
+  psqueues = dontCheck super.psqueues;
+
+  purescript = doJailbreak super.purescript;
+
   # https://github.com/jcristovao/enclosed-exceptions/issues/12
   enclosed-exceptions = dontCheck super.enclosed-exceptions;
 
