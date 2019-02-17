@@ -41,8 +41,6 @@ self: super: {
 
   # Test suite does not compile.
   cereal = dontCheck super.cereal;
-  # Test suite requires older QuickCheck.
-  psqueues = dontCheck super.psqueues;
 
   purescript = doJailbreak super.purescript;
 
