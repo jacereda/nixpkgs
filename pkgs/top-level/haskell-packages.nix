@@ -3,6 +3,18 @@
 }:
 
 let
+  # sphinx update to 1.8.x broke ghc versions < 8.6
+  sphinx_1_7_9 = buildPackages.python3Packages.sphinx.overridePythonAttrs (o:
+      let v = "1.7.9";
+      in {
+         version = v;
+         src = buildPackages.python3Packages.fetchPypi {
+           pname = "Sphinx";
+           version = v;
+           sha256 = "217a7705adcb573da5bbe1e0f5cab4fa0bd89fd9342c9159121746f593c2d5a4";
+         };
+       });
+
   # These are attributes in compiler and packages that don't support integer-simple.
   integerSimpleExcludes = [
     "ghc822Binary"
@@ -49,13 +61,13 @@ in {
 
     ghc822 = callPackage ../development/compilers/ghc/8.2.2.nix {
       bootPkgs = packages.ghc822Binary;
-      inherit (buildPackages.python3Packages) sphinx;
+      sphinx = sphinx_1_7_9;
       buildLlvmPackages = buildPackages.llvmPackages_39;
       llvmPackages = pkgs.llvmPackages_39;
     };
     ghc844 = callPackage ../development/compilers/ghc/8.4.4.nix {
       bootPkgs = packages.ghc822Binary;
-      inherit (buildPackages.python3Packages) sphinx;
+      sphinx = sphinx_1_7_9;
       buildLlvmPackages = buildPackages.llvmPackages_5;
       llvmPackages = pkgs.llvmPackages_5;
     };
