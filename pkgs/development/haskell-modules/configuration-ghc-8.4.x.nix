@@ -39,9 +39,6 @@ self: super: {
   unix = null;
   xhtml = null;
 
-  # Test suite does not compile.
-  cereal = dontCheck super.cereal;
-
   purescript = doJailbreak super.purescript;
 
   # https://github.com/jcristovao/enclosed-exceptions/issues/12
