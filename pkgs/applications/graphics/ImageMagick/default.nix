@@ -1,7 +1,8 @@
 { lib, stdenv, fetchFromGitHub, fetchpatch, pkgconfig, libtool
-, bzip2, zlib, libX11, libXext, libXt, fontconfig, freetype, ghostscript, libjpeg, djvulibre
+, bzip2, zlib, fontconfig, freetype, ghostscript, libjpeg, djvulibre
 , lcms2, openexr, libpng, librsvg, libtiff, libxml2, openjpeg, libwebp, fftw, libheif, libde265
 , ApplicationServices
+, x11Support ? (!stdenv.hostPlatform.isMinGW && !stdenv.hostPlatform.isDarwin), libX11, libXext, libXt
 }:
 
 let
@@ -72,9 +73,8 @@ stdenv.mkDerivation rec {
     ++ lib.optional stdenv.isDarwin ApplicationServices;
 
   propagatedBuildInputs =
-    [ bzip2 freetype libjpeg lcms2 fftw ]
-    ++ lib.optionals (!stdenv.hostPlatform.isMinGW)
-      [ libX11 libXext libXt libwebp ]
+    [ bzip2 freetype libjpeg lcms2 fftw libwebp ]
+    ++ lib.optionals x11Support [ libX11 libXext libXt ]
     ;
 
   doCheck = false; # fails 6 out of 76 tests

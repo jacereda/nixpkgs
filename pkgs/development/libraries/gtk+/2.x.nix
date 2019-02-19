@@ -5,6 +5,7 @@
 , gdktarget ? if stdenv.isDarwin then "quartz" else "x11"
 , AppKit, Cocoa
 , fetchpatch
+, config
 }:
 
 assert xineramaSupport -> xorg.libXinerama != null;
@@ -42,11 +43,11 @@ stdenv.mkDerivation rec {
 
   propagatedBuildInputs = with xorg;
     [ glib cairo pango gdk_pixbuf atk ]
-    ++ optionals (stdenv.isLinux || stdenv.isDarwin) [
+    ++ optionals config.allowXorg [
          libXrandr libXrender libXcomposite libXi libXcursor
        ]
-    ++ optionals stdenv.isDarwin [ xlibsWrapper libXdamage ]
-    ++ optional xineramaSupport libXinerama
+    ++ optionals config.allowXorg [ xlibsWrapper libXdamage ]
+    ++ optional (config.allowXorg && xineramaSupport) libXinerama
     ++ optionals cupsSupport [ cups ]
     ++ optionals stdenv.isDarwin [ AppKit Cocoa ];
 

@@ -1,6 +1,7 @@
 { stdenv, fetchurl, pkgconfig, libXft, cairo, harfbuzz
 , libintl, gobject-introspection, darwin, fribidi, gnome3
 , gtk-doc, docbook_xsl, docbook_xml_dtd_43, makeFontsConf, freefont_ttf
+, config
 }:
 
 with stdenv.lib;
@@ -24,7 +25,8 @@ in stdenv.mkDerivation rec {
     CoreGraphics
     CoreText
   ]);
-  propagatedBuildInputs = [ cairo harfbuzz libXft libintl fribidi ];
+  propagatedBuildInputs = [ cairo harfbuzz libintl fribidi ] ++
+    optional config.allowXorg [ libXft ];
 
   enableParallelBuilding = true;
 

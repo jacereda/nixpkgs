@@ -9734,6 +9734,10 @@ in
     vid-stab = if stdenv.isDarwin then null else vid-stab;
     x265 = if stdenv.isDarwin then null else x265;
     xavs = if stdenv.isDarwin then null else xavs;
+    libX11 = if stdenv.isDarwin then null else xorg.libX11;
+    libXext = if stdenv.isDarwin then null else xorg.libX11;
+    libXv = if stdenv.isDarwin then null else xorg.libXv;
+    libvdpau = if stdenv.isDarwin then null else libvdpau;
     inherit (darwin) cf-private;
     inherit (darwin.apple_sdk.frameworks)
       Cocoa CoreServices CoreAudio AVFoundation MediaToolbox
@@ -16880,7 +16884,6 @@ in
     inherit lib newScope stdenv;
     inherit fetchFromGitHub fetchgit fetchhg fetchurl fetchpatch;
     inherit emacs texinfo makeWrapper runCommand writeText;
-    inherit (xorg) lndir;
 
     trivialBuild = callPackage ../build-support/emacs/trivial.nix {
       inherit emacs;
@@ -17760,7 +17763,6 @@ in
 
   inkscape = callPackage ../applications/graphics/inkscape {
     lcms = lcms2;
-    poppler = poppler_0_61;
   };
 
   inspectrum = libsForQt5.callPackage ../applications/radio/inspectrum { };

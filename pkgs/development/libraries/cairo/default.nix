@@ -1,10 +1,11 @@
 { stdenv, fetchurl, pkgconfig, libiconv
-, libintl, expat, zlib, libpng, pixman, fontconfig, freetype, xorg
+, libintl, expat, zlib, libpng, pixman, fontconfig, freetype
+, x11Support ? (!stdenv.isDarwin), xorg
 , gobjectSupport ? true, glib
-, xcbSupport ? true # no longer experimental since 1.12
+, xcbSupport ? x11Support # no longer experimental since 1.12
 , glSupport ? true, libGL ? null # libGLU_combined is no longer a big dependency
 , pdfSupport ? true
-, darwin
+, darwin, config
 }:
 
 assert glSupport -> libGL != null;
@@ -34,8 +35,9 @@ in stdenv.mkDerivation rec {
     Carbon
   ]);
 
-  propagatedBuildInputs =
-    with xorg; [ libXext fontconfig expat freetype pixman zlib libpng libXrender ]
+  propagatedBuildInputs = with xorg;
+    [ fontconfig expat freetype pixman zlib libpng ]
+    ++ optionals config.allowXorg [ libXext libXrender ]
     ++ optionals xcbSupport [ libxcb xcbutil ]
     ++ optional gobjectSupport glib
     ++ optional glSupport libGL

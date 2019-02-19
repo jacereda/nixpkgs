@@ -1,8 +1,10 @@
 { stdenv, fetchurl, pkgconfig, perlPackages, libXft
-, libpng, zlib, popt, boehmgc, libxml2, libxslt, glib, gtkmm2
+, libpng, zlib, popt, boehmgc, libxml2, libxslt, glib, gtkmm3
 , glibmm, libsigcxx, lcms, boost, gettext, makeWrapper
 , gsl, python2, poppler, imagemagick, libwpg, librevenge
 , libvisio, libcdr, libexif, potrace, cmake, hicolor-icon-theme
+, gnome3
+, x11Support ? (!stdenv.isDarwin)
 }:
 
 let
@@ -11,11 +13,11 @@ let
 in
 
 stdenv.mkDerivation rec {
-  name = "inkscape-0.92.3";
+  name = "inkscape-0.92.4";
 
   src = fetchurl {
     url = "https://media.inkscape.org/dl/resources/file/${name}.tar.bz2";
-    sha256 = "1chng2yw8dsjxc9gf92aqv7plj11cav8ax321wmakmv5bb09cch6";
+    sha256 = "57ec2da8177b36614a513e2822efd73af721e690f7ddc6bd0a5fbb1525b4515e";
   };
 
   # Inkscape hits the ARGMAX when linking on macOS. It appears to be
@@ -40,16 +42,21 @@ stdenv.mkDerivation rec {
       --replace '"python-interpreter", "python"' '"python-interpreter", "${python2Env}/bin/python"'
   '';
 
+  cmakeFlags = [
+    "-DWITH_GTK3_EXPERIMENTAL=ON"
+    ];
   nativeBuildInputs = [ pkgconfig cmake makeWrapper python2Env ]
     ++ (with perlPackages; [ perl XMLParser ]);
   buildInputs = [
-    libXft libpng zlib popt boehmgc
-    libxml2 libxslt glib gtkmm2 glibmm libsigcxx lcms boost gettext
-    gsl poppler imagemagick libwpg librevenge
+    libpng zlib popt boehmgc
     libvisio libcdr libexif potrace hicolor-icon-theme
-
+    gsl libwpg librevenge poppler
     python2Env perlPackages.perl
-  ];
+    imagemagick libxml2 gettext boost libsigcxx lcms
+    glibmm glib gtkmm3 libxslt gnome3.gdl
+    ] ++ stdenv.lib.optional x11Support [
+    libXft
+    ];
 
   enableParallelBuilding = true;
 

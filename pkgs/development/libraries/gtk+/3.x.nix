@@ -42,11 +42,13 @@ stdenv.mkDerivation rec {
     ./3.0-darwin-x11.patch
   ];
 
-  buildInputs = [ libxkbcommon epoxy json-glib isocodes ]
-    ++ optional stdenv.isDarwin AppKit;
+  buildInputs = [ epoxy json-glib isocodes ]
+    ++ optional stdenv.isDarwin AppKit
+    ++ optionals x11Support [ libxkbcommon ];
   propagatedBuildInputs = with xorg; with stdenv.lib;
-    [ expat glib cairo pango gdk_pixbuf atk at-spi2-atk gnome3.gsettings-desktop-schemas
-      libXrandr libXrender libXcomposite libXi libXcursor libSM libICE ]
+    [ expat glib cairo pango gdk_pixbuf atk gnome3.gsettings-desktop-schemas ]
+    ++ optionals (!stdenv.isDarwin) [ at-spi2-atk ]
+    ++ optionals x11Support [ libXrandr libXrender libXcomposite libXi libXcursor libSM libICE ]
     ++ optional stdenv.isDarwin Cocoa  # explicitly propagated, always needed
     ++ optionals waylandSupport [ mesa_noglu wayland wayland-protocols ]
     ++ optional xineramaSupport libXinerama

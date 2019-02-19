@@ -18,6 +18,7 @@
 , networkBuild ? true # Network support
 , pixelutilsBuild ? true # Pixel utils in libavutil
 , enableLto ? false # build with link-time optimization
+, x11Support ? (!stdenv.isDarwin) # build with Xorg libs
 /*
  *  Program options
  */
@@ -408,13 +409,15 @@ stdenv.mkDerivation rec {
   buildInputs = [
     bzip2 celt fontconfig freetype frei0r fribidi game-music-emu gnutls gsm
     libjack2 ladspaH lame libaom libass libbluray libbs2b libcaca libdc1394 libmodplug libmysofa
-    libogg libopus libssh libtheora libvdpau libvorbis libvpx libwebp libX11
-    libxcb libXv libXext lzma openal openjpeg libpulseaudio rtmpdump opencore-amr
+    libogg libopus libssh libtheora libvorbis libvpx libwebp
+    lzma openal openjpeg libpulseaudio rtmpdump opencore-amr
     samba SDL2 soxr speex vid-stab vo-amrwbenc wavpack x264 x265 xavs xvidcore
     zeromq4 zlib
   ] ++ optional openglExtlib libGLU_combined
+    ++ optionals x11Support [ libX11 libXv libxcb libXext ]
     ++ optionals nonfreeLicensing [ fdk_aac openssl ]
     ++ optional ((isLinux || isFreeBSD) && libva != null) libva
+    ++ optional (x11Support && libvdpau != null) libvdpau
     ++ optionals isLinux [ alsaLib libraw1394 libv4l ]
     ++ optionals nvenc [ nvidia-video-sdk nv-codec-headers ]
     ++ optionals stdenv.isDarwin [ Cocoa CoreServices CoreAudio AVFoundation

@@ -1,4 +1,5 @@
 { stdenv, fetchurl, libGLU, xlibsWrapper, libXmu, libXi
+, config, lib, darwin
 }:
 
 with stdenv.lib;
@@ -13,8 +14,9 @@ stdenv.mkDerivation rec {
 
   outputs = [ "bin" "out" "dev" "doc" ];
 
-  buildInputs = [ xlibsWrapper libXmu libXi ];
-  propagatedBuildInputs = [ libGLU ]; # GL/glew.h includes GL/glu.h
+  buildInputs = lib.optionals config.allowXorg [ xlibsWrapper libXmu libXi ]
+    ++ lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.OpenGL ];
+  propagatedBuildInputs = lib.optionals config.allowXorg [ libGLU ]; # GL/glew.h includes GL/glu.h
 
   patchPhase = ''
     sed -i 's|lib64|lib|' config/Makefile.linux

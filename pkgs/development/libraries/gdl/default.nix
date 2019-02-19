@@ -23,6 +23,6 @@ stdenv.mkDerivation rec {
     homepage = https://developer.gnome.org/gdl/;
     maintainers = gnome3.maintainers;
     license = licenses.gpl2;
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.darwin;
   };
 }

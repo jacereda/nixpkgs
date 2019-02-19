@@ -85,11 +85,6 @@ let
 
       doInstallCheck = true; # not cross
 
-      # socket path becomes too long otherwise
-      preInstallCheck = lib.optional stdenv.isDarwin ''
-        export TMPDIR=$NIX_BUILD_TOP
-      '';
-
       separateDebugInfo = stdenv.isLinux;
 
       enableParallelBuilding = true;

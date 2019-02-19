@@ -7,7 +7,7 @@
 , runtimeCpuDetectBuild ? true # Detect CPU capabilities at runtime
 , multithreadBuild ? true # Multithreading via pthreads/win32 threads
 , sdlSupport ? !stdenv.isAarch32, SDL ? null, SDL2 ? null
-, vdpauSupport ? !stdenv.isAarch32, libvdpau ? null
+, vdpauSupport ? (!stdenv.isAarch32 && !stdenv.isDarwin), libvdpau ? null
 # Developer options
 , debugDeveloper ? false
 , optimizationsDeveloper ? true
@@ -131,7 +131,7 @@ stdenv.mkDerivation rec {
       (ifMinVer "2.1" "--enable-libssh")
       (ifMinVer "0.6" (enableFeature vaapiSupport "vaapi"))
       (ifMinVer "3.4" (enableFeature vaapiSupport "libdrm"))
-      "--enable-vdpau"
+      (if vdpauSupport then "--enable-vdpau" else null)
       "--enable-libvorbis"
       (ifMinVer "0.6" (enableFeature vpxSupport "libvpx"))
       (ifMinVer "2.4" "--enable-lzma")
@@ -161,7 +161,7 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     bzip2 fontconfig freetype gnutls libiconv lame libass libogg libssh libtheora
-    libvdpau libvorbis lzma soxr x264 x265 xvidcore zlib libopus speex
+    libvorbis lzma soxr x264 x265 xvidcore zlib libopus speex
   ] ++ optional openglSupport libGLU_combined
     ++ optional vpxSupport libvpx
     ++ optionals (!isDarwin && !isAarch32) [ libpulseaudio ] # Need to be fixed on Darwin and ARM

@@ -18,16 +18,16 @@ stdenv.mkDerivation rec {
   outputs = [ "out" "dev" ];
 
   nativeBuildInputs = [ autoreconfHook pkgconfig utilmacros python ];
-  buildInputs = [ libGL libX11 ];
+  buildInputs = optionals (!stdenv.isDarwin) [ libGL libX11 ];
 
-  preConfigure = optionalString stdenv.isDarwin ''
-    substituteInPlace configure --replace build_glx=no build_glx=yes
-    substituteInPlace src/dispatch_common.h --replace "PLATFORM_HAS_GLX 0" "PLATFORM_HAS_GLX 1"
-  '';
+#  preConfigure = optionalString stdenv.isDarwin ''
+#    substituteInPlace configure --replace build_glx=no build_glx=yes
+#    substituteInPlace src/dispatch_common.h --replace "PLATFORM_HAS_GLX 0" "PLATFORM_HAS_GLX 1"
+#  '';
 
   patches = [ ./libgl-path.patch ];
 
-  NIX_CFLAGS_COMPILE = ''-DLIBGL_PATH="${getLib libGL}/lib"'';
+NIX_CFLAGS_COMPILE = optionalString (!stdenv.isDarwin) ''-DLIBGL_PATH="${getLib libGL}/lib"'';
 
   doCheck = false; # needs X11
 

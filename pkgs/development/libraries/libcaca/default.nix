@@ -1,4 +1,8 @@
-{ stdenv, fetchurl, ncurses, zlib, imlib2, pkgconfig, libX11, libXext }:
+{ stdenv, pkgs, fetchurl, ncurses, zlib, pkgconfig, imlib2-nox
+, x11Support ? (!stdenv.isDarwin)
+, libX11 ? if x11Support then libX11 else null
+, libXext ? if x11Support then libXext else null
+}:
 
 stdenv.mkDerivation rec {
   name = "libcaca-0.99.beta19";
@@ -11,14 +15,22 @@ stdenv.mkDerivation rec {
     sha256 = "1x3j6yfyxl52adgnabycr0n38j9hx2j74la0hz0n8cnh9ry4d2qj";
   };
 
-  outputs = [ "bin" "dev" "out" "man" ];
+  outputs = [ "out" "dev" "man" ];
 
-  propagatedBuildInputs = [ ncurses zlib imlib2 pkgconfig libX11 ]
-   ++ stdenv.lib.optional stdenv.isDarwin libXext;
+  configureFlags = [
+    (if x11Support then "--enable-x11" else "--disable-x11")
+    ];
+
+  NIX_CFLAGS_COMPILE = stdenv.lib.optional (!x11Support) "-DX_DISPLAY_MISSING";
+
+  enableParallelBuilding = true;
+
+  propagatedBuildInputs = [ ncurses zlib imlib2-nox pkgconfig ]
+    ++ stdenv.lib.optionals x11Support [ libX11 libXext];
 
   postInstall = ''
     mkdir -p $dev/bin
-    mv $bin/bin/caca-config $dev/bin/caca-config
+    mv $out/bin/caca-config $dev/bin/
   '';
 
   meta = {

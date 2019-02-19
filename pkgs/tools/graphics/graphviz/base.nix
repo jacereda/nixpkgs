@@ -2,7 +2,8 @@
 
 { stdenv, fetchFromGitLab, autoreconfHook, pkgconfig, cairo, expat, flex
 , fontconfig, gd, gettext, gts, libdevil, libjpeg, libpng, libtool, pango
-, yacc, xorg ? null, ApplicationServices ? null }:
+, yacc, xorg ? null, ApplicationServices ? null
+, config }:
 
 assert stdenv.isDarwin -> ApplicationServices != null;
 
@@ -24,18 +25,18 @@ stdenv.mkDerivation rec {
   buildInputs = [
     libpng libjpeg expat yacc libtool fontconfig gd gts libdevil flex pango
     gettext
-  ] ++ optionals (xorg != null) (with xorg; [ libXrender libXaw libXpm ])
+  ] ++ optionals config.allowXorg (with xorg; [ libXrender libXaw libXpm ])
     ++ optionals (stdenv.isDarwin) [ ApplicationServices ];
 
   hardeningDisable = [ "fortify" ];
 
-  CPPFLAGS = stdenv.lib.optionalString (xorg != null && stdenv.isDarwin)
+  CPPFLAGS = stdenv.lib.optionalString (config.allowXorg && stdenv.isDarwin)
     "-I${cairo.dev}/include/cairo";
 
   configureFlags = [
     "--with-ltdl-lib=${libtool.lib}/lib"
     "--with-ltdl-include=${libtool}/include"
-  ] ++ stdenv.lib.optional (xorg == null) [ "--without-x" ];
+  ] ++ stdenv.lib.optional config.allowXorg [ "--without-x" ];
 
   postPatch = ''
     for f in $(find . -name Makefile.in); do
@@ -52,7 +53,7 @@ stdenv.mkDerivation rec {
 
   preAutoreconf = "./autogen.sh";
 
-  postFixup = optionalString (xorg != null) ''
+  postFixup = optionalString config.allowXorg ''
     substituteInPlace $out/bin/dotty --replace '`which lefty`' $out/bin/lefty
     substituteInPlace $out/bin/vimdot \
       --replace /usr/bin/vi '$(command -v vi)' \
