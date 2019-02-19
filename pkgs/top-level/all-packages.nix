@@ -9725,24 +9725,14 @@ in
   ffmpeg-full = callPackage ../development/libraries/ffmpeg-full {
     # The following need to be fixed on Darwin
     frei0r = if stdenv.isDarwin then null else frei0r;
-    game-music-emu = if stdenv.isDarwin then null else game-music-emu;
-    libjack2 = if stdenv.isDarwin then null else libjack2;
-    libmodplug = if stdenv.isDarwin then null else libmodplug;
-    openal = if stdenv.isDarwin then null else openal;
-    libpulseaudio = if stdenv.isDarwin then null else libpulseaudio;
-    samba = if stdenv.isDarwin then null else samba;
-    vid-stab = if stdenv.isDarwin then null else vid-stab;
-    x265 = if stdenv.isDarwin then null else x265;
     xavs = if stdenv.isDarwin then null else xavs;
-    libX11 = if stdenv.isDarwin then null else xorg.libX11;
-    libXext = if stdenv.isDarwin then null else xorg.libX11;
-    libXv = if stdenv.isDarwin then null else xorg.libXv;
-    libvdpau = if stdenv.isDarwin then null else libvdpau;
     inherit (darwin) cf-private;
     inherit (darwin.apple_sdk.frameworks)
-      Cocoa CoreServices CoreAudio AVFoundation MediaToolbox
-      VideoDecodeAcceleration;
-  };
+      AVFoundation AppKit ApplicationServices AudioToolbox Cocoa
+      CoreAudio CoreGraphics CoreMedia CoreServices
+      Foundation MediaToolbox QuartzCore Security
+      VideoDecodeAcceleration VideoToolbox;
+    };
 
   ffmpegthumbnailer = callPackage ../development/libraries/ffmpegthumbnailer { };
 

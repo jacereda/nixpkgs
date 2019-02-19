@@ -5,7 +5,7 @@
 , xcbSupport ? x11Support # no longer experimental since 1.12
 , glSupport ? true, libGL ? null # libGLU_combined is no longer a big dependency
 , pdfSupport ? true
-, darwin, config
+, darwin
 }:
 
 assert glSupport -> libGL != null;
@@ -37,7 +37,7 @@ in stdenv.mkDerivation rec {
 
   propagatedBuildInputs = with xorg;
     [ fontconfig expat freetype pixman zlib libpng ]
-    ++ optionals config.allowXorg [ libXext libXrender ]
+    ++ optionals x11Support [ libXext libXrender ]
     ++ optionals xcbSupport [ libxcb xcbutil ]
     ++ optional gobjectSupport glib
     ++ optional glSupport libGL

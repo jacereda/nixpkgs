@@ -8,6 +8,7 @@
 /*
  *  Build options
  */
+, x11Support ? (!stdenv.isDarwin) # build with Xorg libs
 , smallBuild ? false # Optimize for size instead of speed
 , runtimeCpuDetectBuild ? true # Detect CPU capabilities at runtime (disable to compile natively)
 , grayBuild ? true # Full grayscale support
@@ -18,7 +19,6 @@
 , networkBuild ? true # Network support
 , pixelutilsBuild ? true # Pixel utils in libavutil
 , enableLto ? false # build with link-time optimization
-, x11Support ? (!stdenv.isDarwin) # build with Xorg libs
 /*
  *  Program options
  */
@@ -92,9 +92,9 @@
 , libwebp ? null # WebP encoder
 , libX11 ? null # Xlib support
 , libxcb ? null # X11 grabbing using XCB
-, libxcbshmExtlib ? true # X11 grabbing shm communication
-, libxcbxfixesExtlib ? true # X11 grabbing mouse rendering
-, libxcbshapeExtlib ? true # X11 grabbing shape rendering
+, libxcbshmExtlib ? x11Support # X11 grabbing shm communication
+, libxcbxfixesExtlib ? x11Support # X11 grabbing mouse rendering
+, libxcbshapeExtlib ? x11Support # X11 grabbing shape rendering
 , libXv ? null # Xlib support
 , libXext ? null # Xlib support
 , lzma ? null # xz-utils
@@ -140,8 +140,22 @@
 /*
  *  Darwin frameworks
  */
-, Cocoa, CoreAudio, CoreServices, AVFoundation, MediaToolbox
-, VideoDecodeAcceleration, cf-private
+, AVFoundation
+, AppKit
+, ApplicationServices
+, AudioToolbox
+, Cocoa
+, CoreAudio
+, CoreGraphics
+, CoreMedia
+, CoreServices
+, Foundation
+, MediaToolbox
+, QuartzCore
+, Security
+, VideoDecodeAcceleration
+, VideoToolbox
+, cf-private
 }:
 
 /* Maintainer notes:
@@ -353,12 +367,12 @@ stdenv.mkDerivation rec {
     (enableFeature (libtheora != null) "libtheora")
     (enableFeature (if isLinux then libv4l != null else false) "libv4l2")
     (enableFeature ((isLinux || isFreeBSD) && libva != null) "vaapi")
-    (enableFeature (libvdpau != null) "vdpau")
+    (enableFeature (x11Support && libvdpau != null) "vdpau")
     (enableFeature (libvorbis != null) "libvorbis")
     (enableFeature (libvpx != null) "libvpx")
     (enableFeature (libwebp != null) "libwebp")
-    (enableFeature (libX11 != null && libXv != null && libXext != null) "xlib")
-    (enableFeature (libxcb != null) "libxcb")
+    (enableFeature (x11Support && libX11 != null && libXv != null && libXext != null) "xlib")
+    (enableFeature (x11Support && libxcb != null) "libxcb")
     (enableFeature libxcbshmExtlib "libxcb-shm")
     (enableFeature libxcbxfixesExtlib "libxcb-xfixes")
     (enableFeature libxcbshapeExtlib "libxcb-shape")
@@ -420,24 +434,21 @@ stdenv.mkDerivation rec {
     ++ optional (x11Support && libvdpau != null) libvdpau
     ++ optionals isLinux [ alsaLib libraw1394 libv4l ]
     ++ optionals nvenc [ nvidia-video-sdk nv-codec-headers ]
-    ++ optionals stdenv.isDarwin [ Cocoa CoreServices CoreAudio AVFoundation
-                                   MediaToolbox VideoDecodeAcceleration
-                                   libiconv ];
+    ++ optionals stdenv.isDarwin [
+      AVFoundation AppKit ApplicationServices AudioToolbox Cocoa
+      CoreAudio CoreGraphics CoreMedia CoreServices
+      Foundation MediaToolbox QuartzCore Security
+      VideoDecodeAcceleration VideoToolbox cf-private Cocoa
+      CoreServices CoreAudio AVFoundation MediaToolbox
+      VideoDecodeAcceleration libiconv
+      ];
 
   # Build qt-faststart executable
-  buildPhase = optional qtFaststartProgram ''make tools/qt-faststart'';
+  postBuildHook = optional qtFaststartProgram ''make tools/qt-faststart'';
 
   # Hacky framework patching technique borrowed from the phantomjs2 package
-  postInstall = optionalString qtFaststartProgram ''
+  postInstallHook = optionalString qtFaststartProgram ''
     cp -a tools/qt-faststart $out/bin/
-  '' + optionalString stdenv.isDarwin ''
-    FILES=($(ls $out/bin/*))
-    FILES+=($(ls $out/lib/*.dylib))
-    for f in ''${FILES[@]}; do
-      if [ ! -h "$f" ]; then
-        install_name_tool -change ${cf-private}/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation /System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation "$f"
-      fi
-    done
   '';
 
   enableParallelBuilding = true;
