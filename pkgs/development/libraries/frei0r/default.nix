@@ -11,13 +11,14 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ pkgconfig ];
   buildInputs = [ autoconf cairo opencv ];
+  enableParallelBuilding = true;
 
   meta = with stdenv.lib; {
     homepage = http://frei0r.dyne.org;
     description = "Minimalist, cross-platform, shared video plugins";
     license = licenses.gpl2;
     maintainers = [ maintainers.goibhniu ];
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.darwin;
 
   };
 }

@@ -9724,8 +9724,6 @@ in
 
   ffmpeg-full = callPackage ../development/libraries/ffmpeg-full {
     # The following need to be fixed on Darwin
-    frei0r = if stdenv.isDarwin then null else frei0r;
-    xavs = if stdenv.isDarwin then null else xavs;
     inherit (darwin) cf-private;
     inherit (darwin.apple_sdk.frameworks)
       AVFoundation AppKit ApplicationServices AudioToolbox Cocoa
