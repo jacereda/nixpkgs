@@ -22,11 +22,12 @@ stdenv.mkDerivation rec {
     patchShebangs tools/xavs-format
     '' + stdenv.lib.optionalString stdenv.isDarwin ''
     substituteInPlace config.guess --replace 'uname -p' 'uname -m'
-    substituteInPlace configure --replace '-O4' '-O3'
-    substituteInPlace configure --replace ' -s ' ' '
-    substituteInPlace configure --replace 'LDFLAGS -s' 'LDFLAGS'
-    substituteInPlace configure --replace '-dynamiclib' ' '
-    substituteInPlace configure --replace '-falign-loops=16' ' '
+    substituteInPlace configure \
+      --replace '-O4' '-O3' \
+      --replace ' -s ' ' ' \
+      --replace 'LDFLAGS -s' 'LDFLAGS' \
+      --replace '-dynamiclib' ' ' \
+      --replace '-falign-loops=16' ' '
     substituteInPlace Makefile --replace '-Wl,-soname,' ' '
     '';
 
