@@ -101,7 +101,6 @@
 , nvenc ? false, nvidia-video-sdk ? null, nv-codec-headers ? null # NVIDIA NVENC support
 , callPackage # needed for NVENC to access external ffmpeg nvidia headers
 , openal ? null # OpenAL 1.1 capture support
-#, opencl ? null # OpenCL code
 , opencore-amr ? null # AMR-NB de/encoder & AMR-WB decoder
 #, opencv ? null # Video filtering
 , openglExtlib ? false, libGLU_combined ? null # OpenGL rendering
@@ -137,6 +136,7 @@
 , optimizationsDeveloper ? true
 , extraWarningsDeveloper ? false
 , strippingDeveloper ? false
+, patches ? null
 /*
  *  Darwin frameworks
  */
@@ -151,6 +151,8 @@
 , CoreServices
 , Foundation
 , MediaToolbox
+, OpenCL
+, OpenGL
 , QuartzCore
 , Security
 , VideoDecodeAcceleration
@@ -263,6 +265,8 @@ stdenv.mkDerivation rec {
     substituteInPlace doc/filters.texi \
       --replace /usr/local/lib/frei0r-1 ${frei0r}/lib/frei0r-1
   '';
+
+  inherit patches;
 
   configurePlatforms = [];
   configureFlags = [
@@ -379,10 +383,10 @@ stdenv.mkDerivation rec {
     (enableFeature (lzma != null) "lzma")
     (enableFeature nvenc "nvenc")
     (enableFeature (openal != null) "openal")
-    #(enableFeature opencl "opencl")
+    (enableFeature stdenv.isDarwin "opencl")
     (enableFeature (opencore-amr != null && version3Licensing) "libopencore-amrnb")
     #(enableFeature (opencv != null) "libopencv")
-    (enableFeature openglExtlib "opengl")
+    (enableFeature (stdenv.isDarwin || openglExtlib) "opengl")
     #(enableFeature (openh264 != null) "openh264")
     (enableFeature (openjpeg != null) "libopenjpeg")
     (enableFeature (opensslExtlib && gplLicensing) "openssl")
@@ -436,18 +440,18 @@ stdenv.mkDerivation rec {
     ++ optionals nvenc [ nvidia-video-sdk nv-codec-headers ]
     ++ optionals stdenv.isDarwin [
       AVFoundation AppKit ApplicationServices AudioToolbox Cocoa
-      CoreAudio CoreGraphics CoreMedia CoreServices
-      Foundation MediaToolbox QuartzCore Security
+      CoreAudio CoreGraphics CoreMedia CoreServices Foundation
+      MediaToolbox OpenCL OpenGL QuartzCore Security
       VideoDecodeAcceleration VideoToolbox cf-private Cocoa
       CoreServices CoreAudio AVFoundation MediaToolbox
       VideoDecodeAcceleration libiconv
       ];
 
   # Build qt-faststart executable
-  postBuildHook = optional qtFaststartProgram ''make tools/qt-faststart'';
+  postBuild = optional qtFaststartProgram ''make tools/qt-faststart'';
 
   # Hacky framework patching technique borrowed from the phantomjs2 package
-  postInstallHook = optionalString qtFaststartProgram ''
+  postInstall = optionalString qtFaststartProgram ''
     cp -a tools/qt-faststart $out/bin/
   '';
 
