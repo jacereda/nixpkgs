@@ -1,5 +1,5 @@
-{ stdenv, fetchurl, libGLU, xlibsWrapper, libXmu, libXi
-, config, lib, darwin
+{ stdenv, fetchurl, lib, darwin
+, x11Support? (!stdenv.isDarwin), libGLU, xlibsWrapper, libXmu, libXi
 }:
 
 with stdenv.lib;
@@ -14,9 +14,9 @@ stdenv.mkDerivation rec {
 
   outputs = [ "bin" "out" "dev" "doc" ];
 
-  buildInputs = lib.optionals config.allowXorg [ xlibsWrapper libXmu libXi ]
-    ++ lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks.OpenGL ];
-  propagatedBuildInputs = lib.optionals config.allowXorg [ libGLU ]; # GL/glew.h includes GL/glu.h
+  buildInputs = lib.optionals x11Support [ xlibsWrapper libXmu libXi ];
+  propagatedBuildInputs = lib.optional x11Support libGLU # GL/glew.h includes GL/glu.h
+    ++ lib.optional stdenv.isDarwin darwin.apple_sdk.frameworks.OpenGL;
 
   patchPhase = ''
     sed -i 's|lib64|lib|' config/Makefile.linux
@@ -39,6 +39,8 @@ stdenv.mkDerivation rec {
     cp glew*.pc $out/lib/pkgconfig
     cp -r README.md LICENSE.txt doc $out/share/doc/glew
     rm $out/lib/*.a
+  '' + lib.optionalString stdenv.isDarwin ''
+    substituteInPlace $out/lib/pkgconfig/glew*.pc --replace 'Libs:' 'Libs: -framework OpenGL'
   '';
 
   makeFlags = [
