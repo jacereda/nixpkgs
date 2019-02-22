@@ -9723,12 +9723,11 @@ in
   ffmpeg = ffmpeg_3;
 
   ffmpeg-full = callPackage ../development/libraries/ffmpeg-full {
-    # The following need to be fixed on Darwin
     inherit (darwin) cf-private;
     inherit (darwin.apple_sdk.frameworks)
       AVFoundation AppKit ApplicationServices AudioToolbox Cocoa
-      CoreAudio CoreGraphics CoreMedia CoreServices
-      Foundation MediaToolbox QuartzCore Security
+      CoreAudio CoreGraphics CoreMedia CoreServices Foundation
+      MediaToolbox OpenCL OpenGL QuartzCore Security
       VideoDecodeAcceleration VideoToolbox;
     };
 
