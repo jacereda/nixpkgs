@@ -1,4 +1,5 @@
-{ stdenv, lib, fetchFromGitHub, cmake, libGL, libXrandr, libXinerama, libXcursor, libX11
+{ stdenv, lib, fetchFromGitHub, cmake
+, x11Support? (!stdenv.isDarwin), libGL, libXrandr, libXinerama, libXcursor, libX11
 , cf-private, Cocoa, Kernel, fixDarwinDylibNames
 }:
 
@@ -15,11 +16,11 @@ stdenv.mkDerivation rec {
 
   enableParallelBuilding = true;
 
-  propagatedBuildInputs = [ libGL ];
+  propagatedBuildInputs = lib.optional x11Support libGL;
 
   nativeBuildInputs = [ cmake ];
 
-  buildInputs = [
+  buildInputs = lib.optionals x11Support [
     libX11 libXrandr libXinerama libXcursor
   ] ++ lib.optionals stdenv.isDarwin [
     Cocoa Kernel fixDarwinDylibNames
@@ -29,7 +30,7 @@ stdenv.mkDerivation rec {
 
   cmakeFlags = [ "-DBUILD_SHARED_LIBS=ON" ];
 
-  preConfigure  = lib.optional (!stdenv.isDarwin) ''
+  preConfigure  = lib.optional x11Support ''
     substituteInPlace src/glx_context.c --replace "libGL.so.1" "${lib.getLib libGL}/lib/libGL.so.1"
   '';
 
