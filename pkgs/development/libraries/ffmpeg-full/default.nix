@@ -257,8 +257,6 @@ stdenv.mkDerivation rec {
 
   prePatch = ''
     patchShebangs .
-  '' + stdenv.lib.optionalString stdenv.isDarwin ''
-    sed -i 's/#ifndef __MAC_10_11/#if 1/' ./libavcodec/audiotoolboxdec.c
   '' + stdenv.lib.optionalString (frei0r != null) ''
     substituteInPlace libavfilter/vf_frei0r.c \
       --replace /usr/local/lib/frei0r-1 ${frei0r}/lib/frei0r-1
