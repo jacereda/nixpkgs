@@ -52,7 +52,6 @@ self: super: {
   unordered-containers = dontCheck super.unordered-containers;
 
   # Test suite does not compile.
-  cereal = dontCheck super.cereal;
   data-clist = doJailbreak super.data-clist;  # won't cope with QuickCheck 2.12.x
   dates = doJailbreak super.dates; # base >=4.9 && <4.12
   Diff = dontCheck super.Diff;
@@ -76,8 +75,5 @@ self: super: {
 
   # Fix build with ghc 8.6.x.
   git-annex = appendPatch super.git-annex ./patches/git-annex-fix-ghc-8.6.x-build.patch;
-
-  # https://github.com/pikajude/stylish-cabal/issues/11
-  stylish-cabal = markBrokenVersion "0.4.1.0" super.stylish-cabal;
 
 }

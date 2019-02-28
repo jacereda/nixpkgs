@@ -10,13 +10,13 @@
 stdenv.mkDerivation rec {
   name = "${pname}-${version}";
   pname = "sway";
-  version = "1.0-rc2";
+  version = "1.0-rc4";
 
   src = fetchFromGitHub {
     owner = "swaywm";
     repo = "sway";
     rev = version;
-    sha256 = "052if3nagmwg5zh79nhrq75fbc9v2x950lcs1mal52p801qiv8f1";
+    sha256 = "1f0mvf48dvsivdd850r1gd2h90cbn62qflwiff6x2addn868bvxa";
   };
 
   postPatch = ''
@@ -36,15 +36,14 @@ stdenv.mkDerivation rec {
   enableParallelBuilding = true;
 
   mesonFlags = [
-    "-Dxwayland=enabled" "-Dgdk-pixbuf=enabled" "-Dman-pages=enabled"
-    "-Dtray=enabled"
-  ];
+    "-Dxwayland=enabled" "-Dgdk-pixbuf=enabled" "-Dtray=enabled"
+  ] ++ stdenv.lib.optional buildDocs "-Dman-pages=enabled";
 
   meta = with stdenv.lib; {
     description = "i3-compatible window manager for Wayland";
     homepage    = https://swaywm.org;
     license     = licenses.mit;
     platforms   = platforms.linux;
-    maintainers = with maintainers; [ primeos synthetica ]; # Trying to keep it up-to-date.
+    maintainers = with maintainers; [ primeos synthetica ];
   };
 }

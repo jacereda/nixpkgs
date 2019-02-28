@@ -40,7 +40,7 @@ let
         else if (cfg.database.passwordFile != null) then
           "file_get_contents('${cfg.database.passwordFile}')"
         else
-          ""
+          "''"
       });
       define('DB_PORT', '${toString dbPort}');
 
@@ -562,7 +562,7 @@ let
           callSql = e:
               if cfg.database.type == "pgsql" then ''
                   ${optionalString (cfg.database.password != null) "PGPASSWORD=${cfg.database.password}"} \
-                  ${optionalString (cfg.database.passwordFile != null) "PGPASSWORD=$(cat ${cfg.database.passwordFile}"}) \
+                  ${optionalString (cfg.database.passwordFile != null) "PGPASSWORD=$(cat ${cfg.database.passwordFile})"} \
                   ${pkgs.sudo}/bin/sudo -u ${cfg.user} ${config.services.postgresql.package}/bin/psql \
                     -U ${cfg.database.user} \
                     ${optionalString (cfg.database.host != null) "-h ${cfg.database.host} --port ${toString dbPort}"} \
