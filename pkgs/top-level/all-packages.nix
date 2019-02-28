@@ -3093,6 +3093,7 @@ in
 
   graphviz = callPackage ../tools/graphics/graphviz {
     inherit (darwin.apple_sdk.frameworks) ApplicationServices;
+    inherit (darwin) libobjc;
   };
 
   graphviz-nox = graphviz.override {

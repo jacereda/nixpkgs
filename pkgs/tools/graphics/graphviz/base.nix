@@ -2,12 +2,14 @@
 
 { stdenv, fetchFromGitLab, autoreconfHook, pkgconfig, cairo, expat, flex
 , fontconfig, gd, gettext, gts, libdevil, libjpeg, libpng, libtool, pango
-, yacc, fetchpatch, xorg ? null, ApplicationServices ? null }:
+, yacc, fetchpatch
+, x11Support ? !stdenv.isDarwin , xorg ? null
+, quartzSupport ? stdenv.isDarwin, ApplicationServices ? null, libobjc ? null }:
 
 assert stdenv.isDarwin -> ApplicationServices != null;
 
 let
-  inherit (stdenv.lib) optionals optionalString;
+  inherit (stdenv.lib) optional optionals optionalString;
   raw_patch =
     # https://gitlab.com/graphviz/graphviz/issues/1367 CVE-2018-10196
     fetchpatch {
@@ -33,23 +35,26 @@ stdenv.mkDerivation rec {
     inherit sha256 rev;
   };
 
+  enableParallelBuilding = true;
+
   nativeBuildInputs = [ autoreconfHook pkgconfig ];
 
   buildInputs = [
     libpng libjpeg expat yacc libtool fontconfig gd gts libdevil flex pango
     gettext
-  ] ++ optionals config.allowXorg (with xorg; [ libXrender libXaw libXpm ])
-    ++ optionals (stdenv.isDarwin) [ ApplicationServices ];
+  ] ++ optionals x11Support (with xorg; [ libXrender libXaw libXpm ])
+    ++ optionals stdenv.isDarwin [ ApplicationServices libobjc ];
 
   hardeningDisable = [ "fortify" ];
 
-  CPPFLAGS = stdenv.lib.optionalString (config.allowXorg && stdenv.isDarwin)
+  CPPFLAGS = optionalString (x11Support && stdenv.isDarwin)
     "-I${cairo.dev}/include/cairo";
 
   configureFlags = [
     "--with-ltdl-lib=${libtool.lib}/lib"
     "--with-ltdl-include=${libtool}/include"
-  ] ++ stdenv.lib.optional config.allowXorg [ "--without-x" ];
+  ] ++ optional (!x11Support) "--without-x"
+    ++ optional quartzSupport "--with-quartz";
 
   patches = [
     patch
@@ -59,6 +64,10 @@ stdenv.mkDerivation rec {
     for f in $(find . -name Makefile.in); do
       substituteInPlace $f --replace "-lstdc++" "-lc++"
     done
+  '' + optionalString stdenv.isDarwin ''
+    substituteInPlace plugin/quartz/Makefile.am \
+      --replace 'WITH_DARWIN9' '!WITH_DARWIN9' \
+      --replace 'AM_LIBTOOLSFLAGS' 'AM_LIBTOOLFLAGS'
   '';
 
   # ''
@@ -70,7 +79,7 @@ stdenv.mkDerivation rec {
 
   preAutoreconf = "./autogen.sh";
 
-  postFixup = optionalString config.allowXorg ''
+  postFixup = optionalString x11Support ''
     substituteInPlace $out/bin/dotty --replace '`which lefty`' $out/bin/lefty
     substituteInPlace $out/bin/vimdot \
       --replace /usr/bin/vi '$(command -v vi)' \

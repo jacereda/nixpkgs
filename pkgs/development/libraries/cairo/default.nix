@@ -1,4 +1,4 @@
-{ config, stdenv, fetchurl, pkgconfig, libiconv
+{ config, stdenv, fetchurl, fetchpatch, pkgconfig, libiconv
 , libintl, expat, zlib, libpng, pixman, fontconfig, freetype
 , x11Support ? (!stdenv.isDarwin), xorg
 , gobjectSupport ? true, glib
@@ -6,19 +6,11 @@
 , libGLSupported
 , glSupport ? config.cairo.gl or stdenv.isDarwin or (libGLSupported && stdenv.isLinux && !stdenv.isAarch32 && !stdenv.isMips)
 , libGL ? null # libGLU_combined is no longer a big dependency
-=======
-{ config, stdenv, fetchurl, fetchpatch, pkgconfig, libiconv
-, libintl, expat, zlib, libpng, pixman, fontconfig, freetype, xorg
-, gobjectSupport ? true, glib
-, xcbSupport ? true # no longer experimental since 1.12
-
-, libGL ? null # libGLU_combined is no longer a big dependency
->>>>>>> mercury-darwin
 , pdfSupport ? true
 , darwin
 }:
 
-assert glSupport -> libGL != null;
+assert glSupport -> stdenv.isDarwin or libGL != null;
 
 let
   version = "1.16.0";
@@ -63,7 +55,7 @@ in stdenv.mkDerivation rec {
     ++ optionals x11Support [ libXext libXrender ]
     ++ optionals xcbSupport [ libxcb xcbutil ]
     ++ optional gobjectSupport glib
-    ++ optional glSupport libGL
+    ++ optional (!stdenv.isDarwin && glSupport) libGL
     ; # TODO: maybe liblzo but what would it be for here?
 
   configureFlags = if stdenv.isDarwin then [
