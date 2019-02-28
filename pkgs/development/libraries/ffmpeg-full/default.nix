@@ -264,8 +264,6 @@ stdenv.mkDerivation rec {
       --replace /usr/local/lib/frei0r-1 ${frei0r}/lib/frei0r-1
   '';
 
-  inherit patches;
-
   configurePlatforms = [];
   configureFlags = [
     "--target_os=${stdenv.hostPlatform.parsed.kernel.name}"
