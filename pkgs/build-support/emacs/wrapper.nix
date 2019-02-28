@@ -32,7 +32,7 @@ in customEmacsPackages.emacsWithPackages (epkgs: [ epkgs.evil epkgs.magit ])
 
 */
 
-{ lib, makeWrapper, runCommand, stdenv }: self:
+{ lib, lndir, makeWrapper, runCommand, stdenv }: self:
 
 with lib; let inherit (self) emacs; in
 
@@ -47,13 +47,13 @@ in
 
 stdenv.mkDerivation {
   name = (appendToName "with-packages" emacs).name;
-  nativeBuildInputs = [ emacs makeWrapper ];
+  nativeBuildInputs = [ emacs lndir makeWrapper ];
   inherit emacs explicitRequires;
 
   # Store all paths we want to add to emacs here, so that we only need to add
   # one path to the load lists
   deps = runCommand "emacs-packages-deps"
-   { inherit explicitRequires emacs; }
+   { inherit explicitRequires lndir emacs; }
    ''
      findInputsOld() {
          local pkg="$1"; shift
@@ -105,10 +105,7 @@ stdenv.mkDerivation {
 
        # Add the path to the search path list, but only if it exists
        if [[ -d "$pkg/$origin_path" ]]; then
-         for i in `cd "$pkg/$origin_path" && find . -not -type d | cut -c 3-` ; do
-           install -d `dirname "$out/$dest_path/$i"`
-           ln -sf "$pkg/$origin_path/$i" "$out/$dest_path/$i"
-         done
+         $lndir/bin/lndir -silent "$pkg/$origin_path" "$out/$dest_path"
        fi
      }
 
