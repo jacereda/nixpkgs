@@ -2027,7 +2027,7 @@ in
 
   ibus = callPackage ../tools/inputmethods/ibus {
     gconf = gnome2.GConf;
-    inherit (gnome3) dconf glib;
+    inherit (gnome3) dconf;
   };
 
   ibus-qt = callPackage ../tools/inputmethods/ibus/ibus-qt.nix { };
@@ -2673,6 +2673,8 @@ in
   filegive = callPackage ../tools/networking/filegive { };
 
   fileschanged = callPackage ../tools/misc/fileschanged { };
+
+  filet = callPackage ../applications/misc/filet { };
 
   findutils = callPackage ../tools/misc/findutils { };
 
@@ -4610,9 +4612,7 @@ in
 
   omping = callPackage ../applications/networking/omping { };
 
-  onioncircuits = callPackage ../tools/security/onioncircuits {
-    inherit (gnome3) defaultIconTheme;
-  };
+  onioncircuits = callPackage ../tools/security/onioncircuits { };
 
   openapi-generator-cli = callPackage ../tools/networking/openapi-generator-cli { };
 
@@ -5205,7 +5205,6 @@ in
   remind = callPackage ../tools/misc/remind { };
 
   remmina = callPackage ../applications/networking/remote/remmina {
-    adwaita-icon-theme = gnome3.adwaita-icon-theme;
     gsettings-desktop-schemas = gnome3.gsettings-desktop-schemas;
   };
 
@@ -5372,9 +5371,7 @@ in
     quazip = quazip_qt4;
   };
 
-  screenkey = python2Packages.callPackage ../applications/video/screenkey {
-    inherit (gnome3) defaultIconTheme;
-  };
+  screenkey = python2Packages.callPackage ../applications/video/screenkey { };
 
   quazip_qt4 = libsForQt5.quazip.override {
     qtbase = qt4; qmake = qmake4Hook;
@@ -5849,9 +5846,7 @@ in
 
   tor-arm = callPackage ../tools/security/tor/tor-arm.nix { };
 
-  tor-browser-bundle-bin = callPackage ../applications/networking/browsers/tor-browser-bundle-bin {
-    inherit (gnome3) defaultIconTheme;
-  };
+  tor-browser-bundle-bin = callPackage ../applications/networking/browsers/tor-browser-bundle-bin { };
 
   tor-browser-bundle = callPackage ../applications/networking/browsers/tor-browser-bundle {
     stdenv = stdenvNoCC;
@@ -5864,6 +5859,8 @@ in
   torsocks = callPackage ../tools/security/tor/torsocks.nix { };
 
   toxvpn = callPackage ../tools/networking/toxvpn { };
+
+  toybox = callPackage ../tools/misc/toybox { };
 
   tpmmanager = callPackage ../applications/misc/tpmmanager { };
 
@@ -6687,6 +6684,11 @@ in
     name = "clang-wrapper-with-reexport-hack";
     bintools = darwin.binutils.override {
       useMacosReexportHack = true;
+      bintools = darwin.binutils.bintools.override {
+        cctools = darwin.cctools.override {
+          enableDumpNormalizedLibArgs = true;
+        };
+      };
     };
   };
   llvm-polly = llvmPackages_7.llvm-polly;
@@ -7141,7 +7143,11 @@ in
     inherit (darwin.apple_sdk.frameworks) Security Foundation;
   };
 
-  go = go_1_11;
+  go_1_12 = callPackage ../development/compilers/go/1.12.nix {
+    inherit (darwin.apple_sdk.frameworks) Security Foundation;
+  };
+
+  go = go_1_12;
 
   go-repo-root = callPackage ../development/tools/go-repo-root { };
 
@@ -7399,7 +7405,15 @@ in
     stdenv = overrideCC stdenv buildPackages.gcc6; # with gcc-7: undefined reference to `__divmoddi4'
   });
 
-  llvmPackages_latest = llvmPackages_7;
+  llvmPackages_8 = callPackage ../development/compilers/llvm/8 ({
+    inherit (stdenvAdapters) overrideCC;
+    buildLlvmTools = buildPackages.llvmPackages_8.tools;
+    targetLlvmLibraries = targetPackages.llvmPackages_8.libraries;
+  } // stdenv.lib.optionalAttrs (buildPackages.stdenv.cc.isGNU && stdenv.hostPlatform.isi686) {
+    stdenv = overrideCC stdenv buildPackages.gcc6; # with gcc-7: undefined reference to `__divmoddi4'
+  });
+
+  llvmPackages_latest = llvmPackages_8;
 
   manticore = callPackage ../development/compilers/manticore { };
 
@@ -7504,7 +7518,7 @@ in
   };
 
   ponyc = callPackage ../development/compilers/ponyc {
-    llvm = llvm_39;
+    llvm = llvm_7;
   };
 
   pony-stable = callPackage ../development/compilers/ponyc/pony-stable.nix { };
@@ -7624,9 +7638,7 @@ in
   tbb = callPackage ../development/libraries/tbb { };
 
   terra = callPackage ../development/compilers/terra {
-    llvmPackages = llvmPackages_38 // {
-      llvm = llvmPackages_38.llvm.override { enableSharedLibraries = false; };
-    };
+    llvmPackages = llvmPackages_6;
     lua = lua5_1;
   };
 
@@ -8312,15 +8324,13 @@ in
 
   augeas = callPackage ../tools/system/augeas { };
 
-  inherit (callPackages ../tools/admin/ansible {})
-    ansible_2_4
+  inherit (callPackage ../tools/admin/ansible { })
+    ansible
     ansible_2_5
     ansible_2_6
-    ansible_2_7
-    ansible2
-    ansible;
+    ansible_2_7;
 
-  ansible-lint = callPackage ../development/tools/ansible-lint {};
+  ansible-lint = with python3.pkgs; toPythonApplication ansible-lint;
 
   antlr = callPackage ../development/tools/parsing/antlr/2.7.7.nix { };
 
@@ -8535,7 +8545,9 @@ in
 
   cmake_2_8 = callPackage ../development/tools/build-managers/cmake/2.8.nix { };
 
-  cmake = libsForQt5.callPackage ../development/tools/build-managers/cmake { };
+  cmake = libsForQt5.callPackage ../development/tools/build-managers/cmake {
+    inherit (darwin) cf-private;
+  };
 
   cmakeCurses = cmake.override { useNcurses = true; };
 
@@ -11682,7 +11694,7 @@ in
   libGLSupported = lib.elem stdenv.hostPlatform.system lib.platforms.mesaPlatforms;
 
   mesa_noglu = callPackage ../development/libraries/mesa {
-    llvmPackages = llvmPackages_6;
+    llvmPackages = llvmPackages_7;
     inherit (darwin.apple_sdk.frameworks) OpenGL;
     inherit (darwin.apple_sdk.libs) Xplugin;
   };
@@ -12183,7 +12195,8 @@ in
       inherit perl;
       inherit (darwin) cf-private;
       inherit (gst_all_1) gstreamer gst-plugins-base;
-      inherit (gnome3) gtk3 dconf;
+      inherit gtk3;
+      inherit (gnome3) dconf;
     });
 
   libsForQt59 = lib.makeScope qt59.newScope mkLibsForQt5;
@@ -12198,7 +12211,8 @@ in
       inherit libGL;
       inherit perl;
       inherit (darwin) cf-private;
-      inherit (gnome3) gtk3 dconf;
+      inherit gtk3;
+      inherit (gnome3) dconf;
       inherit (gst_all_1) gstreamer gst-plugins-base;
     });
 
@@ -12214,7 +12228,8 @@ in
       inherit libGL;
       inherit perl;
       inherit (darwin) cf-private;
-      inherit (gnome3) gtk3 dconf;
+      inherit gtk3;
+      inherit (gnome3) dconf;
       inherit (gst_all_1) gstreamer gst-plugins-base;
     });
 
@@ -13726,12 +13741,14 @@ in
     # We don't use `with` statement here on purpose!
     # See https://github.com/NixOS/nixpkgs/pull/10474/files#r42369334
     modules = [ nginxModules.rtmp nginxModules.dav nginxModules.moreheaders ];
+    openssl = openssl_1_1;
   };
 
   nginxMainline = callPackage ../servers/http/nginx/mainline.nix {
     # We don't use `with` statement here on purpose!
     # See https://github.com/NixOS/nixpkgs/pull/10474/files#r42369334
     modules = [ nginxModules.dav nginxModules.moreheaders ];
+    openssl = openssl_1_1;
   };
 
   nginxModules = callPackage ../servers/http/nginx/modules.nix { };
@@ -14648,6 +14665,13 @@ in
       ];
   };
 
+  linux_5_0 = callPackage ../os-specific/linux/kernel/linux-5.0.nix {
+    kernelPatches =
+      [ kernelPatches.bridge_stp_helper
+        kernelPatches.modinst_arg_list_too_long
+      ];
+  };
+
   linux_testing = callPackage ../os-specific/linux/kernel/linux-testing.nix {
     kernelPatches = [
       kernelPatches.bridge_stp_helper
@@ -14829,7 +14853,7 @@ in
   linux = linuxPackages.kernel;
 
   # Update this when adding the newest kernel major version!
-  linuxPackages_latest = linuxPackages_4_20;
+  linuxPackages_latest = linuxPackages_5_0;
   linux_latest = linuxPackages_latest.kernel;
 
   # Build the kernel modules for the some of the kernels.
@@ -14840,6 +14864,7 @@ in
   linuxPackages_4_14 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_14);
   linuxPackages_4_19 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_19);
   linuxPackages_4_20 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_4_20);
+  linuxPackages_5_0 = recurseIntoAttrs (linuxPackagesFor pkgs.linux_5_0);
   # When adding to this list:
   # - Update linuxPackages_latest to the latest version
   # - Update the rev in ../os-specific/linux/kernel/linux-libre.nix to the latest one.
@@ -15013,9 +15038,7 @@ in
 
   nvme-cli = callPackage ../os-specific/linux/nvme-cli { };
 
-  open-vm-tools = callPackage ../applications/virtualization/open-vm-tools {
-    inherit (gnome3) gtk gtkmm;
-  };
+  open-vm-tools = callPackage ../applications/virtualization/open-vm-tools { };
   open-vm-tools-headless = open-vm-tools.override { withX = false; };
 
   delve = callPackage ../development/tools/delve { };
@@ -16055,9 +16078,7 @@ in
     inherit (pythonPackages) eyeD3;
   };
 
-  abiword = callPackage ../applications/office/abiword {
-    iconTheme = gnome3.defaultIconTheme;
-  };
+  abiword = callPackage ../applications/office/abiword { };
 
   abook = callPackage ../applications/misc/abook { };
 
@@ -16134,7 +16155,7 @@ in
     inherit (vamp) vampSDK;
   };
 
-  inherit (python3Packages) arelle;
+  arelle = with python3Packages; toPythonApplication arelle;
 
   argo = callPackage ../applications/networking/cluster/argo { };
 
@@ -16382,6 +16403,8 @@ in
   carddav-util = callPackage ../tools/networking/carddav-util { };
 
   catfish = callPackage ../applications/search/catfish { };
+
+  catimg = callPackage ../tools/misc/catimg { };
 
   cava = callPackage ../applications/audio/cava { };
 
@@ -16672,9 +16695,7 @@ in
 
   devede = callPackage ../applications/video/devede { };
 
-  denemo = callPackage ../applications/audio/denemo {
-    inherit (gnome3) gtksourceview;
-  };
+  denemo = callPackage ../applications/audio/denemo { };
 
   dvb_apps  = callPackage ../applications/video/dvb-apps { };
 
@@ -17263,7 +17284,6 @@ in
     generated = import ../applications/networking/browsers/firefox-bin/release_sources.nix;
     gconf = pkgs.gnome2.GConf;
     inherit (pkgs.gnome2) libgnome libgnomeui;
-    inherit (pkgs.gnome3) defaultIconTheme;
   };
 
   firefox-bin = wrapFirefox firefox-bin-unwrapped {
@@ -17278,7 +17298,6 @@ in
     generated = import ../applications/networking/browsers/firefox-bin/beta_sources.nix;
     gconf = pkgs.gnome2.GConf;
     inherit (pkgs.gnome2) libgnome libgnomeui;
-    inherit (pkgs.gnome3) defaultIconTheme;
   };
 
   firefox-beta-bin = res.wrapFirefox firefox-beta-bin-unwrapped {
@@ -17293,7 +17312,6 @@ in
     generated = import ../applications/networking/browsers/firefox-bin/devedition_sources.nix;
     gconf = pkgs.gnome2.GConf;
     inherit (pkgs.gnome2) libgnome libgnomeui;
-    inherit (pkgs.gnome3) defaultIconTheme;
   };
 
   firefox-devedition-bin = res.wrapFirefox firefox-devedition-bin-unwrapped {
@@ -17522,7 +17540,7 @@ in
   gnome-mpv = callPackage ../applications/video/gnome-mpv { };
 
   gnome-recipes = callPackage ../applications/misc/gnome-recipes {
-    inherit (gnome3) gnome-online-accounts rest gnome-autoar gspell;
+    inherit (gnome3) gnome-online-accounts gnome-autoar;
   };
 
   gollum = callPackage ../applications/misc/gollum { };
@@ -17605,6 +17623,7 @@ in
   hipchat = callPackage ../applications/networking/instant-messengers/hipchat { };
 
   hledger = haskell.lib.justStaticExecutables haskellPackages.hledger;
+  hledger-interest = haskell.lib.justStaticExecutables haskellPackages.hledger-interest;
   hledger-ui = haskell.lib.justStaticExecutables haskellPackages.hledger-ui;
   hledger-web = haskell.lib.justStaticExecutables haskellPackages.hledger-web;
 
@@ -17659,7 +17678,10 @@ in
 
   slack-term = callPackage ../applications/networking/instant-messengers/slack-term { };
 
-  singularity = callPackage ../applications/virtualization/singularity { };
+  singularity = callPackage ../applications/virtualization/singularity {
+    # XXX: the build is finding references to Go when compiled with go v1.12
+    go = go_1_11;
+  };
 
   spectmorph = callPackage ../applications/audio/spectmorph { };
 
@@ -18052,7 +18074,6 @@ in
   libreoffice-args = {
     inherit (perlPackages) ArchiveZip IOCompress;
     inherit (gnome2) GConf ORBit2 gnome_vfs;
-    inherit (gnome3) defaultIconTheme;
     zip = zip.override { enableNLS = false; };
     fontsConf = makeFontsConf {
       fontDirectories = [
@@ -18512,6 +18533,8 @@ in
 
   pijul = callPackage ../applications/version-management/pijul {};
 
+  ping = callPackage ../applications/networking/ping { };
+
   piper = callPackage ../os-specific/linux/piper { };
 
   plank = callPackage ../applications/misc/plank { };
@@ -18559,7 +18582,6 @@ in
   };
 
   synfigstudio = callPackage ../applications/graphics/synfigstudio {
-    inherit (gnome3) defaultIconTheme;
     mlt-qt5 = libsForQt5.mlt;
   };
 
@@ -18890,9 +18912,7 @@ in
 
   pinfo = callPackage ../applications/misc/pinfo { };
 
-  pinpoint = callPackage ../applications/office/pinpoint {
-    inherit (gnome3) clutter clutter-gtk;
-  };
+  pinpoint = callPackage ../applications/office/pinpoint { };
 
   pinta = callPackage ../applications/graphics/pinta {
     gtksharp = gtk-sharp-2_0;
@@ -18941,7 +18961,7 @@ in
     python = python3;
   } // (config.profanity or {}));
 
-  protonmail-bridge = libsForQt5.callPackage ../applications/networking/protonmail-bridge { };
+  protonmail-bridge = libsForQt511.callPackage ../applications/networking/protonmail-bridge { };
 
   psi = callPackage ../applications/networking/instant-messengers/psi { };
 
@@ -19082,7 +19102,7 @@ in
   quodlibet-xine = quodlibet.override { xineBackend = true; tag = "-xine"; };
 
   quodlibet-full = quodlibet.override {
-    inherit (gnome3) gtksourceview webkitgtk;
+    inherit gtksourceview webkitgtk;
     withDbusPython = true;
     withPyInotify = true;
     withMusicBrainzNgs = true;
@@ -19229,7 +19249,7 @@ in
 
   udevil = callPackage ../applications/misc/udevil {};
 
-  udiskie = python3Packages.callPackage ../applications/misc/udiskie { };
+  udiskie = callPackage ../applications/misc/udiskie { };
 
   sakura = callPackage ../applications/misc/sakura { };
 
@@ -19650,7 +19670,6 @@ in
   thunderbird-bin = callPackage ../applications/networking/mailreaders/thunderbird-bin {
     gconf = pkgs.gnome2.GConf;
     inherit (pkgs.gnome2) libgnome libgnomeui;
-    inherit (pkgs.gnome3) defaultIconTheme;
   };
 
   tig = gitAndTools.tig;
@@ -19809,9 +19828,7 @@ in
     inherit (darwin.apple_sdk.frameworks) Carbon Cocoa;
   };
 
-  vimiv = callPackage ../applications/graphics/vimiv {
-    inherit (gnome3) defaultIconTheme;
-  };
+  vimiv = callPackage ../applications/graphics/vimiv { };
 
   macvim = callPackage ../applications/editors/vim/macvim.nix { stdenv = clangStdenv; };
 
@@ -21287,7 +21304,7 @@ in
   clearlooks-phenix = callPackage ../misc/themes/clearlooks-phenix { };
 
   deepin = recurseIntoAttrs (import ../desktops/deepin {
-    inherit pkgs libsForQt5;
+    inherit pkgs libsForQt5 go_1_11;
     inherit (lib) makeScope;
   });
 
@@ -21326,10 +21343,12 @@ in
     nohotcorner = callPackage ../desktops/gnome-3/extensions/nohotcorner { };
     no-title-bar = callPackage ../desktops/gnome-3/extensions/no-title-bar { };
     remove-dropdown-arrows = callPackage ../desktops/gnome-3/extensions/remove-dropdown-arrows { };
+    sound-output-device-chooser = callPackage ../desktops/gnome-3/extensions/sound-output-device-chooser { };
     system-monitor = callPackage ../desktops/gnome-3/extensions/system-monitor { };
     taskwhisperer = callPackage ../desktops/gnome-3/extensions/taskwhisperer { };
     timepp = callPackage ../desktops/gnome-3/extensions/timepp { };
     topicons-plus = callPackage ../desktops/gnome-3/extensions/topicons-plus { };
+    window-corner-preview = callPackage ../desktops/gnome-3/extensions/window-corner-preview { };
   };
 
   hsetroot = callPackage ../tools/X11/hsetroot { };
@@ -22072,9 +22091,7 @@ in
 
   bcal = callPackage ../applications/science/math/bcal { };
 
-  pspp = callPackage ../applications/science/math/pspp {
-    inherit (gnome3) gtksourceview;
-  };
+  pspp = callPackage ../applications/science/math/pspp { };
 
   pynac = callPackage ../applications/science/math/pynac { };
 
@@ -22389,7 +22406,6 @@ in
 
   gajim = callPackage ../applications/networking/instant-messengers/gajim {
     inherit (gst_all_1) gstreamer gst-plugins-base gst-libav gst-plugins-ugly;
-    inherit (gnome3) gspell defaultIconTheme;
   };
 
   gammu = callPackage ../applications/misc/gammu { };
@@ -23093,9 +23109,7 @@ in
 
   xosview2 = callPackage ../tools/X11/xosview2 { };
 
-  xpad = callPackage ../applications/misc/xpad {
-    inherit (gnome3) gtksourceview;
-  };
+  xpad = callPackage ../applications/misc/xpad { };
 
   xsane = callPackage ../applications/graphics/sane/xsane.nix {
     libpng = libpng12;
@@ -23206,9 +23220,7 @@ in
 
   iterm2 = callPackage ../applications/misc/iterm2 {};
 
-  sequeler = callPackage ../applications/misc/sequeler {
-    inherit (gnome3) gtksourceview libgda;
-  };
+  sequeler = callPackage ../applications/misc/sequeler { };
 
   sequelpro = callPackage ../applications/misc/sequelpro {};
 
