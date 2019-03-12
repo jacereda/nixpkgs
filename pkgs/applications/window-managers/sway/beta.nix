@@ -1,4 +1,4 @@
-{ stdenv, fetchFromGitHub
+{ stdenv, fetchFromGitHub, fetchpatch
 , meson, ninja
 , pkgconfig, scdoc
 , wayland, libxkbcommon, pcre, json_c, dbus, libevdev
@@ -10,18 +10,23 @@
 stdenv.mkDerivation rec {
   name = "${pname}-${version}";
   pname = "sway";
-  version = "1.0-rc5";
+  version = "1.0";
 
   src = fetchFromGitHub {
     owner = "swaywm";
     repo = "sway";
     rev = version;
-    sha256 = "1jkacibmxy9rpq5mxnq7bkwcy0c592zk4vf20j5qbbljp9h7c87i";
+    sha256 = "09cndc2nl39d3l7g5634xp0pxcz60pvc5277mfw89r22mh0j78rx";
   };
 
-  postPatch = ''
-    sed -iE "s/version: '1.0',/version: '${version}',/" meson.build
-  '';
+  patches = [
+    # Fix for a compiler warning that causes a build failure
+    # (see https://github.com/swaywm/sway/issues/3862):
+    (fetchpatch {
+      url = "https://github.com/swaywm/sway/commit/bcde298a719f60b9913133dbd2a169dedbc8dd7d.patch";
+      sha256 = "0r583nmqvq43ib93yv6flw8pj833v32lbs0q0xld56s3rnzvvdcp";
+    })
+  ];
 
   nativeBuildInputs = [
     pkgconfig meson ninja

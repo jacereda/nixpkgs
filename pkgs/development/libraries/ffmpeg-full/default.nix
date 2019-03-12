@@ -438,7 +438,9 @@ stdenv.mkDerivation rec {
       AVFoundation AppKit ApplicationServices AudioToolbox Cocoa
       CoreAudio CoreGraphics CoreMedia CoreServices Foundation
       MediaToolbox OpenCL OpenGL QuartzCore Security
-      VideoDecodeAcceleration VideoToolbox cf-private Cocoa
+      VideoDecodeAcceleration VideoToolbox
+      Cocoa
+      cf-private /* For _OBJC_EHTYPE_$_NSException */
       CoreServices CoreAudio AVFoundation MediaToolbox
       VideoDecodeAcceleration libiconv
       ];
