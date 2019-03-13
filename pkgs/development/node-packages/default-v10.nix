@@ -87,7 +87,7 @@ nodePackages // {
     '';
   };
 
-  scuttlebot = nodePackages.scuttlebot.override {
+  ssb-server = nodePackages.ssb-server.override {
     buildInputs = [ pkgs.automake pkgs.autoconf nodePackages.node-gyp-build ];
   };
 
