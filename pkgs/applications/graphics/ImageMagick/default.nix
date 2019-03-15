@@ -77,8 +77,6 @@ stdenv.mkDerivation rec {
     ++ lib.optionals x11Support [ libX11 libXext libXt ]
     ;
 
-  doCheck = false; # fails 6 out of 76 tests
-
   postInstall = ''
     (cd "$dev/include" && ln -s ImageMagick* ImageMagick)
     moveToOutput "bin/*-config" "$dev"
