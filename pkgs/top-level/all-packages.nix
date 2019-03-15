@@ -235,6 +235,8 @@ in
 
   pet = callPackage ../development/tools/pet { };
 
+  mod = callPackage ../development/tools/mod { };
+
   mht2htm = callPackage ../tools/misc/mht2htm { };
 
   fetchpatch = callPackage ../build-support/fetchpatch { };
@@ -1453,6 +1455,8 @@ in
 
   gh-ost = callPackage ../tools/misc/gh-ost { };
 
+  ghidra-bin = callPackage ../tools/security/ghidra { };
+
   gif-for-cli = callPackage ../tools/misc/gif-for-cli { };
 
   gist = callPackage ../tools/text/gist { };
@@ -1526,6 +1530,8 @@ in
   icdiff = callPackage ../tools/text/icdiff {};
 
   interlock = callPackage ../servers/interlock {};
+
+  jellyfin = callPackage ../servers/jellyfin { };
 
   kapacitor = callPackage ../servers/monitoring/kapacitor { };
 
@@ -3787,6 +3793,8 @@ in
   logstash-contrib = callPackage ../tools/misc/logstash/contrib.nix { };
 
   lolcat = callPackage ../tools/misc/lolcat { };
+
+  lsd = callPackage ../tools/misc/lsd { };
 
   lsdvd = callPackage ../tools/cd-dvd/lsdvd {};
 
@@ -9348,6 +9356,8 @@ in
 
   mypy = with python3Packages; toPythonApplication mypy;
 
+  nsis = callPackage ../development/tools/nsis { };
+
   ### DEVELOPMENT / LIBRARIES
 
   a52dec = callPackage ../development/libraries/a52dec { };
@@ -13334,14 +13344,20 @@ in
 
   ### DEVELOPMENT / GO MODULES
 
-  buildGo110Package = callPackage ../development/go-modules/generic {
+  buildGo110Package = callPackage ../development/go-packages/generic {
     go = buildPackages.go_1_10;
   };
-  buildGo111Package = callPackage ../development/go-modules/generic {
+  buildGo111Package = callPackage ../development/go-packages/generic {
     go = buildPackages.go_1_11;
   };
 
   buildGoPackage = buildGo111Package;
+
+  buildGo111Module = callPackage ../development/go-modules/generic {
+    go = buildPackages.go_1_11;
+  };
+
+  buildGoModule = buildGo111Module;
 
   go2nix = callPackage ../development/tools/go2nix { };
 
@@ -18117,7 +18133,6 @@ in
   libreoffice-still = lowPrio (callPackage ../applications/office/libreoffice/wrapper.nix {
     libreoffice = callPackage ../applications/office/libreoffice/still.nix
       (libreoffice-args // {
-          poppler = poppler_0_61;
       });
   });
   libreoffice-still-unwrapped = libreoffice-still.libreoffice;
@@ -20358,7 +20373,7 @@ in
 
   xmonad-with-packages = callPackage ../applications/window-managers/xmonad/wrapper.nix {
     inherit (haskellPackages) ghcWithPackages;
-    packages = self: [];
+    packages = self: [ haskellPackages.xmonad-contrib ];
   };
 
   xmonad_log_applet = callPackage ../applications/window-managers/xmonad/log-applet {
@@ -20923,7 +20938,7 @@ in
 
   openjk = callPackage ../games/openjk { };
 
-  openmw = callPackage ../games/openmw { };
+  openmw = libsForQt5.callPackage ../games/openmw { };
 
   openmw-tes3mp = libsForQt5.callPackage ../games/openmw/tes3mp.nix { };
 
@@ -21880,7 +21895,10 @@ in
   ifstat-legacy = callPackage ../tools/networking/ifstat-legacy { };
 
   isabelle = callPackage ../applications/science/logic/isabelle {
-    polyml = polyml56;
+    polyml = stdenv.lib.overrideDerivation polyml (attrs: {
+      configureFlags = [ "--enable-intinf-as-int" "--with-gmp" "--disable-shared" ];
+    });
+
     java = if stdenv.isLinux then jre else jdk;
   };
 
@@ -22245,7 +22263,7 @@ in
 
   ### SCIENCE/ROBOTICS
 
-  apmplanner2 = libsForQt5.callPackage ../applications/science/robotics/apmplanner2 { };
+  apmplanner2 = libsForQt59.callPackage ../applications/science/robotics/apmplanner2 { };
 
   ### MISC
 
@@ -22889,6 +22907,8 @@ in
 
   brscan4 = callPackage ../applications/graphics/sane/backends/brscan4 { };
 
+  dsseries = callPackage ../applications/graphics/sane/backends/dsseries { };
+
   mkSaneConfig = callPackage ../applications/graphics/sane/config.nix { };
 
   sane-frontends = callPackage ../applications/graphics/sane/frontends.nix { };
@@ -23045,6 +23065,8 @@ in
   vivid = callPackage ../tools/misc/vivid { };
 
   vokoscreen = libsForQt5.callPackage ../applications/video/vokoscreen { };
+
+  vttest = callPackage ../tools/misc/vttest { };
 
   wavegain = callPackage ../applications/audio/wavegain { };
 

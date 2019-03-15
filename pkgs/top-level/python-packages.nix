@@ -1334,6 +1334,8 @@ in {
 
   cbor = callPackage ../development/python-modules/cbor {};
 
+  cbor2 = callPackage ../development/python-modules/cbor2 {};
+
   cassandra-driver = callPackage ../development/python-modules/cassandra-driver { };
 
   cccolutils = callPackage ../development/python-modules/cccolutils {};
@@ -1742,6 +1744,8 @@ in {
   dns = self.dnspython; # Alias for compatibility, 2017-12-10
 
   docker = callPackage ../development/python-modules/docker {};
+
+  dockerfile-parse = callPackage ../development/python-modules/dockerfile-parse {};
 
   docker-py = disabledIf isPy27 (callPackage ../development/python-modules/docker-py {});
 
@@ -3991,6 +3995,8 @@ in {
   requests_toolbelt = self.requests-toolbelt; # Old attr, 2017-09-26
 
   retry_decorator = callPackage ../development/python-modules/retry_decorator { };
+
+  qdarkstyle = callPackage ../development/python-modules/qdarkstyle { };
 
   quamash = callPackage ../development/python-modules/quamash { };
 
