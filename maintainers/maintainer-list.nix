@@ -2969,6 +2969,11 @@
     email = "softs@metabarcoding.org";
     name = "Celine Mercier";
   };
+  mfossen = {
+    email = "msfossen@gmail.com";
+    github = "mfossen";
+    name = "Mitchell Fossen";
+  };
   mgdelacroix = {
     email = "mgdelacroix@gmail.com";
     github = "mgdelacroix";
@@ -4041,6 +4046,11 @@
     github = "rprospero";
     name = "Adam Washington";
   };
+  rps = {
+    email = "robbpseaton@gmail.com";
+    github = "robertseaton";
+    name = "Robert P. Seaton";
+  };
   rszibele = {
     email = "richard@szibele.com";
     github = "rszibele";
@@ -4468,6 +4478,11 @@
     email = "stesie@brokenpipe.de";
     github = "stesie";
     name = "Stefan Siegl";
+  };
+  steve-chavez = {
+    email = "stevechavezast@gmail.com";
+    github = "steve-chavez";
+    name = "Steve Chávez";
   };
   steveej = {
     email = "mail@stefanjunker.de";

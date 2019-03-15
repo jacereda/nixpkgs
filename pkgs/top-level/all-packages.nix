@@ -505,6 +505,8 @@ in
 
   aldo = callPackage ../applications/radio/aldo { };
 
+  almanah = callPackage ../applications/misc/almanah { };
+
   amazon-ecs-cli = callPackage ../tools/virtualization/amazon-ecs-cli { };
 
   amazon-glacier-cmd-interface = callPackage ../tools/backup/amazon-glacier-cmd-interface { };
@@ -1718,6 +1720,8 @@ in
   mongodb-compass = callPackage ../tools/misc/mongodb-compass { };
 
   mongodb-tools = callPackage ../tools/misc/mongodb-tools { };
+
+  moosefs = callPackage ../tools/filesystems/moosefs { };
 
   mozlz4a = callPackage ../tools/compression/mozlz4a { };
 
@@ -3750,6 +3754,8 @@ in
   libcloudproviders = callPackage ../development/libraries/libcloudproviders { };
 
   libcroco = callPackage ../development/libraries/libcroco { };
+
+  libcryptui = callPackage ../development/libraries/libcryptui { };
 
   libsmi = callPackage ../development/libraries/libsmi { };
 
@@ -8588,8 +8594,8 @@ in
   };
 
   ccls = callPackage ../development/tools/misc/ccls {
-    llvmPackages = llvmPackages_latest;
-    stdenv = llvmPackages_latest.stdenv;
+    llvmPackages = llvmPackages_7;
+    stdenv = llvmPackages_7.stdenv;
   };
 
   credstash = with python3Packages; toPythonApplication credstash;
@@ -15985,6 +15991,8 @@ in
 
   inherit (callPackages ../data/fonts/tai-languages { }) tai-ahom;
 
+  tamsyn = callPackage ../data/fonts/tamsyn { };
+
   tango-icon-theme = callPackage ../data/icons/tango-icon-theme {
     gtk = res.gtk2;
   };
@@ -17706,7 +17714,6 @@ in
   orbment = callPackage ../applications/window-managers/orbment { };
 
   sway = callPackage ../applications/window-managers/sway { };
-  sway-beta = callPackage ../applications/window-managers/sway/beta.nix { };
   swayidle = callPackage ../applications/window-managers/sway/idle.nix { };
   swaylock = callPackage ../applications/window-managers/sway/lock.nix { };
 
