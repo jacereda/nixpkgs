@@ -1,7 +1,5 @@
-{ stdenv, pkgs, fetchurl, ncurses, zlib, pkgconfig, imlib2-nox
-, x11Support ? (!stdenv.isDarwin)
-, libX11 ? if x11Support then libX11 else null
-, libXext ? if x11Support then libXext else null
+{ stdenv, fetchurl, ncurses, zlib, pkgconfig, imlib2
+, x11Support ? !stdenv.isDarwin, libX11, libXext
 }:
 
 stdenv.mkDerivation rec {
@@ -25,7 +23,7 @@ stdenv.mkDerivation rec {
 
   enableParallelBuilding = true;
 
-  propagatedBuildInputs = [ ncurses zlib imlib2-nox pkgconfig ]
+  propagatedBuildInputs = [ ncurses zlib pkgconfig (imlib2.override { inherit x11Support; }) ]
     ++ stdenv.lib.optionals x11Support [ libX11 libXext];
 
   postInstall = ''
