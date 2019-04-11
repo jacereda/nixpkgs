@@ -14,6 +14,9 @@ let
 in
 
 {
+
+  meta.maintainers = pkgs.pantheon.maintainers;
+
   options = {
 
     services.xserver.desktopManager.pantheon = {
@@ -70,8 +73,14 @@ in
 
     # Ensure lightdm is used when Pantheon is enabled
     # Without it screen locking will be nonfunctional because of the use of lightlocker
+
+    warnings = optional (config.services.xserver.displayManager.lightdm.enable != true)
+      ''
+        Using Pantheon without LightDM as a displayManager will break screenlocking from the UI.
+      '';
+
     services.xserver.displayManager.lightdm.enable = mkDefault true;
-    services.xserver.displayManager.lightdm.greeters.pantheon.enable = mkDefault true;
+    services.xserver.displayManager.lightdm.greeters.gtk.enable = mkDefault true;
 
     # If not set manually Pantheon session cannot be started
     # Known issue of https://github.com/NixOS/nixpkgs/pull/43992

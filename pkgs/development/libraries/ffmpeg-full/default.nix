@@ -76,7 +76,7 @@
 , libdc1394 ? null, libraw1394 ? null # IIDC-1394 grabbing (ieee 1394)
 , libiconv ? null
 #, libiec61883 ? null, libavc1394 ? null # iec61883 (also uses libraw1394)
-#, libmfx ? null # Hardware acceleration vis libmfx
+, libmfx ? null # Hardware acceleration vis libmfx
 , libmodplug ? null # ModPlug support
 , libmysofa ? null # HRTF support via SOFAlizer
 #, libnut ? null # NUT (de)muxer, native (de)muser exists
@@ -173,12 +173,13 @@
  *
  * Not packaged:
  *   aacplus avisynth cdio-paranoia crystalhd libavc1394 libiec61883
- *   libmxf libnut libquvi nvenc opencl openh264 oss shine twolame
+ *   libnut libquvi nvenc opencl openh264 oss shine twolame
  *   utvideo vo-aacenc vo-amrwbenc xvmc zvbi blackmagic-design-desktop-video
  *
  * Need fixes to support Darwin:
- *   frei0r, game-music-emu, gsm, libjack2, libssh, libvpx(stable 1.3.0), openal, openjpeg,
- *   pulseaudio, rtmpdump, samba, vid-stab, wavpack, x265. xavs
+ *   frei0r game-music-emu gsm libjack2 libmfx(intel-media-sdk) libssh
+ *   libvpx(stable 1.3.0) openal openjpeg pulseaudio rtmpdump samba vid-stab
+ *   wavpack x265 xavs
  *
  * Not supported:
  *   stagefright-h264(android only)
@@ -248,11 +249,11 @@ assert nvenc -> nvidia-video-sdk != null && nonfreeLicensing;
 
 stdenv.mkDerivation rec {
   name = "ffmpeg-full-${version}";
-  version = "4.1.1";
+  version = "4.1.2";
 
   src = fetchurl {
     url = "https://www.ffmpeg.org/releases/ffmpeg-${version}.tar.xz";
-    sha256 = "11id9pm4azfrhpa4vr2yaw31dzgd55kl1zsxwn24sczx9n14jdrp";
+    sha256 = "0yrl6nij4b1pk1c4nbi80857dsd760gziiss2ls19awq8zj0lpxr";
   };
 
   prePatch = ''
@@ -358,7 +359,7 @@ stdenv.mkDerivation rec {
     (enableFeature (if isLinux then libdc1394 != null && libraw1394 != null else false) "libdc1394")
     (enableFeature (libiconv != null) "iconv")
     #(enableFeature (if isLinux then libiec61883 != null && libavc1394 != null && libraw1394 != null else false) "libiec61883")
-    #(enableFeature (libmfx != null) "libmfx")
+    (enableFeature (if isLinux then libmfx != null else false) "libmfx")
     (enableFeature (libmodplug != null) "libmodplug")
     (enableFeature (libmysofa != null) "libmysofa")
     #(enableFeature (libnut != null) "libnut")
@@ -433,6 +434,7 @@ stdenv.mkDerivation rec {
     ++ optional ((isLinux || isFreeBSD) && libva != null) libva
     ++ optional (x11Support && libvdpau != null) libvdpau
     ++ optionals isLinux [ alsaLib libraw1394 libv4l ]
+    ++ optional (isLinux && libmfx != null) libmfx
     ++ optionals nvenc [ nvidia-video-sdk nv-codec-headers ]
     ++ optionals stdenv.isDarwin [
       AVFoundation AppKit ApplicationServices AudioToolbox Cocoa

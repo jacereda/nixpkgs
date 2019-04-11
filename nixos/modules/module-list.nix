@@ -46,6 +46,7 @@
   ./hardware/sensor/iio.nix
   ./hardware/ksm.nix
   ./hardware/ledger.nix
+  ./hardware/logitech.nix
   ./hardware/mcelog.nix
   ./hardware/network/b43.nix
   ./hardware/nitrokey.nix
@@ -172,6 +173,7 @@
   ./security/rtkit.nix
   ./security/wrappers/default.nix
   ./security/sudo.nix
+  ./security/systemd-confinement.nix
   ./services/admin/oxidized.nix
   ./services/admin/salt/master.nix
   ./services/admin/salt/minion.nix
@@ -349,6 +351,7 @@
   ./services/mail/exim.nix
   ./services/mail/freepops.nix
   ./services/mail/mail.nix
+  ./services/mail/mailcatcher.nix
   ./services/mail/mailhog.nix
   ./services/mail/mlmmj.nix
   ./services/mail/offlineimap.nix
@@ -630,6 +633,7 @@
   ./services/networking/prosody.nix
   ./services/networking/quagga.nix
   ./services/networking/quassel.nix
+  ./services/networking/quicktun.nix
   ./services/networking/racoon.nix
   ./services/networking/radicale.nix
   ./services/networking/radvd.nix
@@ -739,6 +743,7 @@
   ./services/web-apps/atlassian/crowd.nix
   ./services/web-apps/atlassian/jira.nix
   ./services/web-apps/codimd.nix
+  ./services/web-apps/documize.nix
   ./services/web-apps/frab.nix
   ./services/web-apps/icingaweb2/icingaweb2.nix
   ./services/web-apps/icingaweb2/module-monitoring.nix
@@ -880,6 +885,7 @@
   ./virtualisation/container-config.nix
   ./virtualisation/containers.nix
   ./virtualisation/docker.nix
+  ./virtualisation/docker-containers.nix
   ./virtualisation/ecs-agent.nix
   ./virtualisation/libvirtd.nix
   ./virtualisation/lxc.nix
