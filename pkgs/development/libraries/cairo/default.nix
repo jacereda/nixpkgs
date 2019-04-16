@@ -1,8 +1,8 @@
 { config, stdenv, fetchurl, fetchpatch, pkgconfig, libiconv
 , libintl, expat, zlib, libpng, pixman, fontconfig, freetype
-, x11Support ? (!stdenv.isDarwin), xorg
+, x11Support? !stdenv.isDarwin, libXext, libXrender
 , gobjectSupport ? true, glib
-, xcbSupport ? x11Support # no longer experimental since 1.12
+, xcbSupport ? x11Support, libxcb, xcbutil # no longer experimental since 1.12
 , libGLSupported
 , glSupport ? config.cairo.gl or stdenv.isDarwin or (libGLSupported && stdenv.isLinux && !stdenv.isAarch32 && !stdenv.isMips)
 , libGL ? null # libGLU_combined is no longer a big dependency
@@ -53,8 +53,7 @@ in stdenv.mkDerivation rec {
     Carbon
   ]);
 
-  propagatedBuildInputs = with xorg;
-    [ fontconfig expat freetype pixman zlib libpng ]
+  propagatedBuildInputs = [ fontconfig expat freetype pixman zlib libpng ]
     ++ optionals x11Support [ libXext libXrender ]
     ++ optionals xcbSupport [ libxcb xcbutil ]
     ++ optional gobjectSupport glib
