@@ -1156,6 +1156,8 @@ in {
 
   bitstruct = callPackage ../development/python-modules/bitstruct { };
 
+  caldav = callPackage ../development/python-modules/caldav { };
+
   caldavclientlibrary-asynk = callPackage ../development/python-modules/caldavclientlibrary-asynk { };
 
   biopython = callPackage ../development/python-modules/biopython { };
@@ -1314,7 +1316,7 @@ in {
 
   bottle = callPackage ../development/python-modules/bottle { };
 
-  box2d = callPackage ../development/python-modules/box2d { pkgs-box2d = pkgs.box2d; };
+  box2d = callPackage ../development/python-modules/box2d { };
 
   branca = callPackage ../development/python-modules/branca { };
 
@@ -1488,7 +1490,7 @@ in {
 
   cryptography = callPackage ../development/python-modules/cryptography { };
 
-  cryptography_vectors = callPackage ../development/python-modules/cryptography_vectors { };
+  cryptography_vectors = callPackage ../development/python-modules/cryptography/vectors.nix { };
 
   curtsies = callPackage ../development/python-modules/curtsies { };
 
@@ -3836,6 +3838,8 @@ in {
   pylint = if isPy3k then callPackage ../development/python-modules/pylint { }
            else callPackage ../development/python-modules/pylint/1.9.nix { };
 
+  pyomo = callPackage ../development/python-modules/pyomo { };
+
   pyopencl = callPackage ../development/python-modules/pyopencl { };
 
   pyotp = callPackage ../development/python-modules/pyotp { };
@@ -4023,6 +4027,8 @@ in {
   pytzdata = callPackage ../development/python-modules/pytzdata { };
 
   pyutil = callPackage ../development/python-modules/pyutil { };
+
+  pyutilib = callPackage ../development/python-modules/pyutilib { };
 
   pywal = callPackage ../development/python-modules/pywal { };
 
@@ -4429,6 +4435,8 @@ in {
   widgetsnbextension = callPackage ../development/python-modules/widgetsnbextension { };
 
   wordfreq = callPackage ../development/python-modules/wordfreq { };
+
+  wikipedia = callPackage ../development/python-modules/wikipedia { };
 
   magic-wormhole = callPackage ../development/python-modules/magic-wormhole { };
 
