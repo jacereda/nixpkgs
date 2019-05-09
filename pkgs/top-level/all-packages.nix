@@ -7861,7 +7861,7 @@ in
 
   scopes = callPackage ../development/compilers/scopes {
     inherit (llvmPackages_8) stdenv clang-unwrapped clang;
-    libc = cc.libc;
+    libc = llvmPackages_8.stdenv.cc.libc;
     inherit (luaPackages) genie;
   };
 

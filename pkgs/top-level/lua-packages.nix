@@ -216,7 +216,8 @@ with self; {
     	cp bin/*/genie $out/bin
     '';
 
-    buildInputs = with darwin.apple_sdk.frameworks; [ CoreServices ];
+    buildInputs = with darwin.apple_sdk.frameworks;
+      stdenv.lib.optional stdenv.isDarwin CoreServices;
 
     meta = with stdenv.lib; {
       description = "Project generator tool";
