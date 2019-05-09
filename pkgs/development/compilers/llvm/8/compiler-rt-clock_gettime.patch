@@ -11,14 +11,14 @@ index a46c151af..38aea6932 100644
 @@ -36,6 +36,29 @@
  #include "xray_tsc.h"
  #include "xray_utils.h"
- 
+
 +#if __MACH__
 +#include <mach/clock.h>
 +#include <mach/mach.h>
-+enum clockid_t {
++typedef enum clockid_e {
 +    CLOCK_MONOTONIC = REALTIME_CLOCK,
 +    CLOCK_REALTIME = REALTIME_CLOCK
-+};
++} clockid_t;
 +
 +int clock_gettime(clockid_t clock_id, struct timespec *ts) {
 +  if (ts != NULL) {
@@ -36,23 +36,22 @@ index a46c151af..38aea6932 100644
 +#endif
 +
  namespace __xray {
- 
+
  SpinMutex LogMutex;
 diff --git a/lib/xray/xray_fdr_logging.cc b/lib/xray/xray_fdr_logging.cc
 index 4b308b27f..1d044c8fd 100644
 --- a/lib/xray/xray_fdr_logging.cc
 +++ b/lib/xray/xray_fdr_logging.cc
-@@ -38,6 +38,29 @@
- #include "xray_tsc.h"
- #include "xray_utils.h"
- 
-+#if __MACH__
+@@ -0,0 +0,25 @@
++#if defined __MACH__
 +#include <mach/clock.h>
 +#include <mach/mach.h>
-+enum clockid_t {
++#include <sys/time.h>
++#include <time.h>
++typedef enum clockid_e {
 +    CLOCK_MONOTONIC = REALTIME_CLOCK,
 +    CLOCK_REALTIME = REALTIME_CLOCK
-+};
++} clockid_t;
 +
 +int clock_gettime(clockid_t clock_id, struct timespec *ts) {
 +  if (ts != NULL) {
@@ -69,6 +68,5 @@ index 4b308b27f..1d044c8fd 100644
 +}
 +#endif
 +
- namespace __xray {
- 
- atomic_sint32_t LoggingStatus = {XRayLogInitStatus::XRAY_LOG_UNINITIALIZED};
+//===-- xray_fdr_logging.cc ------------------------------------*- C++ -*-===//
+//

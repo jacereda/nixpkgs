@@ -34,6 +34,15 @@ stdenv.mkDerivation rec {
   ] ++ stdenv.lib.optionals stdenv.isDarwin [
     ./darwin-target-match.patch
     (fetchpatch {
+      name = "macos-mojave-load-patch";
+      url = "https://sourceware.org/git/gitweb.cgi?p=binutils-gdb.git;a=patch;h=ddea148b3da27eb681504bf341f45abb7a74580b";
+      includes = [
+        "bfd/mach-o.c"
+        "include/mach-o/loader.h"
+      ];
+      sha256 = "09dmcymvdk8nk8x3f00ninv0gw22p6byv1jjbm0gy8ws7zwnhg8a";
+    })
+    (fetchpatch {
       name = "gdb-aarch64-linux-tdep.patch";
       url = "https://sourceware.org/git/gitweb.cgi?p=binutils-gdb.git;a=patch;h=0c0a40e0abb9f1a584330a1911ad06b3686e5361";
       excludes = [ "gdb/ChangeLog" ];

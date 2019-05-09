@@ -13,6 +13,7 @@
 , pkgs
 , fetchgit
 , lib
+, darwin
 }:
 
 let
@@ -189,6 +190,38 @@ with self; {
       license = licenses.mit;
       maintainers = with maintainers; [ vcunat ];
       platforms = platforms.unix;
+    };
+  };
+
+  genie = buildLuaPackage rec {
+    version = "1023";
+    name = "genie-${version}";
+
+    src = fetchFromGitHub {
+      owner = "bkaradzic";
+      repo = "GENie";
+      rev = "2760390c8bdfc9105c614da145a6fabfb4f36676";
+      sha256 = "1y1pipj1mihzhgavfmyz47nnq1zn4d4zhv0zf10m1qccg00zh541";
+    };
+
+    preConfigure = ''
+      substituteInPlace build/gmake.darwin/genie.make --replace gcc cc
+    '';
+
+
+    # buildPhase = ''
+    # '';
+    installPhase = ''
+      install -d $out/bin
+    	cp bin/*/genie $out/bin
+    '';
+
+    buildInputs = with darwin.apple_sdk.frameworks; [ CoreServices ];
+
+    meta = with stdenv.lib; {
+      description = "Project generator tool";
+      homepage = "https://github.com/bkaradzic/GENie";
+      license = licenses.bsd3;
     };
   };
 

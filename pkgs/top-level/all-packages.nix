@@ -7859,6 +7859,12 @@ in
   scalafix = callPackage ../development/tools/scalafix { };
   scalafmt = callPackage ../development/tools/scalafmt { };
 
+  scopes = callPackage ../development/compilers/scopes {
+    inherit (llvmPackages_8) stdenv clang-unwrapped clang;
+    libc = cc.libc;
+    inherit (luaPackages) genie;
+  };
+
   sdcc = callPackage ../development/compilers/sdcc {
     gputils = null;
   };
@@ -9465,8 +9471,10 @@ in
 
   spin = callPackage ../development/tools/analysis/spin { };
 
+  spirv-cross = callPackage ../development/libraries/spirv-cross { };
   spirv-headers = callPackage ../development/libraries/spirv-headers { };
   spirv-tools = callPackage ../development/tools/spirv-tools { };
+
 
   splint = callPackage ../development/tools/analysis/splint {
     flex = flex_2_5_35;
@@ -9549,8 +9557,10 @@ in
 
   bashdb = callPackage ../development/tools/misc/bashdb { };
 
-  gdb = callPackage ../development/tools/misc/gdb {
-    guile = null;
+  gdb = callPackage (if stdenv.isDarwin
+    then ../development/tools/misc/gdb/8.3-pre.nix
+    else ../development/tools/misc/gdb) {
+      guile = null;
   };
 
   jhiccup = callPackage ../development/tools/java/jhiccup { };

@@ -27,6 +27,25 @@ stdenv.mkDerivation {
       cmake/modules/LLDBStandalone.cmake
     sed -i 's,"$.LLVM_LIBRARY_DIR.",${llvm}/lib ${clang-unwrapped}/lib,' \
       cmake/modules/LLDBStandalone.cmake
+    substituteInPlace tools/debugserver/source/CMakeLists.txt \
+      --replace 'string(STRIP ${xcode_dev_dir} xcode_dev_dir)' 'set(xcode_dev_dir "/Applications/Xcode.app/Contents/Developer")'
+    substituteInPlace source/Plugins/Process/Utility/StopInfoMachException.cpp \
+      --replace 'RESOURCE_TYPE_IO' '4' \
+      --replace 'EXC_RESOURCE_IO_DECODE_LIMIT(m_exc_code)' '(m_exc_code & 0x7fffULL)' \
+      --replace 'EXC_RESOURCE_IO_OBSERVED(m_exc_subcode)' '(m_exc_subcode & 0x7fffULL)'
+    substituteInPlace source/Plugins/Process/gdb-remote/GDBRemoteCommunication.cpp \
+      --replace '#if defined(__APPLE__)' '#if 0'
+    substituteInPlace source/Plugins/Process/gdb-remote/GDBRemoteCommunicationClient.cpp \
+      --replace '#if defined(__APPLE__)' '#if 0'
+    substituteInPlace tools/debugserver/source/RNBRemote.cpp \
+      --replace 'APPLE' 'XAPPLE' \
+      --replace '#include <compression.h>' '//#include <compression.h>' \
+      --replace 'std::string compressed;' 'return orig; /*std::string compressed'\
+      --replace '  return compressed;' '  return compressed;*/'
+    substituteInPlace tools/debugserver/source/PThreadMutex.cpp \
+      --replace '//===-- PThreadMutex.cpp' 'int __dummy__; //'
+    substituteInPlace source/Host/common/GetOptInc.cpp \
+      --replace '//===-- GetOptInc.cpp' 'int __dummy2__; //'
   '';
 
   nativeBuildInputs = [ cmake python which swig ];
@@ -38,6 +57,8 @@ stdenv.mkDerivation {
 
   cmakeFlags = [
     "-DLLDB_CODESIGN_IDENTITY=" # codesigning makes nondeterministic
+    "-DLLDB_INCLUDE_TESTS=no"
+    "-DLLDB_USE_SYSTEM_DEBUGSERVER=ON"
   ];
 
   enableParallelBuilding = true;
