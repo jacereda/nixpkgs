@@ -7922,6 +7922,16 @@ in
   scalafix = callPackage ../development/tools/scalafix { };
   scalafmt = callPackage ../development/tools/scalafmt { };
 
+  scopes = callPackage ../development/compilers/scopes {
+    inherit (llvmPackages_8) llvm stdenv clang-unwrapped clang;
+    libc-hdrs =
+      let pkg = with llvmPackages_8.stdenv.cc;
+        if stdenv.isDarwin then libc else libc.dev;
+        in "${pkg}/include";
+    clang-hdrs = "${llvmPackages_8.clang-unwrapped}/lib/clang/8.0.0/include";
+    inherit (luaPackages) genie;
+  };
+
   sdcc = callPackage ../development/compilers/sdcc {
     gputils = null;
   };
@@ -9533,6 +9543,7 @@ in
 
   spin = callPackage ../development/tools/analysis/spin { };
 
+  spirv-cross = callPackage ../development/libraries/spirv-cross { };
   spirv-headers = callPackage ../development/libraries/spirv-headers { };
   spirv-tools = callPackage ../development/tools/spirv-tools { };
 
