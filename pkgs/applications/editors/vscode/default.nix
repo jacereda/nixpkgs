@@ -1,5 +1,6 @@
 { stdenv, lib, fetchurl, makeDesktopItem
-, unzip, libsecret, libXScrnSaver, wrapGAppsHook
+, unzip, wrapGAppsHook
+, x11Support ? (!stdenv.isDarwin) , libXScrnSaver, libsecret
 , gtk2, atomEnv, at-spi2-atk, autoPatchelfHook
 , systemd, fontconfig
 , isInsiders ? false }:
@@ -80,7 +81,7 @@ in
     buildInputs = (if stdenv.isDarwin
       then [ unzip ]
       else [ gtk2 at-spi2-atk wrapGAppsHook ] ++ atomEnv.packages)
-        ++ [ libsecret libXScrnSaver ];
+        ++ lib.optionals x11Support [ libsecret libXScrnSaver ];
 
     nativeBuildInputs = lib.optional (!stdenv.isDarwin) autoPatchelfHook;
 
