@@ -12374,7 +12374,9 @@ in
 
   openct = callPackage ../development/libraries/openct { };
 
-  opencv = callPackage ../development/libraries/opencv {
+  opencv = if stdenv.isDarwin then opencv4 else opencv2;
+
+  opencv2 = callPackage ../development/libraries/opencv {
     inherit (darwin) cf-private;
     inherit (darwin.apple_sdk.frameworks) Cocoa QTKit;
   };
