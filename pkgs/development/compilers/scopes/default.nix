@@ -1,54 +1,57 @@
-{stdenv
+{ stdenv
 , fetchFromBitbucket
-, llvm_8
+, llvm
 , clang
 , clang-unwrapped
 , genie
 , spirv-tools
 , spirv-cross
-, libc
+, libc-hdrs
+, clang-hdrs
 }:
-
 stdenv.mkDerivation rec {
   pname = "scopes";
-  version = "0.16-pre";
+  version = "unstable-2019-05-09";
   src = fetchFromBitbucket {
     owner = "duangle";
     repo = "scopes";
-#    rev = "release-${version}";
-    rev = "288446ecfbca";
-#    sha256 = "0qvp6wd6gn6rszh25x0fl233y47c0903xz02qk8lncq27qnxl03h";
-    sha256 = "1rhag029fd90x3d19l2kfy69vcnfl5q4s0j764pshpnkkwd43xwv";
+    rev = "3c5fd78";
+    sha256 = "1im9lm0j4j4d797mwn97zfsfh91rls1arw52filzdi3wlq4zgxfi";
   };
   nativeBuildInputs = [ genie spirv-tools spirv-cross ];
-  buildInputs = [ llvm_8 clang-unwrapped ];
+  buildInputs = [ llvm clang-unwrapped ];
   postPatch = ''
     substituteInPlace genie.lua \
-      --replace 'CLANG_PATH =' 'CLANG_PATH = "${clang}/bin:${llvm_8}/bin" -- ' \
+      --replace 'CLANG_PATH =' 'CLANG_PATH = "${clang}/bin:${llvm}/bin" -- ' \
       --replace '"SPIRV-Cross' '--"SPIRV-Cross' \
       --replace 'THISDIR .. "/SPIRV-Tools/build/source/opt/libSPIRV-Tools-opt.a"' '"-lSPIRV-Tools-opt"' \
       --replace 'THISDIR .. "/SPIRV-Tools/build/source/libSPIRV-Tools.a"' '"-lSPIRV-Tools -lspirv-cross-glsl -lspirv-cross-reflect -lspirv-cross-util -lspirv-cross-core"'
     substituteInPlace src/gen_spirv.cpp \
       --replace 'SPIRV-Cross' 'spirv_cross'
     substituteInPlace src/boot.cpp \
-      --replace 'scopes_clang_include_dir = format' 'scopes_clang_include_dir = "${clang-unwrapped}/include"; // format' \
-      --replace 'scopes_include_dir = format' 'scopes_include_dir = "${libc}/include"; // format'
-    substituteInPlace src/cache.cpp \
-      --replace '16lx' '16llx'
+      --replace 'scopes_clang_include_dir = format' 'scopes_clang_include_dir = "${clang-hdrs}"; // format' \
+      --replace 'scopes_include_dir = format' 'scopes_include_dir = "${libc-hdrs}"; // format'
+  '' + stdenv.lib.optionalString stdenv.isDarwin ''
+    sed -i "s^#include <limits.h>^#include <inttypes.h>\n#include <limits.h>^g" src/cache.cpp
+    substituteInPlace src/cache.cpp --replace ', SCOPES_KEY16_FORMAT' ', "%016" PRIx64'
   '';
   configurePhase = ''
     genie gmake
   '';
-  buildPhase = ''
-  make -C build config=release -j$NIX_BUILD_CORES
-  '';
+  makefile = "Makefile";
+  makeFlags = "-C build config=release";
   installPhase = ''
     install -d $out/bin
     install -d $out/lib
     cp bin/scopes $out/bin
-    cp bin/libscopesrt.dylib $out/lib
-    install_name_tool -change @executable_path/libscopesrt.dylib $out/lib/libscopesrt.dylib $out/bin/scopes
+    cp bin/lib* $out/lib
     cp -R lib/* $out/lib/
+  '' + stdenv.lib.optionalString stdenv.isDarwin ''
+    install_name_tool -change @executable_path/libscopesrt.dylib $out/lib/libscopesrt.dylib $out/bin/scopes
+  '';
+  doInstallCheck = false; # Uses ~/.cache
+  installCheckPhase = ''
+    $out/bin/scopes testing/check_all.sc
   '';
   enableParallelBuilding = true;
 

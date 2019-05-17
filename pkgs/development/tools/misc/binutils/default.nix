@@ -4,6 +4,7 @@
 , withAllTargets ? false, libbfd, libopcodes
 , enableShared ? true
 , noSysDirs, gold ? true, bison ? null
+, fetchpatch
 }:
 
 let
@@ -57,10 +58,17 @@ stdenv.mkDerivation rec {
 
     # https://sourceware.org/bugzilla/show_bug.cgi?id=23428
     # un-break features so linking against musl doesn't produce crash-only binaries
-    #./0001-x86-Add-a-GNU_PROPERTY_X86_ISA_1_USED-note-if-needed.patch
-    #./0001-x86-Properly-merge-GNU_PROPERTY_X86_ISA_1_USED.patch
-    #./0001-x86-Properly-add-X86_ISA_1_NEEDED-property.patch
-  ] ++ lib.optional stdenv.targetPlatform.isiOS ./support-ios.patch;
+    ./0001-x86-Add-a-GNU_PROPERTY_X86_ISA_1_USED-note-if-needed.patch
+    ./0001-x86-Properly-merge-GNU_PROPERTY_X86_ISA_1_USED.patch
+    ./0001-x86-Properly-add-X86_ISA_1_NEEDED-property.patch
+  ] ++ lib.optional stdenv.targetPlatform.isiOS ./support-ios.patch
+    ++ lib.optional (stdenv.hostPlatform.isDarwin && stdenv.targetPlatform != stdenv.hostPlatform) [
+    (fetchpatch {
+      url = "https://sourceware.org/bugzilla/attachment.cgi?id=11141";
+      name = "gold-threads.patch";
+      sha256 = "0p26dxpba8n7z3pwjg7qf94f0gzbvwkjq0j9ng1w3sljj0gyaf1j";
+    })
+  ];
 
   outputs = [ "out" "info" "man" ];
 

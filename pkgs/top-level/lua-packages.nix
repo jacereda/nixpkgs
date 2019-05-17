@@ -208,15 +208,13 @@ with self; {
       substituteInPlace build/gmake.darwin/genie.make --replace gcc cc
     '';
 
-
-    # buildPhase = ''
-    # '';
     installPhase = ''
       install -d $out/bin
     	cp bin/*/genie $out/bin
     '';
 
-    buildInputs = with darwin.apple_sdk.frameworks; [ CoreServices ];
+    buildInputs = with pkgs.darwin.apple_sdk.frameworks;
+      stdenv.lib.optional stdenv.isDarwin CoreServices;
 
     meta = with stdenv.lib; {
       description = "Project generator tool";
