@@ -152,10 +152,11 @@ with self; {
       cc lutf8lib.c $CFLAGS -o utf8.so
     '';
 
-    # There's no need to separate *.lua and *.so, I guess?  TODO: conventions?
+    # The hook in ../development/lua-modules/generic/default.nix
+    # is strict about share vs. lib for _PATH and _CPATH.
     installPhase = ''
-      install -Dt "$out/lib/lua/${lua.luaversion}/compat53" \
-        compat53/*.lua *.so
+      install -Dt "$out/share/lua/${lua.luaversion}/compat53" compat53/*.lua
+      install -Dt "$out/lib/lua/${lua.luaversion}/compat53" *.so
     '';
 
     meta = with stdenv.lib; {
@@ -450,12 +451,13 @@ with self; {
       sha256 = "0wv8l7f7na7kw5xn8mjik2wpxbizl7zvvp5s7fcwvz9kl5jdpk5b";
     };
 
+    propagatedBuildInputs = [ luasocket ];
     buildInputs = [ openssl ];
 
     preBuild = ''
       makeFlagsArray=(
         ${platformString}
-        LUAPATH="$out/lib/lua/${lua.luaversion}"
+        LUAPATH="$out/share/lua/${lua.luaversion}"
         LUACPATH="$out/lib/lua/${lua.luaversion}"
         INC_PATH="-I${lua}/include"
         LIB_PATH="-L$out/lib");
