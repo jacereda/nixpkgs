@@ -1,23 +1,21 @@
 { stdenv, lib, fetchFromGitHub, pkgconfig, glib }:
 
 with lib;
+with builtins;
 
 stdenv.mkDerivation rec {
-  name = "conmon-${version}";
-  version = "unstable-2019-03-19";
-  rev = "84c860029893e2e2dd71d62231f009c9dcd3c0b4";
+  pname = "conmon";
+  version = "0.2.0";
 
   src = fetchFromGitHub {
-    owner = "containers";
-    repo = "conmon";
-    sha256 = "1ydidl3s7s5rfwk9gx0k80nxcixlilxw61g7x0vqsdy3mkylysv5";
-    inherit rev;
+    owner  = "containers";
+    repo   = pname;
+    rev    = "v${version}";
+    sha256 = "08fgkbv7hq62lcq39za9pm2s2j92ismgrkvfm7acwbvajqh9syjb";
   };
 
   nativeBuildInputs = [ pkgconfig ];
-  buildInputs = [
-    glib
-  ];
+  buildInputs = [ glib ];
 
   installPhase = ''
     install -D -m 555 bin/conmon $out/bin/conmon

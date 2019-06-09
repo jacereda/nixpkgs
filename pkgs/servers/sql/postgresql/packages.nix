@@ -7,6 +7,8 @@ self: super: {
         };
     };
 
+    pg_auto_failover = super.callPackage ./ext/pg_auto_failover.nix { };
+
     pg_repack = super.callPackage ./ext/pg_repack.nix { };
 
     pg_similarity = super.callPackage ./ext/pg_similarity.nix { };
@@ -30,6 +32,8 @@ self: super: {
     pg_topn = super.callPackage ./ext/pg_topn.nix { };
 
     pgtap = super.callPackage ./ext/pgtap.nix { };
+
+    pipelinedb = super.callPackage ./ext/pipelinedb.nix { };
 
     timescaledb = super.callPackage ./ext/timescaledb.nix { };
 

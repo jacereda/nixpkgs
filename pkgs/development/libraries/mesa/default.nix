@@ -26,26 +26,26 @@
 with stdenv.lib;
 
 if ! elem stdenv.hostPlatform.system platforms.mesaPlatforms then
-  throw "unsupported platform for Mesa"
+  throw "${stdenv.system}: unsupported platform for Mesa"
 else
 
 let
-  defaultGalliumDrivers =
-    optionals (elem "drm" eglPlatforms)
-    (if stdenv.isAarch32
-    then ["virgl" "nouveau" "freedreno" "vc4" "etnaviv" "imx"]
-    else if stdenv.isAarch64
-    then ["virgl" "nouveau" "vc4" ]
-    else ["virgl" "svga" "i915" "r300" "r600" "radeonsi" "nouveau"]);
-  defaultDriDrivers =
-    optionals (elem "drm" eglPlatforms)
-    (if (stdenv.isAarch32 || stdenv.isAarch64)
-    then ["nouveau"]
-    else ["i915" "i965" "nouveau" "radeon" "r200"]);
-  defaultVulkanDrivers =
-    optionals stdenv.isLinux (if (stdenv.isAarch32 || stdenv.isAarch64)
-    then []
-    else ["intel"] ++ lib.optional enableRadv "radeon");
+  # platforms that have PCIe slots and thus can use most non-integrated GPUs
+  pciePlatform = !stdenv.hostPlatform.isAarch32 && !stdenv.hostPlatform.isAarch64;
+  defaultGalliumDrivers = optionals (elem "drm" eglPlatforms) ([ "virgl" ]
+    ++ lib.optionals pciePlatform [ "r300" "r600" "radeonsi" ]
+    ++ lib.optionals (pciePlatform || stdenv.hostPlatform.isAarch32 || stdenv.hostPlatform.isAarch64) [ "nouveau" ]
+    ++ lib.optionals stdenv.hostPlatform.isx86 [ "i915" "svga" ]
+    ++ lib.optionals (stdenv.hostPlatform.isAarch32 || stdenv.hostPlatform.isAarch64) [ "vc4" ]
+    ++ lib.optionals stdenv.hostPlatform.isAarch64 [ "freedreno" "etnaviv" "imx" ]
+  );
+  defaultDriDrivers = optionals (elem "drm" eglPlatforms) ([ ]
+    ++ lib.optionals pciePlatform [ "radeon" "r200" ]
+    ++ lib.optionals (pciePlatform || stdenv.hostPlatform.isAarch32 || stdenv.hostPlatform.isAarch64) [ "nouveau" ]
+    ++ lib.optionals stdenv.hostPlatform.isx86 [ "i915" "i965" ]);
+  defaultVulkanDrivers = optionals stdenv.hostPlatform.isLinux ([ ]
+    ++ lib.optional stdenv.hostPlatform.isx86 "intel"
+    ++ lib.optional enableRadv "radeon");
 in
 
 let gallium_ = galliumDrivers; dri_ = driDrivers; vulkan_ = vulkanDrivers; in
@@ -111,7 +111,7 @@ let self = stdenv.mkDerivation {
     "--enable-texture-float"
     (enableFeature stdenv.isLinux "dri3")
     (enableFeature stdenv.isLinux "nine") # Direct3D in Wine
-    "--enable-libglvnd"
+    (enableFeature stdenv.isLinux "libglvnd")
     "--enable-dri"
     "--enable-driglx-direct"
     "--enable-gles1"
@@ -233,12 +233,51 @@ let self = stdenv.mkDerivation {
     inherit libdrm version;
     inherit (libglvnd) driverLink;
 
+    # Use stub libraries from libglvnd and headers from Mesa.
     stubs = stdenv.mkDerivation {
       name = "libGL-${libglvnd.version}";
       outputs = [ "out" "dev" ];
 
-      # Use stub libraries from libglvnd and headers from Mesa.
-      buildCommand = ''
+      # On macOS, libglvnd is not supported, so we just use what mesa
+      # build. We need to also include OpenGL.framework, and some
+      # extra tricks to go along with. We add mesa’s libGLX to support
+      # the X extensions to OpenGL.
+      buildCommand = if stdenv.hostPlatform.isDarwin then ''
+        mkdir -p $out/nix-support $dev
+        echo ${OpenGL} >> $out/nix-support/propagated-build-inputs
+        ln -s ${self.out}/lib $out/lib
+
+        mkdir -p $dev/lib/pkgconfig $dev/nix-support
+        echo "$out" > $dev/nix-support/propagated-build-inputs
+        ln -s ${self.dev}/include $dev/include
+
+        cat <<EOF >$dev/lib/pkgconfig/gl.pc
+      Name: gl
+      Description: gl library
+      Version: ${self.version}
+      Libs: -L${self.out}/lib -lGL
+      Cflags: -I${self.dev}/include
+      EOF
+
+        cat <<EOF >$dev/lib/pkgconfig/glesv1_cm.pc
+      Name: glesv1_cm
+      Description: glesv1_cm library
+      Version: ${self.version}
+      Libs: -L${self.out}/lib -lGLESv1_CM
+      Cflags: -I${self.dev}/include
+      EOF
+
+        cat <<EOF >$dev/lib/pkgconfig/glesv2.pc
+      Name: glesv2
+      Description: glesv2 library
+      Version: ${self.version}
+      Libs: -L${self.out}/lib -lGLESv2
+      Cflags: -I${self.dev}/include
+      EOF
+      ''
+
+      # Otherwise, setup gl stubs to use libglvnd.
+      else ''
         mkdir -p $out/nix-support
         ln -s ${libglvnd.out}/lib $out/lib
 
@@ -263,8 +302,6 @@ let self = stdenv.mkDerivation {
         genPkgConfig egl EGL
         genPkgConfig glesv1_cm GLESv1_CM
         genPkgConfig glesv2 GLESv2
-      '' + lib.optionalString stdenv.isDarwin ''
-        echo ${OpenGL} > $out/nix-support/propagated-build-inputs
       '';
     };
   };

@@ -38,26 +38,17 @@ self: super: {
   # The test suite depends on old versions of tasty and QuickCheck.
   hackage-security = dontCheck super.hackage-security;
 
-  # Link statically to avoid runtime dependency on GHC.
-  jailbreak-cabal = disableSharedExecutables super.jailbreak-cabal;
-
   # enable using a local hoogle with extra packagages in the database
   # nix-shell -p "haskellPackages.hoogleLocal { packages = with haskellPackages; [ mtl lens ]; }"
   # $ hoogle server
   hoogleLocal = { packages ? [] }: self.callPackage ./hoogle.nix { inherit packages; };
 
-  # Break infinite recursions.
-  attoparsec-varword = super.attoparsec-varword.override { bytestring-builder-varword = dontCheck self.bytestring-builder-varword; };
-  Dust-crypto = dontCheck super.Dust-crypto;
-  hasql-postgres = dontCheck super.hasql-postgres;
-  hspec-core = super.hspec-core.override { silently = dontCheck self.silently; temporary = dontCheck self.temporary; };
-  hspec-expectations = dontCheck super.hspec-expectations;
-  HTTP = dontCheck super.HTTP;
-  http-streams = dontCheck super.http-streams;
-  nanospec = dontCheck super.nanospec;
-  options = dontCheck super.options;
+  # Needs older QuickCheck version
+  attoparsec-varword = dontCheck super.attoparsec-varword;
+
+  # Tests are failing
+  # https://github.com/bos/statistics/issues/123
   statistics = dontCheck super.statistics;
-  vector-builder = dontCheck super.vector-builder;
 
   # These packages (and their reverse deps) cannot be built with profiling enabled.
   ghc-heap-view = disableLibraryProfiling super.ghc-heap-view;
@@ -66,16 +57,13 @@ self: super: {
   # This test keeps being aborted because it runs too quietly for too long
   Lazy-Pbkdf2 = if pkgs.stdenv.isi686 then dontCheck super.Lazy-Pbkdf2 else super.Lazy-Pbkdf2;
 
-  # Use the default version of mysql to build this package (which is actually mariadb).
-  # test phase requires networking
-  mysql = dontCheck (super.mysql.override { mysql = pkgs.mysql.connector-c; });
-
   # check requires mysql server
   mysql-simple = dontCheck super.mysql-simple;
   mysql-haskell = dontCheck super.mysql-haskell;
 
-  # Link the proper version.
-  zeromq4-haskell = super.zeromq4-haskell.override { zeromq = pkgs.zeromq4; };
+  # Tests failing, fixed once 0.8.0 is in stackage
+  # https://gitlab.com/twittner/zeromq-haskell/issues/63
+  zeromq4-haskell = dontCheck super.zeromq4-haskell;
 
   # The Hackage tarball is purposefully broken, because it's not intended to be, like, useful.
   # https://git-annex.branchable.com/bugs/bash_completion_file_is_missing_in_the_6.20160527_tarball_on_hackage/
@@ -104,7 +92,7 @@ self: super: {
   # https://github.com/froozen/kademlia/issues/2
   kademlia = dontCheck super.kademlia;
 
-  # Test suite doesn't terminate
+  # Tests require older tasty
   hzk = dontCheck super.hzk;
 
   # Tests require a Kafka broker running locally
@@ -165,10 +153,7 @@ self: super: {
     then dontCheck (overrideCabal super.hakyll (drv: {
       testToolDepends = [];
     }))
-    else appendPatch super.hakyll (pkgs.fetchpatch {
-      url = "https://github.com/jaspervdj/hakyll/pull/691/commits/a44ad37cd15310812e78f7dab58d6d460451f20c.patch";
-      sha256 = "13xpznm19rjp51ds165ll9ahyps1r4131c77b8r7gpjd6i505832";
-    });
+    else super.hakyll;
 
   double-conversion = if !pkgs.stdenv.isDarwin
     then super.double-conversion
@@ -1189,7 +1174,7 @@ self: super: {
   # https://github.com/mgajda/json-autotype/issues/25
   json-autotype = dontCheck super.json-autotype;
 
-  # The LTS-12.x version doesn't suffice to build hlint, hoogle, etc.
+  # The LTS-13.x version doesn't suffice to build hlint, hoogle, etc.
   hlint = super.hlint.overrideScope (self: super: { haskell-src-exts = self.haskell-src-exts_1_21_0; });
   hoogle = super.hoogle.overrideScope (self: super: { haskell-src-exts = self.haskell-src-exts_1_21_0; });
 
@@ -1236,8 +1221,9 @@ self: super: {
   pandoc = doDistribute super.pandoc_2_7_2;
   pandoc-citeproc = doDistribute super.pandoc-citeproc_0_16_2;
 
-  # https://github.com/qfpl/tasty-hedgehog/issues/24
-  tasty-hedgehog = dontCheck super.tasty-hedgehog;
+  # Current versions of tasty-hedgehog need hedgehog 1.x, which
+  # we don't have in LTS-13.x.
+  tasty-hedgehog = super.tasty-hedgehog.override { hedgehog = self.hedgehog_1_0; };
 
   # The latest release version is ancient. You really need this tool from git.
   haskell-ci = generateOptparseApplicativeCompletion "haskell-ci"
@@ -1266,5 +1252,23 @@ self: super: {
   # Some tests depend on a postgresql instance
   # Haddock failure: https://github.com/haskell/haddock/issues/979
   esqueleto = dontHaddock (dontCheck super.esqueleto);
+
+  # Requires API keys to run tests
+  algolia = dontCheck super.algolia;
+
+  # antiope-s3's latest stackage version has a hspec < 2.6 requirement, but
+  # hspec which isn't in stackage is already past that
+  antiope-s3 = doJailbreak super.antiope-s3;
+
+  # Has tasty < 1.2 requirement, but works just fine with 1.2
+  temporary-resourcet = doJailbreak super.temporary-resourcet;
+
+  # Requires dhall >= 1.23.0
+  ats-pkg = super.ats-pkg.override { dhall = self.dhall_1_24_0; };
+  dhall-to-cabal = super.dhall-to-cabal.override { dhall = self.dhall_1_24_0; };
+
+  # Test suite doesn't work with current QuickCheck
+  # https://github.com/pruvisto/heap/issues/11
+  heap = dontCheck super.heap;
 
 } // import ./configuration-tensorflow.nix {inherit pkgs haskellLib;} self super

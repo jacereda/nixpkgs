@@ -13,7 +13,7 @@
 
 let
   basename = "gdb-${version}";
-  version = "8.2.1";
+  version = "8.3";
 in
 
 assert pythonSupport -> python3 != null;
@@ -26,28 +26,13 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "mirror://gnu/gdb/${basename}.tar.xz";
-    sha256 = "00i27xqawjv282a07i73lp1l02n0a3ywzhykma75qg500wll6sha";
+    sha256 = "0bnpzz0rl672xg5547q5qck2sxi6cnyixmk8bbb4gifw17ipwbw0";
   };
 
   patches = [
     ./debug-info-from-env.patch
   ] ++ stdenv.lib.optionals stdenv.isDarwin [
     ./darwin-target-match.patch
-    (fetchpatch {
-      name = "macos-mojave-load-patch";
-      url = "https://sourceware.org/git/gitweb.cgi?p=binutils-gdb.git;a=patch;h=ddea148b3da27eb681504bf341f45abb7a74580b";
-      includes = [
-        "bfd/mach-o.c"
-        "include/mach-o/loader.h"
-      ];
-      sha256 = "09dmcymvdk8nk8x3f00ninv0gw22p6byv1jjbm0gy8ws7zwnhg8a";
-    })
-    (fetchpatch {
-      name = "gdb-aarch64-linux-tdep.patch";
-      url = "https://sourceware.org/git/gitweb.cgi?p=binutils-gdb.git;a=patch;h=0c0a40e0abb9f1a584330a1911ad06b3686e5361";
-      excludes = [ "gdb/ChangeLog" ];
-      sha256 = "16zjw99npyapj68sw52xzmbw671ajm9xv7g5jxfmp94if5y91mnj";
-    })
   ];
 
   nativeBuildInputs = [ pkgconfig texinfo perl setupDebugInfoDirs ];

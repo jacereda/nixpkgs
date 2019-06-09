@@ -145,7 +145,7 @@
       #notbit = 111; # unused
       aerospike = 111;
       ngircd = 112;
-      btsync = 113;
+      #btsync = 113; # unused
       minecraft = 114;
       vault = 115;
       rippled = 116;
@@ -265,7 +265,7 @@
       syncthing = 237;
       caddy = 239;
       taskd = 240;
-      factorio = 241;
+      # factorio = 241; # DynamicUser = true
       # emby = 242; # unusued, removed 2019-05-01
       graylog = 243;
       sniproxy = 244;
@@ -457,7 +457,7 @@
       #notbit = 111; # unused
       aerospike = 111;
       #ngircd = 112; # unused
-      btsync = 113;
+      #btsync = 113; # unused
       #minecraft = 114; # unused
       vault = 115;
       #ripped = 116; # unused
@@ -567,7 +567,7 @@
       syncthing = 237;
       caddy = 239;
       taskd = 240;
-      factorio = 241;
+      # factorio = 241; # unused
       # emby = 242; # unused, removed 2019-05-01
       sniproxy = 244;
       nzbget = 245;

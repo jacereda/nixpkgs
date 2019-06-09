@@ -6,7 +6,7 @@
    be almost as much code as the function itself. */
 
 {config, pkgs, fetchurl, fetchFromGitHub, stdenv, gnused, perl, overrides,
-  buildPackages}:
+  buildPerl}:
 
 # cpan2nix assumes that perl-packages.nix will be used only with perl 5.28.2 or above
 assert stdenv.lib.versionAtLeast perl.version "5.28.2";
@@ -37,7 +37,7 @@ let
     });
 
   buildPerlPackage = callPackage ../development/perl-modules/generic {
-    inherit toPerlModule;
+    inherit buildPerl;
   };
 
   # Helper functions for packages that use Module::Build to build.
@@ -8016,11 +8016,11 @@ let
 
   ImageExifTool = buildPerlPackage rec {
     name = "Image-ExifTool-${version}";
-    version = "11.30";
+    version = "11.48";
 
     src = fetchurl {
       url = "https://www.sno.phy.queensu.ca/~phil/exiftool/${name}.tar.gz";
-      sha256 = "0vkjb2c1a3jdlq8rx1jywx4p3f1bmgjn7rzfwx6dxgij2lx76lrs";
+      sha256 = "0whbwrrmwvj311fxksf47i47cyfgzd2d5cnh6ixg74rb1n6k9986";
     };
 
     meta = with stdenv.lib; {
@@ -11426,6 +11426,18 @@ let
     };
   };
 
+  NetNetmask = buildPerlPackage rec {
+    name = "Net-Netmask-1.9104";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/J/JM/JMASLAK/${name}.tar.gz";
+      sha256 = "17li2svymz49az35xl6galp4b9qcnb985gzklhikkvkn9da6rz3y";
+    };
+    buildInputs = [ Test2Suite TestUseAllModules ];
+    meta = {
+      description = "Parse, manipulate and lookup IP network blocks";
+    };
+  };
+
   NetOAuth = buildPerlModule {
     name = "Net-OAuth-0.28";
     src = fetchurl {
@@ -11656,6 +11668,22 @@ let
       description = "A perl interface to the Twitter API";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
     };
+  };
+
+  NetWhoisIP = buildPerlPackage rec {
+    name = "Net-Whois-IP-1.19";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/B/BS/BSCHMITZ/${name}.tar.gz";
+      sha256 = "08kj2h9qiyfvv3jfz619xl796j93cslg7d96919mnrnjy6hdz6zh";
+    };
+
+    propagatedBuildInputs = [ RegexpIPv6 LWPProtocolhttps ];
+    doCheck = false;
+
+    # https://rt.cpan.org/Public/Bug/Display.html?id=99377
+    postPatch = ''
+      substituteInPlace IP.pm --replace " AutoLoader" ""
+    '';
   };
 
   NetWorks = buildPerlPackage {
@@ -12610,32 +12638,36 @@ let
   };
 
   Po4a = buildPerlPackage rec {
-    name = "po4a-0.47";
+    name = "po4a-${version}";
+    version = "0.55";
     src = fetchurl {
-      url = "https://alioth.debian.org/frs/download.php/file/4142/po4a-0.47.tar.gz";
-      sha256 = "5010e1b7df1115cbd475f46587fc05fefc97301f9bba0c2f15106005ca017507";
+      url = "https://github.com/mquinson/po4a/releases/download/v${version}/po4a-${version}.tar.gz";
+      sha256 = "1qss4q5df3nsydsbggb7gg50bn0kdxq5wn8riqm9zwkiq6a4bifg";
     };
-    nativeBuildInputs = [ pkgs.docbook_xsl pkgs.docbook_xsl pkgs.docbook_xsl_ns ];
-    propagatedBuildInputs = [ TextWrapI18N LocaleGettext TermReadKey SGMLSpm ModuleBuild UnicodeLineBreak ModuleBuild ];
-    buildInputs = [ pkgs.gettext pkgs.libxslt pkgs.glibcLocales pkgs.docbook_xml_dtd_412 pkgs.docbook_sgml_dtd_41 pkgs.texlive.combined.scheme-basic pkgs.jade ];
-    LC_ALL="en_US.UTF-8";
+    nativeBuildInputs = [ pkgs.docbook_xsl pkgs.docbook_xsl_ns ModuleBuild ];
+    propagatedBuildInputs = [ TextWrapI18N LocaleGettext TermReadKey SGMLSpm UnicodeLineBreak PodParser YAMLTiny ];
+    buildInputs = [ pkgs.gettext pkgs.libxslt pkgs.glibcLocales pkgs.docbook_xml_dtd_412 pkgs.docbook_sgml_dtd_41 pkgs.texlive.combined.scheme-basic pkgs.opensp ];
+    LC_ALL = "en_US.UTF-8";
     SGML_CATALOG_FILES = "${pkgs.docbook_xml_dtd_412}/xml/dtd/docbook/catalog.xml";
     preConfigure = ''
       touch Makefile.PL
       export PERL_MB_OPT="--install_base=$out --prefix=$out"
-      substituteInPlace Po4aBuilder.pm --replace "\$self->install_sets(\$self->installdirs)->{'bindoc'}" "'$out/share/man/man1'"
     '';
-
     buildPhase = "perl Build.PL --install_base=$out --install_path=\"lib=$out/${perl.libPrefix}\"; ./Build build";
-    installPhase = "./Build install";
     checkPhase = ''
       export SGML_CATALOG_FILES=${pkgs.docbook_sgml_dtd_41}/sgml/dtd/docbook-4.1/docbook.cat
       ./Build test
     '';
+    installPhase = ''
+      ./Build install
+      for f in $out/bin/*; do
+        substituteInPlace $f --replace "#! /usr/bin/env perl" "#!${perl}/bin/perl"
+      done
+    '';
     meta = {
-      homepage = https://po4a.alioth.debian.org/;
-      description = "tools for helping translation of documentation";
-      license = with stdenv.lib.licenses; [ gpl2 ];
+      homepage = "https://po4a.org/";
+      description = "Tools for helping translation of documentation";
+      license = stdenv.lib.licenses.gpl2;
     };
   };
 
@@ -14141,6 +14173,14 @@ let
     };
   };
 
+  StringRandom = buildPerlModule rec {
+    name = "String-Random-0.30";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/S/SH/SHLOMIF/${name}.tar.gz";
+      sha256 = "06xdpyjc53al0a4ib2lw1m388v41z97hzqbdkd00w3nmjsdrn4w1";
+    };
+  };
+
   StringRewritePrefix = buildPerlPackage {
     name = "String-RewritePrefix-0.007";
     src = fetchurl {
@@ -14821,8 +14861,8 @@ let
 
     # use native libraries from the host when running build commands
     postConfigure = if cross then let
-      host_perl = buildPackages.perl;
-      host_self = buildPackages.perlPackages.TermReadKey;
+      host_perl = buildPerl;
+      host_self = buildPerl.pkgs.TermReadKey;
       perl_lib = "${host_perl}/lib/perl5/${host_perl.version}";
       self_lib = "${host_self}/lib/perl5/site_perl/${host_perl.version}";
     in ''
@@ -14831,7 +14871,7 @@ let
 
     # TermReadKey uses itself in the build process
     nativeBuildInputs = if cross then [
-      buildPackages.perlPackages.TermReadKey
+      buildPerl.pkgs.TermReadKey
     ] else [];
   };
 

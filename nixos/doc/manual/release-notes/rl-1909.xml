@@ -19,7 +19,9 @@
 
   <itemizedlist>
    <listitem>
-    <para />
+    <para>
+     End of support is planned for end of April 2020, handing over to 20.03.
+    </para>
    </listitem>
   </itemizedlist>
  </section>
@@ -93,6 +95,14 @@
    </listitem>
    <listitem>
     <para>
+      The <option>services.mysql.pidDir</option> option was removed, as it was only used by the wordpress
+      apache-httpd service to wait for mysql to have started up.
+      This can be accomplished by either describing a dependency on mysql.service (preferred)
+      or waiting for the (hardcoded) <filename>/run/mysqld/mysql.sock</filename> file to appear.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
       The <option>services.emby.enable</option> module has been removed, see
       <option>services.jellyfin.enable</option> instead for a free software fork of Emby.
 
@@ -100,6 +110,31 @@
       <link xlink:href="https://jellyfin.readthedocs.io/en/latest/administrator-docs/migrate-from-emby/">
         Migrating from Emby to Jellyfin
       </link>
+    </para>
+   </listitem>
+   <listitem>
+    <para>
+     Since Bittorrent Sync was superseded by Resilio Sync in 2016, the
+     <literal>bittorrentSync</literal>, <literal>bittorrentSync14</literal>,
+     and <literal>bittorrentSync16</literal> packages have been removed in
+     favor of <literal>resilio-sync</literal>.
+    </para>
+    <para>
+     The corresponding module, <option>services.btsync</option> has been
+     replaced by the <option>services.resilio</option> module.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
+      The limesurvey apache subservice was replaced with a full NixOS module.
+      One can configure it using the <option>services.limesurvey.enable</option>
+      and <option>services.limesurvey.virtualHost</option> options.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
+      The setopt declarations will be evaluated at the end of <literal>/etc/zshrc</literal>, so any code in <xref linkend="opt-programs.zsh.interactiveShellInit" />,
+      <xref linkend="opt-programs.zsh.loginShellInit" /> and <xref linkend="opt-programs.zsh.promptInit" /> may break if it relies on those options being set.
     </para>
    </listitem>
   </itemizedlist>
@@ -153,6 +188,23 @@
       </para>
      </listitem>
     </itemizedlist>
+   </listitem>
+   <listitem>
+    <para>
+      The <literal>hunspellDicts.fr-any</literal> dictionary now ships with <literal>fr_FR.{aff,dic}</literal>
+      which is linked to <literal>fr-toutesvariantes.{aff,dic}</literal>.
+    </para>
+  </listitem>
+  <listitem>
+    <para>
+      The <literal>mysql</literal> service now runs as <literal>mysql</literal>
+      user. Previously, systemd did execute it as root, and mysql dropped privileges
+      itself.
+      This includes <literal>ExecStartPre=</literal> and
+      <literal>ExecStartPost=</literal> phases.
+      To accomplish that, runtime and data directory setup was delegated to
+      RuntimeDirectory and tmpfiles.
+    </para>
    </listitem>
   </itemizedlist>
  </section>
