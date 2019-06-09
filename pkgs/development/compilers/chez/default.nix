@@ -1,6 +1,7 @@
 { stdenv, fetchFromGitHub
 , coreutils, cctools
-, ncurses, libiconv, libX11, libuuid
+, ncurses, libiconv, libuuid
+, x11Support ? !stdenv.isDarwin, libX11
 }:
 
 stdenv.mkDerivation rec {
@@ -16,7 +17,7 @@ stdenv.mkDerivation rec {
   };
 
   nativeBuildInputs = [ coreutils ] ++ stdenv.lib.optional stdenv.isDarwin cctools;
-  buildInputs = [ ncurses libiconv libX11 libuuid ];
+  buildInputs = [ ncurses libiconv libuuid ] ++ stdenv.lib.optional x11Support libX11;
 
   enableParallelBuilding = true;
 
