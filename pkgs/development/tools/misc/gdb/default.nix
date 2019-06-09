@@ -35,6 +35,10 @@ stdenv.mkDerivation rec {
     ./darwin-target-match.patch
   ];
 
+  postPatch = ''
+    substituteInPlace gdb/darwin-nat.c --replace 'bfd/mach-o.h' 'mach-o.h'
+  '';
+
   nativeBuildInputs = [ pkgconfig texinfo perl setupDebugInfoDirs ];
 
   buildInputs = [ ncurses readline gmp mpfr expat zlib guile ]
