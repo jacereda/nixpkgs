@@ -9752,10 +9752,8 @@ in
 
   bashdb = callPackage ../development/tools/misc/bashdb { };
 
-  gdb = callPackage (if stdenv.isDarwin
-    then ../development/tools/misc/gdb/8.3-pre.nix
-    else ../development/tools/misc/gdb) {
-      guile = null;
+  gdb = callPackage ../development/tools/misc/gdb {
+    guile = null;
   };
 
   jhiccup = callPackage ../development/tools/java/jhiccup { };
