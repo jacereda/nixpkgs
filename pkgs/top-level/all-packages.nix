@@ -2525,6 +2525,8 @@ in
 
   docbook2mdoc = callPackage ../tools/misc/docbook2mdoc { };
 
+  docear = callPackage ../applications/office/docear { };
+
   dockbarx = callPackage ../applications/misc/dockbarx { };
 
   dog = callPackage ../tools/system/dog { };
@@ -5339,7 +5341,6 @@ in
   podiff = callPackage ../tools/text/podiff { };
 
   podman = callPackage ../applications/virtualization/podman { };
-  conmon = callPackage ../applications/virtualization/podman/conmon.nix { };
 
   pod2mdoc = callPackage ../tools/misc/pod2mdoc { };
 
@@ -5858,9 +5859,7 @@ in
 
   silc_server = callPackage ../servers/silc-server { };
 
-  sile = callPackage ../tools/typesetting/sile {
-  inherit (lua52Packages) lua luaexpat lua-zlib luafilesystem lpeg luasocket luasec;
-  };
+  sile = callPackage ../tools/typesetting/sile { };
 
   silver-searcher = callPackage ../tools/text/silver-searcher { };
 
@@ -8407,8 +8406,8 @@ in
 
   pachyderm = callPackage ../applications/networking/cluster/pachyderm { };
 
-  php = php72;
-  phpPackages = php72Packages;
+  php = php73;
+  phpPackages = php73Packages;
 
   php71Packages = recurseIntoAttrs (callPackage ./php-packages.nix {
     php = php71;
@@ -8443,7 +8442,7 @@ in
     php72
     php73;
 
-  php-embed = php72-embed;
+  php-embed = php73-embed;
 
   php71-embed = php71.override {
     config.php.embed = true;
@@ -8460,7 +8459,7 @@ in
     config.php.apxs2 = false;
   };
 
-  php-unit = php72-unit;
+  php-unit = php73-unit;
 
   php71-unit = php71.override {
     config.php.embed = true;
@@ -14760,6 +14759,11 @@ in
 
   sensu = callPackage ../servers/monitoring/sensu { };
 
+  inherit (callPackages ../servers/monitoring/sensu-go { })
+    sensu-go-agent
+    sensu-go-backend
+    sensu-go-cli;
+
   uchiwa = callPackage ../servers/monitoring/uchiwa { };
 
   shishi = callPackage ../servers/shishi {
@@ -16093,6 +16097,8 @@ in
 
   adapta-backgrounds = callPackage ../data/misc/adapta-backgrounds { };
 
+  adementary-theme = callPackage ../data/themes/adementary { };
+
   agave = callPackage ../data/fonts/agave { };
 
   aileron = callPackage ../data/fonts/aileron { };
@@ -16670,8 +16676,6 @@ in
   terminus_font_ttf = callPackage ../data/fonts/terminus-font-ttf { };
 
   termtekst = callPackage ../misc/emulators/termtekst { };
-
-  tetra-gtk-theme = callPackage ../data/themes/tetra { };
 
   tex-gyre = callPackages ../data/fonts/tex-gyre { };
 
@@ -17660,7 +17664,7 @@ in
       inherit (pythonPackages) elpy;
       inherit
         autoconf automake git libffi libpng pkgconfig poppler rtags w3m zlib
-        substituteAll rustPlatform;
+        substituteAll rustPlatform cmake llvmPackages;
     };
   };
 
@@ -18111,6 +18115,8 @@ in
   gitRepo = callPackage ../applications/version-management/git-repo {
     python = python27;
   };
+
+  git-quick-stats = callPackage ../development/tools/git-quick-stats {};
 
   git-review = callPackage ../applications/version-management/git-review { };
 
@@ -19212,6 +19218,8 @@ in
 
   natron = callPackage ../applications/video/natron { };
 
+  neocomp  = callPackage ../applications/window-managers/neocomp { };
+
   nicotine-plus = callPackage ../applications/networking/soulseek/nicotine-plus {
     geoip = geoipWithDatabase;
   };
@@ -20132,8 +20140,6 @@ in
 
   slic3r = callPackage ../applications/misc/slic3r { };
 
-  slic3r-prusa3d = callPackage ../applications/misc/slic3r/prusa3d.nix { };
-
   curaengine_stable = callPackage ../applications/misc/curaengine/stable.nix { };
   cura_stable = callPackage ../applications/misc/cura/stable.nix {
     curaengine = curaengine_stable;
@@ -20155,6 +20161,8 @@ in
   pmidi = callPackage ../applications/audio/pmidi { };
 
   printrun = callPackage ../applications/misc/printrun { };
+
+  prusa-slicer = callPackage ../applications/misc/prusa-slicer { };
 
   sddm = libsForQt5.callPackage ../applications/display-managers/sddm { };
 
@@ -20284,7 +20292,7 @@ in
 
   symlinks = callPackage ../tools/system/symlinks { };
 
-  syncplay = callPackage ../applications/networking/syncplay { };
+  syncplay = python3.pkgs.callPackage ../applications/networking/syncplay { };
 
   inherit (callPackages ../applications/networking/syncthing { })
     syncthing
@@ -21357,6 +21365,8 @@ in
   commandergenius = callPackage ../games/commandergenius { };
 
   confd = callPackage ../tools/system/confd { };
+
+  conmon = callPackage ../applications/virtualization/conmon { };
 
   construoBase = lowPrio (callPackage ../games/construo {
     libGL = null;
@@ -23323,12 +23333,16 @@ in
   lguf-brightness = callPackage ../misc/lguf-brightness { };
 
   lilypond = callPackage ../misc/lilypond { guile = guile_1_8; };
+
   lilypond-unstable = callPackage ../misc/lilypond/unstable.nix { };
+
   lilypond-with-fonts = callPackage ../misc/lilypond/with-fonts.nix {
     lilypond = lilypond-unstable;
   };
 
-  openlilylib-fonts = callPackage ../misc/lilypond/fonts.nix { };
+  openlilylib-fonts = callPackage ../misc/lilypond/fonts.nix {
+    lilypond = lilypond-unstable;
+  };
 
   loop = callPackage ../tools/misc/loop { };
 
@@ -23818,6 +23832,8 @@ in
   ssh-audit = callPackage ../tools/security/ssh-audit { };
 
   thermald = callPackage ../tools/system/thermald { };
+
+  throttled = callPackage ../tools/system/throttled { };
 
   thinkfan = callPackage ../tools/system/thinkfan { };
 
