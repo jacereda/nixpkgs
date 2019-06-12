@@ -4,11 +4,11 @@
 
 stdenv.mkDerivation rec {
   name = "nim-${version}";
-  version = "0.19.4";
+  version = "0.20.0";
 
   src = fetchurl {
     url = "https://nim-lang.org/download/${name}.tar.xz";
-    sha256 = "0k59dhfsg5wnkc3nxg5a336pjd9jnfxabns63bl9n28iwdg16hgl";
+    sha256 = "144sd7icg2p6qsrr29jdnl11hr34daxq4h16ywwrayz866w7kx2i";
   };
 
   doCheck = !stdenv.isDarwin;
