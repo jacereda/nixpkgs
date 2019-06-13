@@ -214,7 +214,7 @@ with self; {
     	cp bin/*/genie $out/bin
     '';
 
-    buildInputs = with pkgs.darwin.apple_sdk.frameworks;
+    buildInputs = with darwin.apple_sdk.frameworks;
       stdenv.lib.optional stdenv.isDarwin CoreServices;
 
     meta = with stdenv.lib; {
