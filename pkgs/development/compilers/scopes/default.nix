@@ -1,45 +1,50 @@
 { stdenv
+, substituteAll
 , fetchFromBitbucket
+, fetchpatch
 , llvm
 , clang
 , clang-unwrapped
 , genie
 , spirv-tools
 , spirv-cross
-, libc-hdrs
-, clang-hdrs
+, libch
+, clangh
 }:
 stdenv.mkDerivation rec {
   pname = "scopes";
-  version = "unstable-2019-06-09";
+  version = "unstable-2019-06-13";
+
   src = fetchFromBitbucket {
     owner = "duangle";
     repo = "scopes";
     rev = "bd29af1";
     sha256 = "0czhww3mpznapqv9y2sy3ilfzd7q9580scmlvdjz357fkvyr4pra";
   };
+
   nativeBuildInputs = [ genie spirv-tools spirv-cross ];
+
   buildInputs = [ llvm clang-unwrapped ];
-  postPatch = ''
-    substituteInPlace genie.lua \
-      --replace 'CLANG_PATH =' 'CLANG_PATH = "${clang}/bin:${llvm}/bin" -- ' \
-      --replace '"SPIRV-Cross' '--"SPIRV-Cross' \
-      --replace 'THISDIR .. "/SPIRV-Tools/build/source/opt/libSPIRV-Tools-opt.a"' '"-lSPIRV-Tools-opt"' \
-      --replace 'THISDIR .. "/SPIRV-Tools/build/source/libSPIRV-Tools.a"' '"-lSPIRV-Tools -lspirv-cross-glsl -lspirv-cross-reflect -lspirv-cross-util -lspirv-cross-core"'
-    substituteInPlace src/gen_spirv.cpp \
-      --replace 'SPIRV-Cross' 'spirv_cross'
-    substituteInPlace src/boot.cpp \
-      --replace 'scopes_clang_include_dir = format' 'scopes_clang_include_dir = "${clang-hdrs}"; // format' \
-      --replace 'scopes_include_dir = format' 'scopes_include_dir = "${libc-hdrs}"; // format'
-  '' + stdenv.lib.optionalString stdenv.isDarwin ''
-    sed -i "s^#include <limits.h>^#include <inttypes.h>\n#include <limits.h>^g" src/cache.cpp
-    substituteInPlace src/cache.cpp --replace ', SCOPES_KEY16_FORMAT' ', "%016" PRIx64'
-  '';
-  configurePhase = ''
-    genie gmake
-  '';
+
+  patches = [
+    (substituteAll {
+      name = "nixpkgs-patches.patch";
+      src = fetchpatch {
+        url = https://bitbucket.org/jacereda/scopes/commits/45eb6d3dca6b361da19736a42e02d4317032ef8d/raw;
+        sha256 = "1h94n92b6biacbvni2ygqcpdyc8sqr4w3mk7clyijkbhziriphkh";
+      };
+      inherit clang llvm clangh libch;
+    })
+    (fetchpatch {
+        url = https://bitbucket.org/jacereda/scopes/commits/94d8f2ac1f6c3415d6ae4e319cf7ea91378e25ee/raw;
+        sha256 = "1ikimqz52ndf5gvby3s20z6ljvjg7cqz0f342cccwq16l3lyxnk5";
+    })
+  ];
+
   makefile = "Makefile";
+
   makeFlags = "-C build config=release";
+
   installPhase = ''
     install -d $out/bin
     install -d $out/lib
@@ -49,15 +54,19 @@ stdenv.mkDerivation rec {
   '' + stdenv.lib.optionalString stdenv.isDarwin ''
     install_name_tool -change @executable_path/libscopesrt.dylib $out/lib/libscopesrt.dylib $out/bin/scopes
   '';
-  doInstallCheck = false; # Uses ~/.cache
+
+  doInstallCheck = true;
+
   installCheckPhase = ''
-    $out/bin/scopes testing/check_all.sc
+    export HOME=$TMPDIR
+    $out/bin/scopes testing/test_all.sc
   '';
+
   enableParallelBuilding = true;
 
   meta = {
     description = "Retargetable programming language & infrastructure";
-    homepage = https://bitbucket.org/duangle/scopes/wiki/Home;
+    homepage = http://scopes.rocks;
     license = stdenv.lib.licenses.mit;
   };
 }

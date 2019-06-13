@@ -8049,12 +8049,11 @@ in
 
   scopes = callPackage ../development/compilers/scopes {
     inherit (llvmPackages_8) llvm stdenv clang-unwrapped clang;
-    libc-hdrs =
+    libch =
       let pkg = with llvmPackages_8.stdenv.cc;
         if stdenv.isDarwin then libc else libc.dev;
         in "${pkg}/include";
-    clang-hdrs = "${llvmPackages_8.clang-unwrapped}/lib/clang/8.0.0/include";
-    inherit (luaPackages) genie;
+    clangh = "${llvmPackages_8.clang-unwrapped}/lib/clang/8.0.0/include";
   };
 
   sdcc = callPackage ../development/compilers/sdcc {
@@ -9216,6 +9215,10 @@ in
 
   geis = callPackage ../development/libraries/geis {
     inherit (xorg) libX11 libXext libXi libXtst;
+  };
+
+  genie = callPackage ../development/tools/misc/genie {
+    inherit (darwin.apple_sdk.frameworks) CoreServices;
   };
 
   github-release = callPackage ../development/tools/github/github-release { };
