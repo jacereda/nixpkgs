@@ -15,8 +15,8 @@ stdenv.mkDerivation rec {
   src = fetchFromBitbucket {
     owner = "duangle";
     repo = "scopes";
-    rev = "0c0874b";
-    sha256 = "1337nl5wnb1cv5ww79nx206879pszgzh3crhrnhlc8gih320y3zi";
+    rev = "bd29af1";
+    sha256 = "0czhww3mpznapqv9y2sy3ilfzd7q9580scmlvdjz357fkvyr4pra";
   };
   nativeBuildInputs = [ genie spirv-tools spirv-cross ];
   buildInputs = [ llvm clang-unwrapped ];
