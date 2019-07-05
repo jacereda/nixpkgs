@@ -11,7 +11,8 @@ stdenv.mkDerivation rec {
 
   configureFlags = stdenv.lib.optional stdenv.isDarwin "--disable-sdltest";
 
-  buildInputs = [ SDL2 freetype libGL ]
+  buildInputs = [ SDL2 freetype ]
+    ++ stdenv.lib.optional (!stdenv.isDarwin) libGL
     ++ stdenv.lib.optional stdenv.isDarwin darwin.libobjc;
 
   meta = with stdenv.lib; {
