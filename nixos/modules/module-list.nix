@@ -50,6 +50,7 @@
   ./hardware/logitech.nix
   ./hardware/mcelog.nix
   ./hardware/network/b43.nix
+  ./hardware/network/intel-2200bg.nix
   ./hardware/nitrokey.nix
   ./hardware/opengl.nix
   ./hardware/pcmcia.nix
@@ -84,6 +85,7 @@
   ./misc/nixpkgs.nix
   ./misc/passthru.nix
   ./misc/version.nix
+  ./misc/nixops-autoluks.nix
   ./programs/adb.nix
   ./programs/atop.nix
   ./programs/autojump.nix
@@ -91,6 +93,7 @@
   ./programs/bcc.nix
   ./programs/blcr.nix
   ./programs/browserpass.nix
+  ./programs/captive-browser.nix
   ./programs/ccache.nix
   ./programs/cdemu.nix
   ./programs/chromium.nix
@@ -188,6 +191,7 @@
   ./services/audio/liquidsoap.nix
   ./services/audio/mpd.nix
   ./services/audio/mopidy.nix
+  ./services/audio/roon-server.nix
   ./services/audio/slimserver.nix
   ./services/audio/snapserver.nix
   ./services/audio/squeezelite.nix
@@ -442,7 +446,6 @@
   ./services/misc/packagekit.nix
   ./services/misc/paperless.nix
   ./services/misc/parsoid.nix
-  ./services/misc/phd.nix
   ./services/misc/plex.nix
   ./services/misc/tautulli.nix
   ./services/misc/pykms.nix
@@ -776,6 +779,7 @@
   ./services/web-apps/tt-rss.nix
   ./services/web-apps/selfoss.nix
   ./services/web-apps/virtlyst.nix
+  ./services/web-apps/wordpress.nix
   ./services/web-apps/youtrack.nix
   ./services/web-servers/apache-httpd/default.nix
   ./services/web-servers/caddy.nix

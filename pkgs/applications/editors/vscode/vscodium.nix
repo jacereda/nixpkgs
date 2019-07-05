@@ -1,10 +1,9 @@
-{ stdenv, lib, callPackage, fetchurl, fetchpatch }:
+{ stdenv, callPackage, fetchurl }:
 
 let
   inherit (stdenv.hostPlatform) system;
 
   plat = {
-    "i686-linux" = "linux-ia32";
     "x86_64-linux" = "linux-x64";
     "x86_64-darwin" = "darwin";
   }.${system};
@@ -12,17 +11,16 @@ let
   archive_fmt = if system == "x86_64-darwin" then "zip" else "tar.gz";
 
   sha256 = {
-    "i686-linux" = "1vr3mblg5223k56yqi9fqwa7yg8qi4r3nkw6ssf87gs8jwfxa47l";
-    "x86_64-linux" = "1vqq365zw44ll22i06bxxviyywv1v2f71c2mricrz3faz25c3lvm";
-    "x86_64-darwin" = "0pa5cz8kq45q375b74kaa8qn1h0r1mp9amh5gsprg3hx89xzvhxi";
+    "x86_64-linux" = "09vmq87az0f91xwyfby85pnn4mg0rlf7pyvs5bkrxv0r8jxxfpq7";
+    "x86_64-darwin" = "16yzzmlf3v9aj7dyglqjxdksabv0cc98w6kdv5rbfw865hj4bbck";
   }.${system};
 in
   callPackage ./generic.nix rec {
 
-    version = "1.34.0";
+    version = "1.36.0";
     pname = "vscodium";
 
-    executableName = "vscodium";
+    executableName = "codium";
     longName = "VSCodium";
     shortName = "Codium";
 
@@ -49,6 +47,6 @@ in
       downloadPage = https://github.com/VSCodium/vscodium/releases;
       license = licenses.mit;
       maintainers = with maintainers; [];
-      platforms = [ "i686-linux" "x86_64-linux" "x86_64-darwin" ];
+      platforms = [ "x86_64-linux" "x86_64-darwin" ];
     };
   }

@@ -2,20 +2,20 @@
 , gnome3, systemd, libuuid, polkit, gnutls, ppp, dhcp, iptables, python3, vala
 , libgcrypt, dnsmasq, bluez5, readline, libselinux, audit
 , gobject-introspection, modemmanager, openresolv, libndp, newt, libsoup
-, ethtool, gnused, coreutils, iputils, kmod, jansson, gtk-doc, libxslt
+, ethtool, gnused, iputils, kmod, jansson, gtk-doc, libxslt
 , docbook_xsl, docbook_xml_dtd_412, docbook_xml_dtd_42, docbook_xml_dtd_43
-, openconnect, curl, meson, ninja, libpsl, libredirect }:
+, openconnect, curl, meson, ninja, libpsl }:
 
 let
   pname = "NetworkManager";
   pythonForDocs = python3.withPackages (pkgs: with pkgs; [ pygobject3 ]);
 in stdenv.mkDerivation rec {
   name = "network-manager-${version}";
-  version = "1.18.0";
+  version = "1.18.1";
 
   src = fetchurl {
     url = "mirror://gnome/sources/${pname}/${stdenv.lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
-    sha256 = "19lb5afx4iq8dgfsy26x9j4194v8f64vwr3nq6dk1ix3wljxzs66";
+    sha256 = "07vg2ryyjaxs5h8kmkwqhk4ki750c4di98g0i7h7zglfs16psiqd";
   };
 
   outputs = [ "out" "dev" "devdoc" "man" "doc" ];

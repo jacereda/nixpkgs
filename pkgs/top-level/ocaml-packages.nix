@@ -1,8 +1,6 @@
 { lib, newScope, pkgs, config }:
 
 let
-  inherit (pkgs.stdenv.hostPlatform) system;
-
   liftJaneStreet = self: super: super.janeStreet // super;
 
   mkOcamlPackages = ocaml:
@@ -62,6 +60,8 @@ let
     batteries = callPackage ../development/ocaml-modules/batteries { };
 
     bigstringaf = callPackage ../development/ocaml-modules/bigstringaf { };
+
+    bistro = callPackage ../development/ocaml-modules/bistro { };
 
     bitstring = callPackage ../development/ocaml-modules/bitstring { };
 
@@ -428,6 +428,8 @@ let
 
     markup = callPackage ../development/ocaml-modules/markup { lwt = ocaml_lwt; };
 
+    mdx = callPackage ../development/ocaml-modules/mdx { };
+
     menhir = callPackage ../development/ocaml-modules/menhir { };
 
     merlin = callPackage ../development/tools/ocaml/merlin { };
@@ -673,6 +675,8 @@ let
 
     ppx_tools_versioned = callPackage ../development/ocaml-modules/ppx_tools_versioned { };
 
+    printbox = callPackage ../development/ocaml-modules/printbox { };
+
     process = callPackage ../development/ocaml-modules/process { };
 
     ptmap = callPackage ../development/ocaml-modules/ptmap { };
@@ -782,8 +786,8 @@ let
     janeStreet = import ../development/ocaml-modules/janestreet {
       inherit janePackage ocamlbuild angstrom ctypes cryptokit;
       inherit magic-mime num ocaml-migrate-parsetree octavius ounit;
-      inherit ppx_deriving re zarith ppxlib;
-      inherit (pkgs) stdenv openssl;
+      inherit ppx_deriving re ppxlib;
+      inherit (pkgs) openssl;
     };
 
     janeStreet_0_9_0 = import ../development/ocaml-modules/janestreet/old.nix {

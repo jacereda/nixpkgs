@@ -19,6 +19,14 @@ in stdenv.mkDerivation rec {
     sha256 = "02cpzcp113gj5hb0j2xc0cqma2fn04i2i0bzf80r71120p9bdryc";
   };
 
+  patches = [
+    (fetchpatch {
+      name = "openmpi-mca_btl_vader_component_close-segfault.patch";
+      url = "https://github.com/open-mpi/ompi/pull/6526.patch";
+      sha256 = "0s7ac9rkcj3fi6ampkvy76njlj478yyr4zvypjc7licy6dgr595x";
+    })
+  ];
+
   postPatch = ''
     patchShebangs ./
   '';

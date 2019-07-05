@@ -1,4 +1,4 @@
-{ stdenv, lib, fetchurl, makeDesktopItem
+{ stdenv, lib, makeDesktopItem
 , unzip, wrapGAppsHook
 , x11Support ? (!stdenv.isDarwin) , libXScrnSaver, libsecret
 , gtk2, atomEnv, at-spi2-atk, autoPatchelfHook

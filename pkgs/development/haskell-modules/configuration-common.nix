@@ -72,7 +72,7 @@ self: super: {
       name = "git-annex-${super.git-annex.version}-src";
       url = "git://git-annex.branchable.com/";
       rev = "refs/tags/" + super.git-annex.version;
-      sha256 = "0arripb1w3dcabjipdjrdq46q2z0l4b7jp0vl5iyhq7j0blg13xh";
+      sha256 = "02vj13qyzjbk14ddpabycq2mwzggsk63vddffjyzaqpy9d7x35s9";
     };
   }).override {
     dbus = if pkgs.stdenv.isLinux then self.dbus else null;
@@ -357,6 +357,7 @@ self: super: {
   pwstore-cli = dontCheck super.pwstore-cli;
   quantities = dontCheck super.quantities;
   redis-io = dontCheck super.redis-io;
+  reflex = dontCheck super.reflex; # test suite uses hlint, which has different haskell-src-exts version
   rethinkdb = dontCheck super.rethinkdb;
   Rlang-QQ = dontCheck super.Rlang-QQ;
   safecopy = dontCheck super.safecopy;
@@ -860,7 +861,7 @@ self: super: {
   # Wrap the generated binaries to include their run-time dependencies in
   # $PATH. Also, cryptol needs a version of sbl that's newer than what we have
   # in LTS-13.x.
-  cryptol = overrideCabal (super.cryptol.override { sbv = self.sbv_8_2; }) (drv: {
+  cryptol = overrideCabal (super.cryptol.override { sbv = self.sbv_8_3; }) (drv: {
     buildTools = drv.buildTools or [] ++ [ pkgs.makeWrapper ];
     postInstall = drv.postInstall or "" + ''
       for b in $out/bin/cryptol $out/bin/cryptol-html; do
@@ -1087,9 +1088,32 @@ self: super: {
   # https://github.com/haskell-hvr/hgettext/issues/14
   hgettext = doJailbreak super.hgettext;
 
+  # haddock-api-2.22.0: Break out of “QuickCheck ==2.11.*, hspec >=2.4.4 && <2.6”
+  haddock-api = dontHaddock (doJailbreak (super.haddock-api));
+
   # The test suite is broken. Break out of "base-compat >=0.9.3 && <0.10, hspec >=2.4.4 && <2.5".
   haddock-library = doJailbreak (dontCheck super.haddock-library);
   # haddock-library_1_6_0 = doJailbreak (dontCheck super.haddock-library_1_6_0);
+
+  # haskell-names-0.9.4: Break out of “tasty >=0.12 && <1.2”
+  haskell-names = doJailbreak super.haskell-names;
+
+  haskell-names_0_9_6 = super.haskell-names_0_9_6.overrideScope (self: super: {
+    haskell-src-exts = self.haskell-src-exts_1_21_0;
+  });
+
+  # hdocs-0.5.3.1: Break out of “haddock-api ==2.21.*”
+  # cannot use doJailbreak due to https://github.com/peti/jailbreak-cabal/issues/7
+  hdocs = overrideCabal super.hdocs (drv: {
+    postPatch = ''
+      sed -i 's#haddock-api == 2\.21\.\*,#haddock-api == 2.22.*,#' hdocs.cabal
+    '';
+  });
+
+  hsdev_0_3_3_1 = super.hsdev_0_3_3_1.overrideScope (self: super: {
+    haskell-names = self.haskell-names_0_9_6;
+    network = self.network_3_0_1_1;
+  });
 
   # Break out of tasty >=0.10 && <1.2.
   aeson-compat = doJailbreak super.aeson-compat;
@@ -1099,7 +1123,15 @@ self: super: {
 
   # Generate shell completion.
   cabal2nix = generateOptparseApplicativeCompletion "cabal2nix" super.cabal2nix;
-  stack = generateOptparseApplicativeCompletion "stack" super.stack;
+  stack = generateOptparseApplicativeCompletion "stack" (super.stack.overrideScope (self: super: {
+    ansi-terminal = self.ansi-terminal_0_9_1;
+    concurrent-output = self.concurrent-output_1_10_10; # needed for new ansi-terminal version
+    hi-file-parser = dontCheck (unmarkBroken super.hi-file-parser);  # Avoid depending on newer hspec versions.
+    http-download = dontCheck (unmarkBroken super.http-download);
+    pantry-tmp = dontCheck (unmarkBroken super.pantry-tmp);
+    rio = self.rio_0_1_10_0;
+    rio-prettyprint = unmarkBroken super.rio-prettyprint;
+  }));
 
   # musl fixes
   # dontCheck: use of non-standard strptime "%s" which musl doesn't support; only used in test
@@ -1174,7 +1206,7 @@ self: super: {
   # https://github.com/mgajda/json-autotype/issues/25
   json-autotype = dontCheck super.json-autotype;
 
-  # The LTS-13.x version doesn't suffice to build hlint, hoogle, etc.
+  # The LTS-13.x versions doesn't suffice to build these packages.
   hlint = super.hlint.overrideScope (self: super: { haskell-src-exts = self.haskell-src-exts_1_21_0; });
   hoogle = super.hoogle.overrideScope (self: super: { haskell-src-exts = self.haskell-src-exts_1_21_0; });
 
@@ -1217,8 +1249,11 @@ self: super: {
 
   # Use latest pandoc despite what LTS says.
   # Test suite fails in both 2.5 and 2.6: https://github.com/jgm/pandoc/issues/5309.
-  pandoc = doDistribute super.pandoc_2_7_2;
+  cmark-gfm = self.cmark-gfm_0_2_0;
+  pandoc = dontCheck (doDistribute super.pandoc_2_7_3);  # test suite failure: https://github.com/jgm/pandoc/issues/5582
   pandoc-citeproc = doDistribute super.pandoc-citeproc_0_16_2;
+  skylighting = self.skylighting_0_8_1_1;
+  skylighting-core = self.skylighting-core_0_8_1_1;
 
   # Current versions of tasty-hedgehog need hedgehog 1.x, which
   # we don't have in LTS-13.x.
@@ -1227,14 +1262,14 @@ self: super: {
   # The latest release version is ancient. You really need this tool from git.
   haskell-ci = generateOptparseApplicativeCompletion "haskell-ci"
     (addBuildDepend (overrideSrc (dontCheck super.haskell-ci) {
-      version = "20190307-git";
+      version = "20190625-git";
       src = pkgs.fetchFromGitHub {
         owner = "haskell-CI";
         repo = "haskell-ci";
-        rev = "2baceb59bc2f36e798ff9fb6e8865c449f01d3a2";
-        sha256 = "1wqhqajxni6h9rrj22xj6421d4m0gs8qk2glghpdp307ns5gr2j4";
+        rev = "260f967c6973dfb22ecc8061a1811a2ea4b79e01";
+        sha256 = "1mvn6pqa6wfcm4jxhlhm4l54pwrlgnz7vdrmkwabliwz4q0bzgqk";
       };
-  }) (with self; [base-compat generic-lens microlens optparse-applicative ShellCheck]));
+  }) (with self; [base-compat generic-lens microlens optparse-applicative ShellCheck exceptions temporary]));
 
   # Fix build with attr-2.4.48 (see #53716)
   xattr = appendPatch super.xattr ./patches/xattr-fix-build.patch;
@@ -1269,5 +1304,17 @@ self: super: {
   # Test suite doesn't work with current QuickCheck
   # https://github.com/pruvisto/heap/issues/11
   heap = dontCheck super.heap;
+
+  # https://github.com/hslua/tasty-lua/issues/1
+  tasty-lua = dontCheck super.tasty-lua;
+
+  # Test suite won't link for no apparent reason.
+  constraints-deriving = dontCheck super.constraints-deriving;
+
+  # The old LTS-13.x version does not compile.
+  ip = self.ip_1_5_0;
+
+  # Needs deque >= 0.3, but latest version on stackage is 2.7
+  butcher = super.butcher.override { deque = self.deque_0_4_2_3; };
 
 } // import ./configuration-tensorflow.nix {inherit pkgs haskellLib;} self super

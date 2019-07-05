@@ -8059,11 +8059,11 @@ let
 
   ImageExifTool = buildPerlPackage rec {
     name = "Image-ExifTool-${version}";
-    version = "11.48";
+    version = "11.50";
 
     src = fetchurl {
       url = "https://www.sno.phy.queensu.ca/~phil/exiftool/${name}.tar.gz";
-      sha256 = "0whbwrrmwvj311fxksf47i47cyfgzd2d5cnh6ixg74rb1n6k9986";
+      sha256 = "0d8v48y94z8maxkmw1rv7v9m0jg2dc8xbp581njb6yhr7abwqdv3";
     };
 
     meta = with stdenv.lib; {
@@ -8072,11 +8072,11 @@ let
 
       longDescription = ''
         ExifTool is a platform-independent Perl library plus a command-line
-        application for reading, writing and editing meta information in
-        image, audio and video files.  ExifTool supports many different types
-        of metadata including EXIF, GPS, IPTC, XMP, JFIF, GeoTIFF, ICC
-        Profile, Photoshop IRB, FlashPix, AFCP and ID3, as well as the maker
-        notes of many digital cameras by Canon, Casio, DJI, FLIR, FujiFilm, HP,
+        application for reading, writing and editing meta information in a wide
+        variety of files. ExifTool supports many different metadata formats
+        including EXIF, GPS, IPTC, XMP, JFIF, GeoTIFF, ICC Profile, Photoshop
+        IRB, FlashPix, AFCP and ID3, as well as the maker notes of many digital
+        cameras by Canon, Casio, DJI, FLIR, FujiFilm, GE, GoPro, HP,
         JVC/Victor, Kodak, Leaf, Minolta/Konica-Minolta, Motorola, Nikon,
         Nintendo, Olympus/Epson, Panasonic/Leica, Pentax/Asahi, Phase One,
         Reconyx, Ricoh, Samsung, Sanyo, Sigma/Foveon and Sony.
@@ -14624,7 +14624,6 @@ let
       sha256 = "1r6976bs86j7zp51m5vh42xlyah951jgdlkimv202413kjvqc2i5";
     };
     buildInputs = stdenv.lib.optional stdenv.isDarwin pkgs.darwin.apple_sdk.frameworks.Carbon;
-    meta.broken = true; # src.url is 404
   };
 
   SysHostnameLong = buildPerlPackage rec {
@@ -14675,12 +14674,12 @@ let
   };
 
   SysVirt = buildPerlModule rec {
-    version = "4.10.0";
+    version = "5.4.0";
     name = "Sys-Virt-${version}";
     src = assert version == pkgs.libvirt.version; pkgs.fetchgit {
       url = git://libvirt.org/libvirt-perl.git;
       rev = "v${version}";
-      sha256 = "1dfwq4d46kx18lz27rb3jkxb0g1hirpq70vr4572sc38rybpq59v";
+      sha256 = "0csg10mydcif2l0qf16nlphq6ih5378nk6dk1vznf5bspws2ch7a";
     };
     nativeBuildInputs = [ pkgs.pkgconfig ];
     buildInputs = [ pkgs.libvirt CPANChanges TestPod TestPodCoverage XMLXPath ];
@@ -14988,6 +14987,20 @@ let
     meta = {
       description = "a modified version of T::RL::Perl with several new nonstandard features specific to TTYtter";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+    };
+  };
+
+  TermShell = buildPerlModule rec {
+    name = "Term-Shell-0.10";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/S/SH/SHLOMIF/${name}.tar.gz";
+      sha256 = "7d1f824c2db22769b60000b5b9ca2ad469c154939f9ec1cd3f0e06e9c967dda3";
+    };
+    propagatedBuildInputs = [ TermReadKey TextAutoformat ];
+    meta = with stdenv.lib; {
+      homepage = http://metacpan.org/release/Term-Shell;
+      description = "A simple command-line shell framework";
+      license = with licenses; [ artistic1 gpl1Plus ];
     };
   };
 
@@ -16801,6 +16814,19 @@ let
       homepage = https://github.com/2shortplanks/Test-utf8/tree;
       description = "Handy utf8 tests";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+    };
+  };
+
+  TextNSP = buildPerlPackage rec {
+    name = "Text-NSP-1.31";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/T/TP/TPEDERSE/${name}.tar.gz";
+      sha256 = "a01201beb29636b3e41ecda2a6cf6522fd265416bd6d994fad02f59fb49cf595";
+    };
+    meta = {
+      description = "Extract collocations and Ngrams from text";
+      license = stdenv.lib.licenses.free;
+      maintainers = [ maintainers.bzizou ];
     };
   };
 

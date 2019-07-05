@@ -2,7 +2,7 @@
 , expat, glib, cairo, pango, gdk_pixbuf, atk, at-spi2-atk, gobject-introspection, fribidi
 , xorg, epoxy, json-glib, libxkbcommon, gmp, gnome3, autoreconfHook, gsettings-desktop-schemas
 , x11Support ? stdenv.isLinux
-, waylandSupport ? stdenv.isLinux, mesa_noglu, wayland, wayland-protocols
+, waylandSupport ? stdenv.isLinux, mesa, wayland, wayland-protocols
 , xineramaSupport ? stdenv.isLinux
 , cupsSupport ? stdenv.isLinux, cups ? null
 , AppKit, Cocoa
@@ -50,7 +50,7 @@ stdenv.mkDerivation rec {
     ++ optionals (!stdenv.isDarwin) [ at-spi2-atk ]
     ++ optionals x11Support [ libXrandr libXrender libXcomposite libXi libXcursor libSM libICE ]
     ++ optional stdenv.isDarwin Cocoa  # explicitly propagated, always needed
-    ++ optionals waylandSupport [ mesa_noglu wayland wayland-protocols ]
+    ++ optionals waylandSupport [ mesa wayland wayland-protocols ]
     ++ optional xineramaSupport libXinerama
     ++ optional cupsSupport cups;
   #TODO: colord?

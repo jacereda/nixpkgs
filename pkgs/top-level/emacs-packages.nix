@@ -32,7 +32,7 @@
 #   `meta` with `platforms` and `homepage` set to something you are
 #   unlikely to want to override for most packages
 
-{ lib, newScope, stdenv, fetchurl, fetchgit, fetchFromGitHub, fetchhg, fetchpatch, runCommand, writeText
+{ lib, newScope, stdenv, fetchurl, fetchFromGitHub, runCommand, writeText
 
 , emacs, texinfo, lndir, makeWrapper
 , trivialBuild
@@ -46,7 +46,7 @@ with lib.licenses;
 let
 
   elpaPackages = import ../applications/editors/emacs-modes/elpa-packages.nix {
-    inherit fetchurl lib stdenv texinfo;
+    inherit lib stdenv texinfo;
   };
 
   melpaStablePackages = import ../applications/editors/emacs-modes/melpa-stable-packages.nix {
@@ -312,7 +312,7 @@ let
     postInstall = ''
       mkdir -p $out
       mv $out/share/emacs/site-lisp/elpa/*/server/bin $out
-      rm -rf $out/share/emacs/site-lisp/*/server
+      rm -rf $out/share/emacs/site-lisp/elpa/*/server
     '';
     preCheck = ''
       cd source/server
@@ -320,7 +320,7 @@ let
     dontUseCmakeBuildDir = true;
     doCheck = true;
     packageRequires = [ emacs ];
-    nativeBuildInputs = [ external.cmake external.llvmPackages.llvm ];
+    nativeBuildInputs = [ external.cmake external.llvmPackages.llvm external.llvmPackages.clang ];
     meta = {
       homepage = "https://melpa.org/#/irony";
       license = lib.licenses.gpl3;

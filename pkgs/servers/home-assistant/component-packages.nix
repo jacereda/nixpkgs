@@ -259,7 +259,7 @@
     "google_domains" = ps: with ps; [  ];
     "google_maps" = ps: with ps; [  ];
     "google_pubsub" = ps: with ps; [ google_cloud_pubsub ];
-    "google_translate" = ps: with ps; [  ];
+    "google_translate" = ps: with ps; [ gtts-token ];
     "google_travel_time" = ps: with ps; [  ];
     "google_wifi" = ps: with ps; [  ];
     "googlehome" = ps: with ps; [  ];
@@ -302,7 +302,7 @@
     "hook" = ps: with ps; [  ];
     "horizon" = ps: with ps; [  ];
     "hp_ilo" = ps: with ps; [  ];
-    "html5" = ps: with ps; [ aiohttp-cors ];
+    "html5" = ps: with ps; [ aiohttp-cors pywebpush ];
     "http" = ps: with ps; [ aiohttp-cors ];
     "htu21d" = ps: with ps; [  ];
     "huawei_lte" = ps: with ps; [  ];

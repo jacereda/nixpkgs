@@ -1,10 +1,9 @@
-{ stdenv, lib, callPackage, fetchurl, fetchpatch, isInsiders ? false }:
+{ stdenv, lib, callPackage, fetchurl, isInsiders ? false }:
 
 let
   inherit (stdenv.hostPlatform) system;
 
   plat = {
-    "i686-linux" = "linux-ia32";
     "x86_64-linux" = "linux-x64";
     "x86_64-darwin" = "darwin";
   }.${system};
@@ -12,14 +11,13 @@ let
   archive_fmt = if system == "x86_64-darwin" then "zip" else "tar.gz";
 
   sha256 = {
-    "i686-linux" = "1485maq7rrvi742w0zs5nnaqy2s7w4hhm0fi4n69vafncia8zyic";
-    "x86_64-linux" = "082725c7yzih13d4khvwz34ijwdg6yxmsxhjmpn2pqlfsg43hxsh";
-    "x86_64-darwin" = "1mvj63sbdcw227bi4idqcwqxds60g64spvdi2bxh5sk6g5q5df90";
+    "x86_64-linux" = "02h71b9m9w4nc8g9iy2kafg041brli4zwv7pv6i1qg6p5cf2jdfx";
+    "x86_64-darwin" = "1awq0rwiizwbjqf7crv59qr7m7rmgpfba0b4qx2bpx1mn25fmq56";
   }.${system};
 in
   callPackage ./generic.nix rec {
 
-    version = "1.35.0";
+    version = "1.36.0";
     pname = "vscode";
 
     executableName = "code" + lib.optionalString isInsiders "-insiders";
@@ -50,6 +48,6 @@ in
       downloadPage = https://code.visualstudio.com/Updates;
       license = licenses.unfree;
       maintainers = with maintainers; [ eadwu synthetica ];
-      platforms = [ "i686-linux" "x86_64-linux" "x86_64-darwin" ];
+      platforms = [ "x86_64-linux" "x86_64-darwin" ];
     };
   }

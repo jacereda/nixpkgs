@@ -3,8 +3,8 @@
 , x11Support? !stdenv.isDarwin, libXext, libXrender
 , gobjectSupport ? true, glib
 , xcbSupport ? x11Support, libxcb, xcbutil # no longer experimental since 1.12
-, libGLSupported
-, glSupport ? config.cairo.gl or stdenv.isDarwin or (libGLSupported && stdenv.isLinux && !stdenv.isAarch32 && !stdenv.isMips)
+, libGLSupported ? stdenv.lib.elem stdenv.hostPlatform.system stdenv.lib.platforms.mesaPlatforms
+, glSupport ? config.cairo.gl or (libGLSupported && stdenv.isLinux && !stdenv.isAarch32 && !stdenv.isMips)
 , libGL ? null # libGLU_combined is no longer a big dependency
 , pdfSupport ? true
 , darwin
