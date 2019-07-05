@@ -1,4 +1,6 @@
-{ stdenv, fetchurl, SDL2, libpng, libjpeg, libtiff, libungif, libwebp, libXpm, zlib, Foundation }:
+{ stdenv, fetchurl, SDL2, libpng, libjpeg, libtiff, libungif, libwebp, zlib, Foundation
+, x11Support ? (!stdenv.isDarwin), libXpm
+}:
 
 stdenv.mkDerivation rec {
   name = "SDL2_image-${version}";
@@ -9,7 +11,8 @@ stdenv.mkDerivation rec {
     sha256 = "1b6f7002bm007y3zpyxb5r6ag0lml51jyvx1pwpj9sq24jfc8kp7";
   };
 
-  buildInputs = [ SDL2 libpng libjpeg libtiff libungif libwebp libXpm zlib ]
+  buildInputs = [ SDL2 libpng libjpeg libtiff libungif libwebp zlib ]
+    ++ stdenv.lib.optional x11Support libXpm
     ++ stdenv.lib.optional stdenv.isDarwin Foundation;
 
 
