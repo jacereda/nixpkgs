@@ -1,6 +1,6 @@
 { stdenv, config, fetchurl, pkgconfig
-, libGLSupported ? stdenv.lib.elem stdenv.hostPlatform.system stdenv.lib.platforms.mesaPlatforms
-, openglSupport ? libGLSupported, libGL
+, libGLSupported ? stdenv.lib.elem stdenv.hostPlatform.system stdenv.lib.platforms.mesaPlatforms && !stdenv.isDarwin
+, openglSupport ? libGLSupported || stdenv.isDarwin, libGL
 , alsaSupport ? stdenv.isLinux && !stdenv.hostPlatform.isAndroid, alsaLib
 , x11Support ? !stdenv.isCygwin && !stdenv.hostPlatform.isAndroid && !stdenv.isDarwin
 , libX11, xorgproto, libICE, libXi, libXScrnSaver, libXcursor
@@ -42,7 +42,7 @@ stdenv.mkDerivation rec {
 
   dlopenPropagatedBuildInputs = [ ]
     # Propagated for #include <GLES/gl.h> in SDL_opengles.h.
-    ++ optional (openglSupport && !stdenv.isDarwin) libGL
+    ++ optional libGLSupported libGL
     # Propagated for #include <X11/Xlib.h> and <X11/Xatom.h> in SDL_syswm.h.
     ++ optionals x11Support [ libX11 xorgproto ];
 
@@ -69,6 +69,7 @@ stdenv.mkDerivation rec {
   configureFlags = [
     "--disable-oss"
   ] ++ optional (!x11Support) "--without-x"
+    ++ optional openglSupport "--enable-video-opengl"
     ++ optional alsaSupport "--with-alsa-prefix=${alsaLib.out}/lib"
     ++ optional stdenv.isDarwin "--disable-sdltest";
 
