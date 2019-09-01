@@ -13,13 +13,13 @@
 }:
 stdenv.mkDerivation rec {
   pname = "scopes";
-  version = "unstable-2019-06-13";
+  version = "unstable-2019-08-29";
 
   src = fetchFromBitbucket {
     owner = "duangle";
     repo = "scopes";
-    rev = "bd29af1";
-    sha256 = "0czhww3mpznapqv9y2sy3ilfzd7q9580scmlvdjz357fkvyr4pra";
+    rev = "9100a5fc0014";
+    sha256 = "03gy8wlhgpsf9yrij1k6ncxqvg4ivl554lmgg8hpszimn7j8rz01";
   };
 
   nativeBuildInputs = [ genie spirv-tools spirv-cross ];
