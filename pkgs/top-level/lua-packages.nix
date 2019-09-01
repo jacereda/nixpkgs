@@ -12,7 +12,6 @@
 , fetchFromGitHub, which, writeText
 , pkgs
 , lib
-, darwin
 }:
 
 let
