@@ -1,4 +1,5 @@
-{ stdenv, fetchurl, meson, ninja, pkgconfig, wayland, libGL, mesa, libxkbcommon, cairo, libxcb
+{ stdenv, fetchurl, meson, ninja, pkgconfig
+, wayland, libGL, mesa, libxkbcommon, cairo, libxcb
 , libXcursor, xlibsWrapper, udev, libdrm, mtdev, libjpeg, pam, dbus, libinput, libevdev
 , colord, lcms2
 , pango ? null, libunwind ? null, freerdp ? null, vaapi ? null, libva ? null
@@ -8,11 +9,11 @@
 
 with stdenv.lib;
 stdenv.mkDerivation rec {
-  name = "weston-${version}";
+  pname = "weston";
   version = "6.0.1";
 
   src = fetchurl {
-    url = "https://wayland.freedesktop.org/releases/${name}.tar.xz";
+    url = "https://wayland.freedesktop.org/releases/${pname}-${version}.tar.xz";
     sha256 = "1d2m658ll8x7prlsfk71qgw89c7dz6y7d6nndfxwl49fmrd6sbxz";
   };
 

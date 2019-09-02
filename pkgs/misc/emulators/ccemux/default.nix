@@ -34,10 +34,11 @@ let
 in
 
 stdenv.mkDerivation rec {
-  name = "ccemux-${version}";
+  pname = "ccemux";
+  inherit version;
 
   src = jar;
-  unpackPhase = "true";
+  dontUnpack = true;
 
   nativeBuildInputs = [ makeWrapper ];
   buildInputs = [ jre ];

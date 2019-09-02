@@ -70,7 +70,7 @@ let
   }:
     stdenv.mkDerivation {
       name = "simutrans-${pakName}";
-      unpackPhase = "true";
+      dontUnpack = true;
       preferLocalBuild = true;
       installPhase = let src = fetchurl { inherit url sha256; };
       in ''
@@ -107,7 +107,8 @@ let
   };
 
   binaries = stdenv.mkDerivation rec {
-    name = "simutrans-${version}";
+    pname = "simutrans";
+    inherit version;
 
     src = binary_src;
 

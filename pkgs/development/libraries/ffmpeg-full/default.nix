@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, pkgconfig, perl, texinfo, yasm
+{ stdenv, fetchurl, fetchpatch, pkgconfig, perl, texinfo, yasm
 /*
  *  Licensing options (yes some are listed twice, filters and such are not listed)
  */
@@ -53,6 +53,7 @@
 , bzip2 ? null
 , celt ? null # CELT decoder
 #, crystalhd ? null # Broadcom CrystalHD hardware acceleration
+, dav1d ? null # AV1 decoder (focused on speed and correctness)
 #, decklinkExtlib ? false, blackmagic-design-desktop-video ? null # Blackmagic Design DeckLink I/O support
 , fdkaacExtlib ? false, fdk_aac ? null # Fraunhofer FDK AAC de/encoder
 #, flite ? null # Flite (voice synthesis) support
@@ -98,7 +99,7 @@
 , libXv ? null # Xlib support
 , libXext ? null # Xlib support
 , lzma ? null # xz-utils
-, nvenc ? !stdenv.isDarwin, nv-codec-headers ? null # NVIDIA NVENC support
+, nvenc ? !stdenv.isDarwin && !stdenv.isAarch64, nv-codec-headers ? null # NVIDIA NVENC support
 , openal ? null # OpenAL 1.1 capture support
 , opencore-amr ? null # AMR-NB de/encoder & AMR-WB decoder
 #, opencv ? null # Video filtering
@@ -156,7 +157,6 @@
 , Security
 , VideoDecodeAcceleration
 , VideoToolbox
-, cf-private
 }:
 
 /* Maintainer notes:
@@ -180,6 +180,9 @@
  *   libvpx(stable 1.3.0) openal openjpeg pulseaudio rtmpdump samba vid-stab
  *   wavpack x265 xavs
  *
+ * Need fixes to support AArch64:
+ *   libmfx(intel-media-sdk) nvenc
+ *
  * Not supported:
  *   stagefright-h264(android only)
  *
@@ -192,7 +195,7 @@
  */
 
 let
-  inherit (stdenv) isCygwin isFreeBSD isLinux;
+  inherit (stdenv) isCygwin isDarwin isFreeBSD isLinux isAarch64;
   inherit (stdenv.lib) optional optionals optionalString enableFeature;
 in
 
@@ -206,6 +209,10 @@ assert nonfreeLicensing -> gplLicensing && version3Licensing;
  */
 assert networkBuild -> gnutls != null || opensslExtlib;
 assert pixelutilsBuild -> avutilLibrary;
+/*
+ *  Platform dependencies
+ */
+assert isDarwin -> !nvenc;
 /*
  *  Program dependencies
  */
@@ -246,13 +253,15 @@ assert openglExtlib -> libGLU_combined != null;
 assert opensslExtlib -> gnutls == null && openssl != null && nonfreeLicensing;
 
 stdenv.mkDerivation rec {
-  name = "ffmpeg-full-${version}";
-  version = "4.1.3";
+  pname = "ffmpeg-full";
+  version = "4.2";
 
   src = fetchurl {
     url = "https://www.ffmpeg.org/releases/ffmpeg-${version}.tar.xz";
-    sha256 = "0gdnprc7gk4b7ckq8wbxbrj7i00r76r9a5g9mj7iln40512j0c0c";
+    sha256 = "1mgcxm7sqkajx35px05szsmn9mawwm03cfpmk3br7bcp3a1i0gq2";
   };
+
+  patches = [ ./prefer-libdav1d-over-libaom.patch ];
 
   prePatch = ''
     patchShebangs .
@@ -333,6 +342,7 @@ stdenv.mkDerivation rec {
     (enableFeature (bzip2 != null) "bzlib")
     (enableFeature (celt != null) "libcelt")
     #(enableFeature crystalhd "crystalhd")
+    (enableFeature (dav1d != null) "libdav1d")
     #(enableFeature decklinkExtlib "decklink")
     (enableFeature (fdkaacExtlib && gplLicensing) "libfdk-aac")
     #(enableFeature (flite != null) "libflite")
@@ -357,7 +367,7 @@ stdenv.mkDerivation rec {
     (enableFeature (if isLinux then libdc1394 != null && libraw1394 != null else false) "libdc1394")
     (enableFeature (libiconv != null) "iconv")
     #(enableFeature (if isLinux then libiec61883 != null && libavc1394 != null && libraw1394 != null else false) "libiec61883")
-    (enableFeature (if isLinux then libmfx != null else false) "libmfx")
+    (enableFeature (if isLinux && !isAarch64 then libmfx != null else false) "libmfx")
     (enableFeature (libmodplug != null) "libmodplug")
     (enableFeature (libmysofa != null) "libmysofa")
     #(enableFeature (libnut != null) "libnut")
@@ -420,7 +430,7 @@ stdenv.mkDerivation rec {
   nativeBuildInputs = [ perl pkgconfig texinfo yasm ];
 
   buildInputs = [
-    bzip2 celt fontconfig freetype frei0r fribidi game-music-emu gnutls gsm
+    bzip2 celt dav1d fontconfig freetype frei0r fribidi game-music-emu gnutls gsm
     libjack2 ladspaH lame libaom libass libbluray libbs2b libcaca libdc1394 libmodplug libmysofa
     libogg libopus libssh libtheora libvorbis libvpx libwebp
     lzma openal openjpeg libpulseaudio rtmpdump opencore-amr
@@ -432,7 +442,7 @@ stdenv.mkDerivation rec {
     ++ optional ((isLinux || isFreeBSD) && libva != null) libva
     ++ optional (x11Support && libvdpau != null) libvdpau
     ++ optionals isLinux [ alsaLib libraw1394 libv4l ]
-    ++ optional (isLinux && libmfx != null) libmfx
+    ++ optional (isLinux && !isAarch64 && libmfx != null) libmfx
     ++ optional nvenc nv-codec-headers
     ++ optionals stdenv.isDarwin [
       AVFoundation AppKit ApplicationServices AudioToolbox Cocoa
@@ -440,7 +450,6 @@ stdenv.mkDerivation rec {
       MediaToolbox OpenCL OpenGL QuartzCore Security
       VideoDecodeAcceleration VideoToolbox
       Cocoa
-      cf-private /* For _OBJC_EHTYPE_$_NSException */
       CoreServices CoreAudio AVFoundation MediaToolbox
       VideoDecodeAcceleration libiconv
       ];

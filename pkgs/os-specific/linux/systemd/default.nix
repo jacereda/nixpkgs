@@ -17,15 +17,15 @@
 
 stdenv.mkDerivation rec {
   version = "242";
-  name = "systemd-${version}";
+  pname = "systemd";
 
   # When updating, use https://github.com/systemd/systemd-stable tree, not the development one!
   # Also fresh patches should be cherry-picked from that tree to our current one.
   src = fetchFromGitHub {
     owner = "NixOS";
     repo = "systemd";
-    rev = "5c20aab77900f478fd380ab189787d80e4a35963";
-    sha256 = "0ldyhfxdy4qlgygvpc92wp0qp6p1c9y3rnm77zwbkga48x60d9i8";
+    rev = "5fb35fbc783516e2014115c3488134a2afb8494c";
+    sha256 = "0pyjvzzh8nnxv4z58n82lz1mjnzv44sylcjgkvw8sp35vx1ryxfh";
   };
 
   outputs = [ "out" "lib" "man" "dev" ];

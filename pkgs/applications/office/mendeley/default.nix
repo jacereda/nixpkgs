@@ -91,7 +91,8 @@ let
 in
 
 stdenv.mkDerivation {
-  name = "mendeley-${version}";
+  pname = "mendeley";
+  inherit version;
 
   src = fetchurl {
     url = url;
@@ -103,7 +104,7 @@ stdenv.mkDerivation {
 
   propagatedUserEnvPkgs = [ gconf ];
 
-  unpackPhase = "true";
+  dontUnpack = true;
 
   installPhase = ''
     dpkg-deb -x $src $out
