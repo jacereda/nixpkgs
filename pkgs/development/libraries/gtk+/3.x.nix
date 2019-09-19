@@ -119,7 +119,7 @@ stdenv.mkDerivation rec {
     ++ optionals x11Support [ libxkbcommon ];
 
   propagatedBuildInputs = with xorg; with stdenv.lib;
-    [ expat glib cairo pango gdk_pixbuf atk at-spi2-atk gsettings-desktop-schemas fribidi ]
+    [ expat glib cairo pango gdk-pixbuf atk at-spi2-atk gsettings-desktop-schemas fribidi ]
     ++ optionals (!stdenv.isDarwin) [ at-spi2-atk ]
     ++ optionals x11Support [ libXrandr libXrender libXcomposite libXi libXcursor libSM libICE ]
     ++ optional stdenv.isDarwin Cocoa  # explicitly propagated, always needed
