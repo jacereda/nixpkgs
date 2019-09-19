@@ -57,9 +57,7 @@ stdenv.mkDerivation rec {
   ] ++ optional (!x11Support) "--without-x"
     ++ optional quartzSupport "--with-quartz";
 
-  patches = [
-    patch
-  ];
+  patches = optional (!stdenv.lib.versionAtLeast version "2.42") patch;
 
   postPatch = ''
     for f in $(find . -name Makefile.in); do
@@ -67,8 +65,12 @@ stdenv.mkDerivation rec {
     done
   '' + optionalString stdenv.isDarwin ''
     substituteInPlace plugin/quartz/Makefile.am \
-      --replace 'WITH_DARWIN9' '!WITH_DARWIN9' \
+      --replace 'WITH_DARWIN9' '!WITH_DARWIN9'
+  '' + optionalString (stdenv.isDarwin && !stdenv.lib.versionAtLeast version "2.42") ''
+    substituteInPlace plugin/quartz/Makefile.am \
       --replace 'AM_LIBTOOLSFLAGS' 'AM_LIBTOOLFLAGS'
+  '' + optionalString (stdenv.isDarwin && stdenv.lib.versionAtLeast version "2.42") ''
+    echo "AM_LIBTOOLFLAGS=--tag=CC" >> plugin/quartz/Makefile.am
   '';
 
   # ''
