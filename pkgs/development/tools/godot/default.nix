@@ -1,7 +1,10 @@
-{ stdenv, lib, fetchFromGitHub, scons, pkgconfig, libX11, libXcursor
-, libXinerama, libXrandr, libXrender, libpulseaudio ? null
-, libXi ? null, libXext, libXfixes, freetype, openssl
-, alsaLib, libGLU, zlib, yasm ? null }:
+{ stdenv, lib, fetchFromGitHub, scons, pkgconfig
+, useX11? !stdenv.isDarwin, libX11, libXcursor , libXinerama, libXrandr, libXrender, libXi, libXext, libXfixes, libGLU
+, libpulseaudio
+, freetype, openssl
+, alsaLib, zlib, yasm
+, Cocoa, Carbon, OpenGL, AGL, AudioUnit, CoreAudio, CoreMIDI, IOKit, ForceFeedback, AVFoundation, CoreMedia, CoreVideo, xcbuild
+}:
 
 let
   options = {
@@ -21,9 +24,14 @@ in stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ pkgconfig ];
   buildInputs = [
-    scons libX11 libXcursor libXinerama libXrandr libXrender
-    libXi libXext libXfixes freetype openssl alsaLib libpulseaudio
-    libGLU zlib yasm
+    scons freetype openssl libpulseaudio zlib yasm
+  ] ++ stdenv.lib.optionals useX11 [
+    libX11 libXcursor libXinerama libXrandr libXrender
+    libXi libXext libXfixes libGLU
+  ] ++ stdenv.lib.optionals stdenv.isLinux [
+    alsaLib
+  ] ++ stdenv.lib.optionals stdenv.isDarwin [
+    Cocoa Carbon OpenGL AGL AudioUnit CoreAudio CoreMIDI IOKit ForceFeedback AVFoundation CoreMedia CoreVideo
   ];
 
   patches = [
@@ -62,7 +70,7 @@ in stdenv.mkDerivation rec {
     homepage    = "https://godotengine.org";
     description = "Free and Open Source 2D and 3D game engine";
     license     = stdenv.lib.licenses.mit;
-    platforms   = [ "i686-linux" "x86_64-linux" ];
+    platforms   = [ "i686-linux" "x86_64-linux" "x86_64-darwin"];
     maintainers = [ stdenv.lib.maintainers.twey ];
   };
 }
