@@ -5,6 +5,7 @@
 , libvisio, libcdr, libexif, potrace, cmake, hicolor-icon-theme
 , gnome3
 , x11Support ? (!stdenv.isDarwin)
+, librsvg, wrapGAppsHook
 }:
 
 let
@@ -45,12 +46,15 @@ stdenv.mkDerivation rec {
   cmakeFlags = [
     "-DWITH_GTK3_EXPERIMENTAL=ON"
     ];
-  nativeBuildInputs = [ pkgconfig cmake makeWrapper python2Env ]
+  nativeBuildInputs = [ pkgconfig cmake makeWrapper python2Env wrapGAppsHook ]
     ++ (with perlPackages; [ perl XMLParser ]);
   buildInputs = [
     libpng zlib popt boehmgc
     libvisio libcdr libexif potrace hicolor-icon-theme
     gsl libwpg librevenge poppler
+
+    librsvg # for loading icons
+
     python2Env perlPackages.perl
     imagemagick libxml2 gettext boost libsigcxx lcms
     glibmm glib gtkmm3 libxslt gnome3.gdl

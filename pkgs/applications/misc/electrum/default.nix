@@ -40,7 +40,7 @@ let
   };
 in
 
-python3Packages.buildPythonApplication rec {
+python3Packages.buildPythonApplication {
   pname = "electrum";
   inherit version;
 
@@ -88,7 +88,7 @@ python3Packages.buildPythonApplication rec {
       --replace ${libsecp256k1_name} ${secp256k1}/lib/libsecp256k1${stdenv.hostPlatform.extensions.sharedLibrary}
   '' + (if enableQt then ''
     substituteInPlace ./electrum/qrscanner.py \
-      --replace ${libzbar_name} ${zbar}/lib/libzbar${stdenv.hostPlatform.extensions.sharedLibrary}
+      --replace ${libzbar_name} ${zbar.lib}/lib/libzbar${stdenv.hostPlatform.extensions.sharedLibrary}
   '' else ''
     sed -i '/qdarkstyle/d' contrib/requirements/requirements.txt
   '');
