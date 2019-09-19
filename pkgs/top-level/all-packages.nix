@@ -3493,7 +3493,9 @@ in
 
   gocryptfs = callPackage ../tools/filesystems/gocryptfs { };
 
-  godot = callPackage ../development/tools/godot {};
+  godot = callPackage ../development/tools/godot {
+    inherit (darwin.apple_sdk.frameworks) Cocoa Carbon OpenGL AGL AudioUnit CoreAudio CoreMIDI IOKit ForceFeedback AVFoundation CoreMedia CoreVideo;
+  };
 
   goklp = callPackage ../tools/networking/goklp {};
 
@@ -5516,11 +5518,7 @@ in
 
   pk2cmd = callPackage ../tools/misc/pk2cmd { };
 
-  plantuml = callPackage ../tools/misc/plantuml {
-    # Graphviz 2.39 and 2.40 are discouraged by the PlantUML project, see
-    # http://plantuml.com/faq (heading: "Which version of Graphviz should I use ?")
-    graphviz = graphviz_2_32;
-  };
+  plantuml = callPackage ../tools/misc/plantuml { };
 
   plan9port = callPackage ../tools/system/plan9port { };
 
@@ -13538,7 +13536,7 @@ in
   simpleitk = callPackage ../development/libraries/simpleitk { lua = lua51Packages.lua; };
 
   sfml = callPackage ../development/libraries/sfml {
-    inherit (darwin.apple_sdk.frameworks) IOKit Foundation AppKit OpenAL;
+    inherit (darwin.apple_sdk.frameworks) IOKit Foundation AppKit OpenAL OpenGL;
   };
   csfml = callPackage ../development/libraries/csfml { };
 
