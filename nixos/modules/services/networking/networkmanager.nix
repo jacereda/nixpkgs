@@ -27,6 +27,7 @@ let
 
     [logging]
     level=${cfg.logLevel}
+    audit=${lib.boolToString config.security.audit.enable}
 
     [connection]
     ipv6.ip6-privacy=2
@@ -468,11 +469,15 @@ in {
         mkdir -m 700 -p /etc/ipsec.d
         mkdir -m 755 -p ${stateDirs}
       '';
+
+      aliases = [ "dbus-org.freedesktop.NetworkManager.service" ];
     };
 
     systemd.services.NetworkManager-wait-online = {
       wantedBy = [ "network-online.target" ];
     };
+
+    systemd.services.ModemManager.aliases = [ "dbus-org.freedesktop.ModemManager1.service" ];
 
     systemd.services.nm-setup-hostsdirs = mkIf dynamicHostsEnabled {
       wantedBy = [ "NetworkManager.service" ];
@@ -495,6 +500,7 @@ in {
 
       # useful binaries for user-specified hooks
       path = [ pkgs.iproute pkgs.utillinux pkgs.coreutils ];
+      aliases = [ "dbus-org.freedesktop.nm-dispatcher.service" ];
     };
 
     # Turn off NixOS' network management when networking is managed entirely by NetworkManager
@@ -508,8 +514,9 @@ in {
 
     security.polkit.extraConfig = polkitConf;
 
-    services.dbus.packages =
-      optional cfg.enableStrongSwan pkgs.strongswanNM ++ cfg.packages;
+    services.dbus.packages = cfg.packages
+      ++ optional cfg.enableStrongSwan pkgs.strongswanNM
+      ++ optional (cfg.dns == "dnsmasq") pkgs.dnsmasq;
 
     services.udev.packages = cfg.packages;
   };

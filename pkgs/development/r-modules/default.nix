@@ -325,7 +325,7 @@ let
     rmatio = [ pkgs.zlib.dev ];
     Rmpfr = [ pkgs.gmp pkgs.mpfr.dev ];
     Rmpi = [ pkgs.openmpi ];
-    RMySQL = [ pkgs.zlib pkgs.mysql.connector-c pkgs.openssl.dev ];
+    RMySQL = [ pkgs.zlib pkgs.libmysqlclient pkgs.openssl.dev ];
     RNetCDF = [ pkgs.netcdf pkgs.udunits ];
     RODBCext = [ pkgs.libiodbc ];
     RODBC = [ pkgs.libiodbc ];
@@ -441,13 +441,17 @@ let
     nlme = [ pkgs.libiconv ];
     Matrix = [ pkgs.libiconv ];
     mgcv = [ pkgs.libiconv ];
+    minqa = [ pkgs.libiconv ];
     igraph = [ pkgs.libiconv ];
     ape = [ pkgs.libiconv ];
     expm = [ pkgs.libiconv ];
     mnormt = [ pkgs.libiconv ];
+    pan = [ pkgs.libiconv ];
     phangorn = [ pkgs.libiconv ];
     quadprog = [ pkgs.libiconv ];
+    randomForest = [ pkgs.libiconv ];
     sundialr = [ pkgs.libiconv ];
+    ucminf = [ pkgs.libiconv ];
   };
 
   packagesRequireingX = [
@@ -810,7 +814,7 @@ let
     });
 
     RMySQL = old.RMySQL.overrideDerivation (attrs: {
-      MYSQL_DIR=pkgs.mysql.connector-c;
+      MYSQL_DIR="${pkgs.libmysqlclient}";
       preConfigure = ''
         patchShebangs configure
       '';
