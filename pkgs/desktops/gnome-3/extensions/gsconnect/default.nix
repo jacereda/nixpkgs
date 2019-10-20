@@ -4,13 +4,13 @@
 
 stdenv.mkDerivation rec {
   pname = "gnome-shell-gsconnect";
-  version = "23";
+  version = "27";
 
   src = fetchFromGitHub {
     owner = "andyholmes";
     repo = "gnome-shell-extension-gsconnect";
     rev = "v${version}";
-    sha256 = "011asrhkly9zhvnng2mh9v06yw39fx244pmqz5yk9rd9m4c32xid";
+    sha256 = "0bpg7hl81wir3c15ri8kbvr6xhalpkfmcyazwmmwyj5lxpn40ykk";
   };
 
   patches = [
@@ -18,7 +18,6 @@ stdenv.mkDerivation rec {
     (substituteAll {
       src = ./fix-paths.patch;
       gapplication = "${glib.bin}/bin/gapplication";
-      mutter_gsettings_path = glib.getSchemaPath gnome3.mutter;
     })
   ];
 
@@ -41,7 +40,7 @@ stdenv.mkDerivation rec {
     upower
     gnome3.caribou
     gnome3.gjs # for running daemon
-    gnome3.evolution-data-server # folks.py requires org.gnome.Evolution.DefaultSources gsettings; TODO: hardcode the schema path to the library (similarly to https://github.com/NixOS/nixpkgs/issues/47226)
+    gnome3.evolution-data-server # for libebook-contacts typelib
   ];
 
   mesonFlags = [

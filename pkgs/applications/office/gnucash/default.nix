@@ -36,16 +36,15 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     boost icu libxml2 libxslt gettext swig isocodes gtk3 glibcLocales
-    webkitgtk dconf hicolor-icon-theme libofx aqbanking gwenhywfar libdbi
+    webkitgtk dconf libofx aqbanking gwenhywfar libdbi
     libdbiDrivers guile
     perlWrapper perl
   ] ++ (with perlPackages; [ FinanceQuote DateManip ]);
 
   propagatedUserEnvPkgs = [ dconf ];
 
-  # glib-2.58 deprecrated g_type_class_add_private
-  # Should probably be removed next version bump
-  CXXFLAGS = [ "-Wno-deprecated-declarations" ];
+  # glib-2.62 deprecations
+  NIX_CFLAGS_COMPILE = [ "-DGLIB_DISABLE_DEPRECATION_WARNINGS" ];
 
   patches = [ ./cmake_check_symbol_exists.patch ];
 

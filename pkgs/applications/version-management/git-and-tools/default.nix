@@ -24,6 +24,8 @@ let
 
   darcsToGit = callPackage ./darcs-to-git { };
 
+  delta = callPackage ./delta { };
+
   diff-so-fancy = callPackage ./diff-so-fancy { };
 
   ghq = callPackage ./ghq { };
@@ -71,6 +73,8 @@ let
   };
 
   git-annex-remote-rclone = callPackage ./git-annex-remote-rclone { };
+
+  git-annex-utils = callPackage ./git-annex-utils { };
 
   git-bug = callPackage ./git-bug { };
 
