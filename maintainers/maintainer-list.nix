@@ -591,6 +591,12 @@
       fingerprint = "3D2B B230 F9FA F0C5 1832  46DD 4FDC 96F1 61E7 BA8A";
     }];
   };
+  arthur = {
+    email = "me@arthur.li";
+    github = "arthurl";
+    githubId = 3965744;
+    name = "Arthur Lee";
+  };
   artuuge = {
     email = "artuuge@gmail.com";
     github = "artuuge";
@@ -1426,6 +1432,16 @@
       }
     ];
   };
+  dadada = {
+    name = "dadada";
+    email = "dadada@dadada.li";
+    github = "dadada";
+    githubId = 7216772;
+    keys = [{
+      longkeyid = "ed25519/0xEEB8D1CE62C4DFEA";
+      fingerprint = "D68C 8469 5C08 7E0F 733A  28D0 EEB8 D1CE 62C4 DFEA";
+    }];
+  };
   dalance = {
     email = "dalance@gmail.com";
     github = "dalance";
@@ -2162,12 +2178,6 @@
     github = "f--t";
     githubId = 2817965;
     name = "f--t";
-  };
-  fleaz = {
-    email = "mail@felixbreidenstein.de";
-    github = "fleaz";
-    githubId = 2489598;
-    name = "Felix Breidenstein";
   };
   fadenb = {
     email = "tristan.helmich+nixos@gmail.com";

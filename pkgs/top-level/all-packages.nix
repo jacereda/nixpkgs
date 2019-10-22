@@ -215,6 +215,8 @@ in
 
   dotnet-sdk = callPackage ../development/compilers/dotnet/sdk { };
 
+  dumb-init = callPackage ../applications/virtualization/dumb-init {};
+
   dispad = callPackage ../tools/X11/dispad { };
 
   dump1090 = callPackage ../applications/radio/dump1090 { };
@@ -5489,6 +5491,8 @@ in
 
   jbig2enc = callPackage ../tools/graphics/jbig2enc { };
 
+  pdfarranger = callPackage ../applications/misc/pdfarranger { };
+
   pdfread = callPackage ../tools/graphics/pdfread {
     inherit (pythonPackages) pillow;
   };
@@ -5585,6 +5589,8 @@ in
 
   plex = callPackage ../servers/plex { };
   plexRaw = callPackage ../servers/plex/raw.nix { };
+
+  tab = callPackage ../tools/text/tab { };
 
   tautulli = callPackage ../servers/tautulli { python = python2; };
 
@@ -6247,7 +6253,9 @@ in
 
   sshguard = callPackage ../tools/security/sshguard {};
 
-  suricata = callPackage ../applications/networking/ids/suricata { };
+  suricata = callPackage ../applications/networking/ids/suricata {
+    python = python3;
+  };
 
   softhsm = callPackage ../tools/security/softhsm {
     inherit (darwin) libobjc;
@@ -6421,7 +6429,6 @@ in
 
   system-config-printer = callPackage ../tools/misc/system-config-printer {
     libxml2 = libxml2Python;
-    pythonPackages = python3Packages;
    };
 
   stricat = callPackage ../tools/security/stricat { };
@@ -8598,8 +8605,6 @@ in
     vala_0_46
     vala;
 
-  valadoc = callPackage ../development/tools/valadoc { };
-
   wcc = callPackage ../development/compilers/wcc { };
 
   wla-dx = callPackage ../development/compilers/wla-dx { };
@@ -10181,6 +10186,8 @@ in
 
   snore = callPackage ../tools/misc/snore { };
 
+  snzip = callPackage ../tools/archivers/snzip { };
+
   snowman = qt5.callPackage ../development/tools/analysis/snowman { };
 
   sparse = callPackage ../development/tools/analysis/sparse { };
@@ -10620,6 +10627,8 @@ in
   classads = callPackage ../development/libraries/classads { };
 
   clearsilver = callPackage ../development/libraries/clearsilver { };
+
+  clfft = callPackage ../development/libraries/clfft { };
 
   clipp  = callPackage ../development/libraries/clipp { };
 
@@ -11249,6 +11258,7 @@ in
 
   gnutls = callPackage ../development/libraries/gnutls/default.nix {
     inherit (darwin.apple_sdk.frameworks) Security;
+    utillinux = utillinuxMinimal; # break the cyclic dependency
   };
 
   gnutls-kdh = callPackage ../development/libraries/gnutls-kdh/3.5.nix {
@@ -12001,6 +12011,8 @@ in
   libgxps = callPackage ../development/libraries/libgxps { };
 
   libiio = callPackage ../development/libraries/libiio { };
+
+  libinjection = callPackage ../development/libraries/libinjection { };
 
   liburing = callPackage ../development/libraries/liburing { };
 
@@ -12822,8 +12834,7 @@ in
   };
 
   mesa = callPackage ../development/libraries/mesa {
-    # 7 is the default, but only on Linux, so keep this for now
-    llvmPackages = llvmPackages_7;
+    llvmPackages = llvmPackages_9;
     inherit (darwin.apple_sdk.frameworks) OpenGL;
     inherit (darwin.apple_sdk.libs) Xplugin;
   };
@@ -13251,6 +13262,8 @@ in
 
   gnupth = callPackage ../development/libraries/pth { };
   pth = if stdenv.hostPlatform.isMusl then npth else gnupth;
+
+  pstreams = callPackage ../development/libraries/pstreams {};
 
   ptlib = callPackage ../development/libraries/ptlib {};
 
@@ -15178,6 +15191,7 @@ in
     postgresql_9_6
     postgresql_10
     postgresql_11
+    postgresql_12
   ;
   postgresql = postgresql_11.override { this = postgresql; };
   postgresqlPackages = recurseIntoAttrs postgresql.pkgs;
@@ -15511,6 +15525,7 @@ in
     server = server-pgsql;
   };
 
+  zabbix44 = zabbixFor "v44";
   zabbix42 = zabbixFor "v42";
   zabbix40 = zabbixFor "v40";
   zabbix30 = zabbixFor "v30";
@@ -20309,7 +20324,7 @@ in
 
   plex-media-player = libsForQt59.callPackage ../applications/video/plex-media-player { };
 
-  plover = recurseIntoAttrs (callPackage ../applications/misc/plover { });
+  plover = recurseIntoAttrs (libsForQt5.callPackage ../applications/misc/plover { });
 
   plugin-torture = callPackage ../applications/audio/plugin-torture { };
 
@@ -21431,6 +21446,8 @@ in
   vwm = callPackage ../applications/window-managers/vwm { };
 
   vym = qt5.callPackage ../applications/misc/vym { };
+
+  waon = callPackage ../applications/audio/waon { };
 
   w3m = callPackage ../applications/networking/browsers/w3m { };
 
@@ -25209,5 +25226,7 @@ in
   coz = callPackage ../development/tools/analysis/coz {};
 
   keycard-cli = callPackage ../tools/security/keycard-cli {};
+
+  sieveshell = with python3.pkgs; toPythonApplication managesieve;
 
 }
