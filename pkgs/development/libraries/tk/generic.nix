@@ -34,7 +34,7 @@ stdenv.mkDerivation {
   nativeBuildInputs = [ pkgconfig ];
   buildInputs = lib.optional enableAqua (with darwin.apple_sdk.frameworks; [ Cocoa ]);
 
-  propagatedBuildInputs = [ tcl libXft ];
+  propagatedBuildInputs = [ tcl ] ++ lib.optional (!enableAqua) libXft;
 
   doCheck = false; # fails. can't find itself
 
