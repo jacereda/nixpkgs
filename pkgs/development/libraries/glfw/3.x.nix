@@ -1,17 +1,17 @@
 { stdenv, lib, fetchFromGitHub, cmake
-, x11Support? (!stdenv.isDarwin), libGL, libXrandr, libXinerama, libXcursor, libX11
+, x11Support? (!stdenv.isDarwin), libGL, libXrandr, libXinerama, libXcursor, libX11, libXi, libXext
 , Cocoa, Kernel, fixDarwinDylibNames
 }:
 
 stdenv.mkDerivation rec {
-  version = "3.2.1";
+  version = "3.3";
   pname = "glfw";
 
   src = fetchFromGitHub {
     owner = "glfw";
     repo = "GLFW";
     rev = version;
-    sha256 = "0gq6ad38b3azk0w2yy298yz2vmg2jmf9g0ydidqbmiswpk25ills";
+    sha256 = "1f1hqpqffzg46z33ybs2c3akmkly7b3qmgp5byk50nvad6g2pm4p";
   };
 
   enableParallelBuilding = true;
@@ -21,10 +21,11 @@ stdenv.mkDerivation rec {
   nativeBuildInputs = [ cmake ];
 
   buildInputs = lib.optionals x11Support [
-    libX11 libXrandr libXinerama libXcursor
+    libX11 libXrandr libXinerama libXcursor libXi libXext
   ] ++ lib.optionals stdenv.isDarwin [
     Cocoa Kernel fixDarwinDylibNames
   ];
+    ++ lib.optionals stdenv.isDarwin [ Cocoa Kernel fixDarwinDylibNames ];
 
   cmakeFlags = [ "-DBUILD_SHARED_LIBS=ON" ];
 
@@ -36,7 +37,7 @@ stdenv.mkDerivation rec {
     description = "Multi-platform library for creating OpenGL contexts and managing input, including keyboard, mouse, joystick and time";
     homepage = https://www.glfw.org/;
     license = licenses.zlib;
-    maintainers = with maintainers; [ marcweber ];
+    maintainers = with maintainers; [ marcweber twey ];
     platforms = platforms.unix;
   };
 }

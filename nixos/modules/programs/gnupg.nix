@@ -14,7 +14,7 @@ let
       "qt"
     else if xserverCfg.desktopManager.xfce.enable then
       "gtk2"
-    else if xserverCfg.enable then
+    else if xserverCfg.enable || config.programs.sway.enable then
       "gnome3"
     else
       null;
@@ -120,6 +120,8 @@ in
     systemd.user.sockets.dirmngr = mkIf cfg.dirmngr.enable {
       wantedBy = [ "sockets.target" ];
     };
+
+    services.dbus.packages = mkIf (cfg.agent.pinentryFlavor == "gnome3") [ pkgs.gcr ];
 
     environment.systemPackages = with pkgs; [ cfg.package ];
     systemd.packages = [ cfg.package ];

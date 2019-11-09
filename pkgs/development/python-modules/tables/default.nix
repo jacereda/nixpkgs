@@ -4,17 +4,28 @@
 with stdenv.lib;
 
 buildPythonPackage rec {
-  version = "3.6.0";
+  version = "3.6.1";
   pname = "tables";
-  disabled = isPy38; # unable to build, remove with next bump.
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "0k9xc0b49j311r6yayw7wzjay6ch3jznijhzc4x33yv490hqhd6v";
+    sha256 = "0j8vnxh2m5n0cyk9z3ndcj5n1zj5rdxgc1gb78bqlyn2lyw75aa9";
   };
 
-  buildInputs = [ hdf5 cython bzip2 lzo c-blosc ];
+  nativeBuildInputs = [ cython ];
+
+  buildInputs = [ hdf5 bzip2 lzo c-blosc ];
   propagatedBuildInputs = [ numpy numexpr six mock ];
+
+  # When doing `make distclean`, ignore docs
+  postPatch = ''
+    substituteInPlace Makefile --replace "src doc" "src"
+  '';
+
+  # Regenerate C code with Cython
+  preBuild = ''
+    make distclean
+  '';
 
   # The setup script complains about missing run-paths, but they are
   # actually set.

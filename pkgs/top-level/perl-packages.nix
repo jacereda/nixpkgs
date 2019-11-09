@@ -5,7 +5,7 @@
    for each package in a separate file: the call to the function would
    be almost as much code as the function itself. */
 
-{config, pkgs, fetchurl, stdenv, perl, overrides, buildPerl, shortenPerlShebang}:
+{config, pkgs, fetchurl, fetchpatch, fetchFromGitHub, stdenv, perl, overrides, buildPerl, shortenPerlShebang}:
 
 # cpan2nix assumes that perl-packages.nix will be used only with perl 5.28.2 or above
 assert stdenv.lib.versionAtLeast perl.version "5.28.2";
@@ -207,6 +207,27 @@ let
        description = "Lets your class/object say it works like something else";
        license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
      };
+  };
+
+  AlienSDL = buildPerlModule {
+    pname = "Alien-SDL";
+    version = "1.446";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/F/FR/FROGGS/Alien-SDL-1.446.tar.gz";
+      sha256 = "c9aa2c9dc3c63d89773c7d7203f2a46d1b924d0c72d9f801af147a3dc8bc512a";
+    };
+    patches = [ ../development/perl-modules/alien-sdl.patch ];
+
+    installPhase = "./Build install --prefix $out";
+
+    SDL_INST_DIR = pkgs.SDL.dev;
+    buildInputs = [ ArchiveExtract ArchiveZip TextPatch pkgs.SDL ];
+    propagatedBuildInputs = [ CaptureTiny FileShareDir FileWhich ];
+
+    meta = {
+      description = "Get, Build and Use SDL libraries";
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+    };
   };
 
   AlienTidyp = buildPerlModule {
@@ -701,6 +722,7 @@ let
       url = mirror://cpan/authors/id/Z/ZE/ZEFRAM/Authen-DecHpwd-2.007.tar.gz;
       sha256 = "f43a93bb02b41f7327d92f9e963b69505f67350a52e8f50796f98afc4fb3f177";
     };
+    perlPreHook = stdenv.lib.optionalString stdenv.isi686 "export LD=$CC"; # fix undefined reference to `__stack_chk_fail_local'
     propagatedBuildInputs = [ DataInteger DigestCRC ScalarString ];
     meta = {
       description = "DEC VMS password hashing";
@@ -3377,6 +3399,7 @@ let
       sha256 = "3cc7126d5841107237a9be2dc5c7fbc167cf3c4b4ce34678a8448b850757014c";
     };
     propagatedBuildInputs = [ ClassMix ];
+    perlPreHook = stdenv.lib.optionalString stdenv.isi686 "export LD=$CC"; # fix undefined reference to `__stack_chk_fail_local'
   };
 
   CryptIDEA = buildPerlPackage {
@@ -3466,6 +3489,7 @@ let
       sha256 = "93ebdfaaefcfe9ab683f0121c85f24475d8197f0bcec46018219e4111434dde3";
     };
     propagatedBuildInputs = [ DigestSHA1 ];
+    perlPreHook = stdenv.lib.optionalString stdenv.isi686 "export LD=$CC"; # fix undefined reference to `__stack_chk_fail_local'
   };
 
   CryptRijndael = buildPerlPackage {
@@ -3577,6 +3601,23 @@ let
     buildInputs = [ CryptOpenSSLGuess ];
   };
 
+  CryptOpenSSLX509 = buildPerlPackage rec {
+    pname = "Crypt-OpenSSL-X509";
+    version = "1.813";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/J/JO/JONASBN/Crypt-OpenSSL-X509-1.813.tar.gz";
+      sha256 = "684bd888d2ed4c748f8f6dd8e87c14afa2974b12ee01faa082ad9cfa1e321e62";
+    };
+    NIX_CFLAGS_COMPILE = "-I${pkgs.openssl.dev}/include";
+    NIX_CFLAGS_LINK = "-L${pkgs.openssl.out}/lib -lcrypto";
+    meta = {
+      homepage = "https://github.com/dsully/perl-crypt-openssl-x509";
+      description = "Perl extension to OpenSSL's X509 API";
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+      maintainers = [ maintainers.sgo ];
+    };
+  };
+
   CryptPBKDF2 = buildPerlPackage {
     pname = "Crypt-PBKDF2";
     version = "0.161520";
@@ -3641,6 +3682,7 @@ let
       url = mirror://cpan/authors/id/G/GT/GTERMARS/CSS-Minifier-XS-0.09.tar.gz;
       sha256 = "1myswrmh0sqp5xjpp03x45z8arfmgkjx0srl3r6kjsyzl1zrk9l8";
     };
+    perlPreHook = stdenv.lib.optionalString stdenv.isi686 "export LD=$CC"; # fix undefined reference to `__stack_chk_fail_local'
     meta = {
       description = "XS based CSS minifier";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
@@ -4110,6 +4152,7 @@ let
       sha256 = "1x662pqjg9p0wcigi7pwf969b2ymk66ncm2vd5dfm5i08pdkjpf3";
     };
     buildInputs = [ HashUtilFieldHashCompat ModuleBuildXSUtil ScopeGuard TestException ];
+    perlPreHook = stdenv.lib.optionalString stdenv.isi686 "export LD=$CC"; # fix undefined reference to `__stack_chk_fail_local'
     meta = {
       description = "A selection of utilities for data and data types";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
@@ -6877,6 +6920,7 @@ let
       sha256 = "a02fbf285406a8a4d9399284f032f2d55c56975154c2e1674bd109837b8096ec";
     };
     buildInputs = [ ExtUtilsCChecker ];
+    perlPreHook = stdenv.lib.optionalString stdenv.isi686 "export LD=$CC"; # fix undefined reference to `__stack_chk_fail_local'
     meta = {
       description = "Modify attributes of symlinks without dereferencing them";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
@@ -8079,6 +8123,7 @@ let
       sha256 = "b1cbac4157ad8dedac6914e1628855e05b8dc885a4007d2e4df8177c6a9b70fb";
     };
     buildInputs = [ ModuleBuildPluggablePPPort TestRequires ];
+    perlPreHook = stdenv.lib.optionalString stdenv.isi686 "export LD=$CC"; # fix undefined reference to `__stack_chk_fail_local'
     meta = {
       homepage = https://github.com/tokuhirom/HTML-Escape;
       description = "Extremely fast HTML escaping";
@@ -8509,6 +8554,7 @@ let
       url = mirror://cpan/authors/id/M/MA/MARKSMITH/HTTP-HeaderParser-XS-0.20.tar.gz;
       sha256 = "1vs6sw431nnlnbdy6jii9vqlz30ndlfwdpdgm8a1m6fqngzhzq59";
     };
+    meta.broken = stdenv.isi686; # loadable library and perl binaries are mismatched (got handshake key 0x7d40080, needed 0x7dc0080)
   };
 
   HTTPHeadersFast = buildPerlModule {
@@ -9312,6 +9358,7 @@ let
       url = mirror://cpan/authors/id/G/GT/GTERMARS/JavaScript-Minifier-XS-0.11.tar.gz;
       sha256 = "1vlyhckpjbrg2v4dy9szsxxl0q44n0y1xl763mg2y2ym9g5144hm";
     };
+    perlPreHook = stdenv.lib.optionalString stdenv.isi686 "export LD=$CC"; # fix undefined reference to `__stack_chk_fail_local'
     meta = {
       description = "XS based JavaScript minifier";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
@@ -9489,6 +9536,14 @@ let
       url = mirror://cpan/authors/id/I/IS/ISAAC/libapreq2-2.13.tar.gz;
       sha256 = "5731e6833b32d88e4a5c690e45ddf20fcf969ce3da666c5627d775e92da0cf6e";
     };
+    patches = [
+      (fetchpatch {
+        name = "CVE-2019-12412.patch";
+        url = "https://svn.apache.org/viewvc/httpd/apreq/trunk/library/parser_multipart.c?r1=1866760&r2=1866759&pathrev=1866760&view=patch";
+        sha256 = "08zaw5pb2i4w1y8crhxmlf0d8gzpvi9z49x4nwlkg4j87x7gjvaa";
+        stripLen = 2;
+      })
+    ];
     outputs = [ "out" ];
     buildInputs = [ pkgs.apacheHttpd pkgs.apr pkgs.aprutil ApacheTest ExtUtilsXSBuilder ];
     propagatedBuildInputs = [ (pkgs.apacheHttpdPackages.mod_perl.override { inherit perl; }) ];
@@ -9814,6 +9869,7 @@ let
     };
     buildInputs = [ TestException ];
     propagatedBuildInputs = [ SubExporter ];
+    perlPreHook = stdenv.lib.optionalString stdenv.isi686 "export LD=$CC"; # fix undefined reference to `__stack_chk_fail_local'
     meta = {
       description = "Linux specific special filehandles";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
@@ -10777,6 +10833,7 @@ let
     meta = {
       description = "Manipulate 128 bits integers in Perl";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+      broken = stdenv.is32bit; # compiler doesn't support a 128-bit integer type
     };
   };
 
@@ -11657,12 +11714,28 @@ let
     };
   };
 
+  MojoRedis = buildPerlPackage {
+    pname = "Mojo-Redis";
+    version = "3.24";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/J/JH/JHTHORSEN/Mojo-Redis-3.24.tar.gz";
+      sha256 = "ca9ca1026bf7d658f23860d54cbc79605e4e5a8b1cc8e7b053b36a218cef566b";
+    };
+    propagatedBuildInputs = [ Mojolicious ProtocolRedisFaster ];
+    meta = {
+      homepage = "https://github.com/jhthorsen/mojo-redis";
+      description = "Redis driver based on Mojo::IOLoop";
+      license = stdenv.lib.licenses.artistic2;
+      maintainers = [ maintainers.sgo ];
+    };
+  };
+
   MojoSQLite = buildPerlModule {
     pname = "Mojo-SQLite";
-    version = "3.002";
+    version = "3.003";
     src = fetchurl {
-      url = "mirror://cpan/authors/id/D/DB/DBOOK/Mojo-SQLite-3.002.tar.gz";
-      sha256 = "16dn0p14i6r4c8aspvkp7rfry3zy7kr2ffcmncj0pqygk62miinp";
+      url = "mirror://cpan/authors/id/D/DB/DBOOK/Mojo-SQLite-3.003.tar.gz";
+      sha256 = "d96c00dcf45e2becc8e8181df074853d42616f2a660703455d0e0a2741478092";
     };
     buildInputs = [ ModuleBuildTiny ];
     propagatedBuildInputs = [ DBDSQLite Mojolicious SQLAbstract URIdb ];
@@ -12693,6 +12766,7 @@ let
       url = mirror://cpan/authors/id/N/NJ/NJH/MusicBrainz-DiscID-0.03.tar.gz;
       sha256 = "0fjph2q3yp0aa87gckv3391s47m13wbyylj7jb7vqx7hv0pzj0jh";
     };
+    perlPreHook = stdenv.lib.optionalString stdenv.isi686 "export LD=$CC"; # fix undefined reference to `__stack_chk_fail_local'
     # Build.PL in this package uses which to find pkg-config -- make it use path instead
     patchPhase = ''sed -ie 's/`which pkg-config`/"pkg-config"/' Build.PL'';
     doCheck = false; # The main test performs network access
@@ -13703,6 +13777,7 @@ let
       url = mirror://cpan/authors/id/Z/ZE/ZEFRAM/Params-Classify-0.015.tar.gz;
       sha256 = "052r198xyrsv8wz21gijdigz2cgnidsa37nvyfzdiz4rv1fc33ir";
     };
+    perlPreHook = stdenv.lib.optionalString stdenv.isi686 "export LD=$CC"; # fix undefined reference to `__stack_chk_fail_local'
   };
 
   ParamsUtil = buildPerlPackage {
@@ -14584,6 +14659,37 @@ let
     propagatedBuildInputs = [ IPCSignal ];
   };
 
+  ProtocolRedis = buildPerlPackage {
+    pname = "Protocol-Redis";
+    version = "1.0010";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/U/UN/UNDEF/Protocol-Redis-1.0010.tar.gz";
+      sha256 = "e787236e46b1f0738a98113ea0dfbee4c695723bb37dce8d6936fd9a519e5343";
+    };
+    meta = {
+      homepage = "https://github.com/und3f/protocol-redis";
+      description = "Redis protocol parser/encoder with asynchronous capabilities";
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+      maintainers = [ maintainers.sgo ];
+    };
+  };
+
+  ProtocolRedisFaster = buildPerlPackage {
+    pname = "Protocol-Redis-Faster";
+    version = "0.003";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/D/DB/DBOOK/Protocol-Redis-Faster-0.003.tar.gz";
+      sha256 = "6b9afb3de94ec1ccd7db4f9e6a2eaba254a57790301c17bcb13bb3edfe1850b7";
+    };
+    propagatedBuildInputs = [ ProtocolRedis ];
+    meta = {
+      homepage = "https://github.com/Grinnz/Protocol-Redis-Faster";
+      description = "Optimized pure-perl Redis protocol parser/encoder";
+      license = stdenv.lib.licenses.artistic2;
+      maintainers = [ maintainers.sgo ];
+    };
+  };
+
   ProtocolWebSocket = buildPerlModule {
     pname = "Protocol-WebSocket";
     version = "0.26";
@@ -15391,6 +15497,24 @@ let
     meta = {
       description = "Act on upper scopes";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+    };
+  };
+
+  SDL = buildPerlModule {
+    pname = "SDL";
+    version = "2.548";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/F/FR/FROGGS/SDL-2.548.tar.gz";
+      sha256 = "252a192bfa9c2070a4883707d139c3a45d9c4518ccd66a1e699b5b7959bd4fb5";
+    };
+    perlPreHook = "export LD=$CC";
+    preCheck = "rm t/core_audiospec.t";
+    buildInputs = [ AlienSDL CaptureTiny TestDeep TestDifferences TestException TestMost TestWarn ]
+      ++ (with pkgs; [ SDL SDL_gfx SDL_mixer SDL_image SDL_ttf SDL_Pango SDL_net ] );
+    propagatedBuildInputs = [ FileShareDir TieSimple ];
+    meta = {
+      description = "SDL bindings to Perl";
+      license = stdenv.lib.licenses.lgpl21Plus;
     };
   };
 
@@ -16525,6 +16649,7 @@ let
     };
     nativeBuildInputs = [ pkgs.pkgconfig ];
     buildInputs = [ pkgs.libvirt CPANChanges TestPod TestPodCoverage XMLXPath ];
+    perlPreHook = stdenv.lib.optionalString stdenv.isi686 "export LD=$CC"; # fix undefined reference to `__stack_chk_fail_local'
   };
 
   TAPParserSourceHandlerpgTAP = buildPerlModule {
@@ -18645,6 +18770,20 @@ let
     };
   };
 
+  TextPatch = buildPerlPackage {
+    pname = "Text-Patch";
+    version = "1.8";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/C/CA/CADE/Text-Patch-1.8.tar.gz";
+      sha256 = "eaf18e61ba6a3e143846a7cc66f08ce58a0c4fbda92acb31aede25cb3b5c3dcc";
+    };
+    propagatedBuildInputs = [ TextDiff ];
+    meta = {
+      description = "Patches text with given patch";
+      license = stdenv.lib.licenses.gpl2;
+    };
+  };
+
   TextPDF = buildPerlPackage {
     pname = "Text-PDF";
     version = "0.31";
@@ -19100,6 +19239,19 @@ let
     };
   };
 
+  TieSimple = buildPerlPackage {
+    pname = "Tie-Simple";
+    version = "1.04";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/H/HA/HANENKAMP/Tie-Simple-1.04.tar.gz";
+      sha256 = "29e9e2133951046c78f205f1b3e8df62c90e114f0e08fa06b817766a0f808b12";
+    };
+    meta = {
+      description = "Variable ties made much easier: much, much, much easier..";
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+    };
+  };
+
   TieSub = buildPerlPackage {
      pname = "Tie-Sub";
      version = "1.001";
@@ -19209,6 +19361,41 @@ let
       description = "A Perl module to deal with time periods";
       license = stdenv.lib.licenses.gpl1;
       maintainers = [ maintainers.winpat ];
+    };
+  };
+
+  Tirex = buildPerlPackage rec {
+    pname = "Tirex";
+    version = "0.6.1";
+
+    src = fetchFromGitHub {
+      owner  = "openstreetmap";
+      repo   = "tirex";
+      rev    = "v${version}";
+      sha256 = "0dskf50qm6yh3rx6j2nqydr1if71x6ik85hxsa2r9qgldcby2rgh";
+    };
+
+    buildInputs = [
+      GD
+      IPCShareLite
+      JSON
+      LWP
+      pkgs.cairo
+      pkgs.mapnik
+      pkgs.zlib
+    ];
+
+    installPhase = ''
+      make install DESTDIR=$out INSTALLOPTS=""
+      mv $out/$out/lib $out/$out/share $out
+      rmdir $out/$out $out/nix/store $out/nix
+    '';
+
+    meta = {
+      description = "Tools for running a map tile server";
+      homepage = https://github.com/openstreetmap/tirex;
+      maintainers = with maintainers; [ jglukasik ];
+      license = with stdenv.lib.licenses; [ gpl2 ];
     };
   };
 
@@ -19383,6 +19570,7 @@ let
       url = mirror://cpan/authors/id/A/AR/ARODLAND/Unicode-CaseFold-1.01.tar.gz;
       sha256 = "418a212808f9d0b8bb330ac905096d2dd364976753d4c71534dab9836a63194d";
     };
+    perlPreHook = stdenv.lib.optionalString stdenv.isi686 "export LD=$CC"; # fix undefined reference to `__stack_chk_fail_local'
     meta = {
       description = "Unicode case-folding for case-insensitive lookups";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];

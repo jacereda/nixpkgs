@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, fixDarwinDylibNames, meson, ninja, pkgconfig, gettext, python3, libxml2, libxslt, docbook_xsl
+{ stdenv, fetchurl, nixosTests, fixDarwinDylibNames, meson, ninja, pkgconfig, gettext, python3, libxml2, libxslt, docbook_xsl
 , docbook_xml_dtd_43, gtk-doc, glib, libtiff, libjpeg, libpng, gnome3
 , jasper, gobject-introspection, doCheck ? false, makeWrapper
 , x11Support ? !stdenv.isDarwin, libX11
@@ -85,6 +85,10 @@ in stdenv.mkDerivation rec {
   passthru = {
     updateScript = gnome3.updateScript {
       packageName = pname;
+    };
+
+    tests = {
+      installedTests = nixosTests.installed-tests.gdk-pixbuf;
     };
 
     # gdk_pixbuf_moduledir variable from gdk-pixbuf-2.0.pc

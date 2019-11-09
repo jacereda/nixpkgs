@@ -521,6 +521,8 @@ in {
 
   deap = callPackage ../development/python-modules/deap { };
 
+  deeptoolsintervals = callPackage ../development/python-modules/deeptoolsintervals { };
+
   dkimpy = callPackage ../development/python-modules/dkimpy { };
 
   dictionaries = callPackage ../development/python-modules/dictionaries { };
@@ -716,6 +718,8 @@ in {
 
   kconfiglib = callPackage ../development/python-modules/kconfiglib { };
 
+  labelbox = callPackage ../development/python-modules/labelbox { };
+
   lammps-cython = callPackage ../development/python-modules/lammps-cython {
     mpi = pkgs.openmpi;
   };
@@ -797,6 +801,8 @@ in {
     inherit python;
   };
 
+  nix-prefetch-github = callPackage ../development/python-modules/nix-prefetch-github { };
+
   nixpart = callPackage ../tools/filesystems/nixpart { };
 
   # This is used for NixOps to make sure we won't break it with the next major
@@ -831,6 +837,8 @@ in {
     });
 
   palettable = callPackage ../development/python-modules/palettable { };
+
+  parsley = callPackage ../development/python-modules/parsley { };
 
   pastel = callPackage ../development/python-modules/pastel { };
 
@@ -906,10 +914,12 @@ in {
 
   pybind11 = callPackage ../development/python-modules/pybind11 { };
 
+  py3buddy = toPythonModule (callPackage ../development/python-modules/py3buddy { });
+
   pybullet = callPackage ../development/python-modules/pybullet { };
 
   pycairo = callPackage ../development/python-modules/pycairo {
-    inherit (pkgs) pkgconfig;
+    inherit (pkgs) meson pkgconfig;
   };
 
   pycategories = callPackage ../development/python-modules/pycategories { };
@@ -969,7 +979,7 @@ in {
   };
 
   pygobject3 = callPackage ../development/python-modules/pygobject/3.nix {
-    inherit (pkgs) pkgconfig;
+    inherit (pkgs) meson pkgconfig;
   };
 
   pygtail = callPackage ../development/python-modules/pygtail { };
@@ -1080,6 +1090,8 @@ in {
   pystache = callPackage ../development/python-modules/pystache { };
 
   pytesseract = callPackage ../development/python-modules/pytesseract { };
+
+  pytest-black = callPackage ../development/python-modules/pytest-black { };
 
   pytest-click = callPackage ../development/python-modules/pytest-click { };
 
@@ -1691,6 +1703,11 @@ in {
 
   dugong = callPackage ../development/python-modules/dugong {};
 
+  easysnmp = callPackage ../development/python-modules/easysnmp {
+    openssl = pkgs.openssl;
+    net_snmp = pkgs.net_snmp;
+  };
+
   iowait = callPackage ../development/python-modules/iowait {};
 
   responses = callPackage ../development/python-modules/responses {};
@@ -1698,6 +1715,8 @@ in {
   rarfile = callPackage ../development/python-modules/rarfile { inherit (pkgs) libarchive; };
 
   proboscis = callPackage ../development/python-modules/proboscis {};
+
+  poster3 = callPackage ../development/python-modules/poster3 { };
 
   py4j = callPackage ../development/python-modules/py4j { };
 
@@ -1974,6 +1993,8 @@ in {
     pythonPackages = self;
   });
 
+  opentracing = callPackage ../development/python-modules/opentracing { };
+
   openidc-client = callPackage ../development/python-modules/openidc-client {};
 
   optuna = callPackage ../development/python-modules/optuna { };
@@ -2222,8 +2243,6 @@ in {
 
   howdoi = callPackage ../development/python-modules/howdoi {};
 
-  neurotools = callPackage ../development/python-modules/neurotools {};
-
   jdatetime = callPackage ../development/python-modules/jdatetime {};
 
   daphne = callPackage ../development/python-modules/daphne { };
@@ -2401,6 +2420,12 @@ in {
 
   fx2 = callPackage ../development/python-modules/fx2 { };
 
+  # gaia isn't supported with python3 and it's not available from pypi
+  gaia = disabledIf (isPyPy || isPy3k) (toPythonModule (pkgs.gaia.override {
+    pythonPackages = self;
+    pythonSupport = true;
+  }));
+
   gateone = callPackage ../development/python-modules/gateone { };
 
   GeoIP = callPackage ../development/python-modules/GeoIP { };
@@ -2449,7 +2474,7 @@ in {
   grip = callPackage ../development/python-modules/grip { };
 
   gst-python = callPackage ../development/python-modules/gst-python {
-    inherit (pkgs) pkgconfig;
+    inherit (pkgs) meson pkgconfig;
     gst-plugins-base = pkgs.gst_all_1.gst-plugins-base;
   };
 
@@ -2519,6 +2544,8 @@ in {
 
   iniparse = callPackage ../development/python-modules/iniparse { };
 
+  intreehooks = callPackage ../development/python-modules/intreehooks { };
+
   i3-py = callPackage ../development/python-modules/i3-py { };
 
   JayDeBeApi = callPackage ../development/python-modules/JayDeBeApi {};
@@ -2560,6 +2587,23 @@ in {
   libsexy = callPackage ../development/python-modules/libsexy {
     inherit (pkgs) libsexy pkgconfig;
   };
+
+  libselinux = pipe pkgs.libselinux [
+    toPythonModule
+
+    (p: p.overrideAttrs (super: {
+      meta = super.meta // {
+        outputsToInstall = [ "py" ];
+      };
+    }))
+
+    (p: p.override {
+      enablePython = true;
+      inherit python;
+    })
+
+    (p: p.py)
+  ];
 
   libsoundtouch = callPackage ../development/python-modules/libsoundtouch { };
 
@@ -2606,6 +2650,8 @@ in {
 
   python-mapnik = callPackage ../development/python-modules/python-mapnik { };
 
+  measurement = callPackage ../development/python-modules/measurement {};
+
   midiutil = callPackage ../development/python-modules/midiutil {};
 
   misaka = callPackage ../development/python-modules/misaka {};
@@ -2619,6 +2665,8 @@ in {
   mwlib-ext = callPackage ../development/python-modules/mwlib-ext { };
 
   mwlib-rl = callPackage ../development/python-modules/mwlib-rl { };
+
+  myfitnesspal = callPackage ../development/python-modules/myfitnesspal { };
 
   natsort = callPackage ../development/python-modules/natsort { };
 
@@ -2755,7 +2803,7 @@ in {
   python-axolotl-curve25519 = callPackage ../development/python-modules/python-axolotl-curve25519 { };
 
   pythonix = callPackage ../development/python-modules/pythonix {
-    inherit (pkgs) pkgconfig;
+    inherit (pkgs) meson pkgconfig;
   };
 
   pyramid = callPackage ../development/python-modules/pyramid { };
@@ -3224,6 +3272,8 @@ in {
     cudaSupport = false;
   };
 
+  pythondialog = callPackage ../development/python-modules/pythondialog { };
+
   python2-pythondialog = callPackage ../development/python-modules/python2-pythondialog { };
 
   pyRFC3339 = callPackage ../development/python-modules/pyrfc3339 { };
@@ -3489,6 +3539,8 @@ in {
   httpretty = callPackage ../development/python-modules/httpretty { };
 
   icalendar = callPackage ../development/python-modules/icalendar { };
+
+  ics = callPackage ../development/python-modules/ics { };
 
   ifaddr = callPackage ../development/python-modules/ifaddr { };
 
@@ -3810,6 +3862,16 @@ in {
 
   mesa = callPackage ../development/python-modules/mesa { };
 
+  meson = disabledIf (pythonOlder "3.5") (toPythonModule ((pkgs.meson.override {
+    python3Packages = self;
+  }).overrideAttrs(oldAttrs: {
+     # We do not want the setup hook in Python packages
+     # because the build is performed differently.
+    setupHook = null;
+  })));
+
+  mesonpep517 = callPackage ../development/python-modules/mesonpep517 { };
+
   metaphone = callPackage ../development/python-modules/metaphone { };
 
   mezzanine = callPackage ../development/python-modules/mezzanine { };
@@ -3862,6 +3924,8 @@ in {
 
   moderngl = callPackage ../development/python-modules/moderngl { };
 
+  moderngl-window = callPackage ../development/python-modules/moderngl_window { };
+
   modestmaps = callPackage ../development/python-modules/modestmaps { };
 
   # Needed here because moinmoin is loaded as a Python library.
@@ -3911,7 +3975,7 @@ in {
 
   mypy = callPackage ../development/python-modules/mypy { };
 
-  mypy_extensions = callPackage ../development/python-modules/mypy/extensions.nix { };
+  mypy-extensions = callPackage ../development/python-modules/mypy/extensions.nix { };
 
   mypy-protobuf = callPackage ../development/python-modules/mypy-protobuf { };
 
@@ -3960,6 +4024,8 @@ in {
   nbformat = callPackage ../development/python-modules/nbformat { };
 
   nbmerge = callPackage ../development/python-modules/nbmerge { };
+
+  nbdime = callPackage ../development/python-modules/nbdime { };
 
   nbxmpp = callPackage ../development/python-modules/nbxmpp { };
 
@@ -4285,12 +4351,13 @@ in {
 
   kmapper = callPackage ../development/python-modules/kmapper { };
 
-  kmsxx = (callPackage ../development/libraries/kmsxx {
+  kmsxx = toPythonModule ((callPackage ../development/libraries/kmsxx {
     inherit (pkgs.kmsxx) stdenv;
     inherit (pkgs) pkgconfig;
+    withPython = true;
   }).overrideAttrs (oldAttrs: {
     name = "${python.libPrefix}-${pkgs.kmsxx.name}";
-  });
+  }));
 
   precis-i18n = callPackage ../development/python-modules/precis-i18n { };
 
@@ -4411,6 +4478,10 @@ in {
   Babel = callPackage ../development/python-modules/Babel { };
 
   pybfd = callPackage ../development/python-modules/pybfd { };
+
+  pybigwig = callPackage ../development/python-modules/pybigwig { };
+
+  py2bit = callPackage ../development/python-modules/py2bit { };
 
   pyblock = callPackage ../development/python-modules/pyblock { };
 
@@ -5009,6 +5080,18 @@ in {
 
   sphinx-testing = callPackage ../development/python-modules/sphinx-testing { };
 
+  sphinxcontrib-applehelp = callPackage ../development/python-modules/sphinxcontrib-applehelp {};
+
+  sphinxcontrib-devhelp = callPackage ../development/python-modules/sphinxcontrib-devhelp {};
+
+  sphinxcontrib-htmlhelp = callPackage ../development/python-modules/sphinxcontrib-htmlhelp {};
+
+  sphinxcontrib-jsmath = callPackage ../development/python-modules/sphinxcontrib-jsmath {};
+
+  sphinxcontrib-qthelp = callPackage ../development/python-modules/sphinxcontrib-qthelp {};
+
+  sphinxcontrib-serializinghtml = callPackage ../development/python-modules/sphinxcontrib-serializinghtml {};
+
   sphinxcontrib-bibtex = callPackage ../development/python-modules/sphinxcontrib-bibtex {};
 
   sphinx-navtree = callPackage ../development/python-modules/sphinx-navtree {};
@@ -5051,6 +5134,10 @@ in {
   tadasets = callPackage ../development/python-modules/tadasets { };
 
   tasklib = callPackage ../development/python-modules/tasklib { };
+
+  tatsu = callPackage ../development/python-modules/tatsu { };
+
+  tbm-utils = callPackage ../development/python-modules/tbm-utils { };
 
   tempita = callPackage ../development/python-modules/tempita { };
 
@@ -5148,6 +5235,8 @@ in {
 
   vsts = callPackage ../development/python-modules/vsts { };
 
+  python-vlc = callPackage ../development/python-modules/python-vlc { };
+
   weasyprint = callPackage ../development/python-modules/weasyprint { };
 
   webassets = callPackage ../development/python-modules/webassets { };
@@ -5244,6 +5333,8 @@ in {
   ruamel_ordereddict = callPackage ../development/python-modules/ruamel_ordereddict { };
 
   ruamel_yaml = callPackage ../development/python-modules/ruamel_yaml { };
+
+  ruamel_yaml_clib = callPackage ../development/python-modules/ruamel_yaml_clib { };
 
   ruffus = callPackage ../development/python-modules/ruffus { };
 
@@ -5613,6 +5704,8 @@ in {
 
   python-libarchive = callPackage ../development/python-modules/python-libarchive { };
 
+  python-logstash = callPackage ../development/python-modules/python-logstash { };
+
   libarchive-c = callPackage ../development/python-modules/libarchive-c {
     inherit (pkgs) libarchive;
   };
@@ -5777,7 +5870,8 @@ in {
 
   termcolor = callPackage ../development/python-modules/termcolor { };
 
-  html2text = callPackage ../development/python-modules/html2text { };
+  html2text = if isPy3k then callPackage ../development/python-modules/html2text { }
+                        else callPackage ../development/python-modules/html2text/2018.nix { };
 
   pychart = callPackage ../development/python-modules/pychart {};
 
@@ -5836,6 +5930,8 @@ in {
   potr = callPackage ../development/python-modules/potr {};
 
   pyregion = callPackage ../development/python-modules/pyregion {};
+
+  python-nomad = callPackage ../development/python-modules/python-nomad { };
 
   python-u2flib-host = callPackage ../development/python-modules/python-u2flib-host { };
 

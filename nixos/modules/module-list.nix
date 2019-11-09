@@ -1,9 +1,7 @@
 [
   ./config/debug-info.nix
-  ./config/fonts/corefonts.nix
   ./config/fonts/fontconfig.nix
   ./config/fonts/fontconfig-penultimate.nix
-  ./config/fonts/fontconfig-ultimate.nix
   ./config/fonts/fontdir.nix
   ./config/fonts/fonts.nix
   ./config/fonts/ghostscript.nix
@@ -44,6 +42,7 @@
   ./hardware/all-firmware.nix
   ./hardware/bladeRF.nix
   ./hardware/brightnessctl.nix
+  ./hardware/brillo.nix
   ./hardware/ckb-next.nix
   ./hardware/cpu/amd-microcode.nix
   ./hardware/cpu/intel-microcode.nix
@@ -227,6 +226,7 @@
   ./services/backup/rsnapshot.nix
   ./services/backup/tarsnap.nix
   ./services/backup/tsm.nix
+  ./services/backup/zfs-replication.nix
   ./services/backup/znapzend.nix
   ./services/cluster/hadoop/default.nix
   ./services/cluster/kubernetes/addons/dns.nix
@@ -549,6 +549,8 @@
   ./services/network-filesystems/nfsd.nix
   ./services/network-filesystems/openafs/client.nix
   ./services/network-filesystems/openafs/server.nix
+  ./services/network-filesystems/orangefs/server.nix
+  ./services/network-filesystems/orangefs/client.nix
   ./services/network-filesystems/rsyncd.nix
   ./services/network-filesystems/samba.nix
   ./services/network-filesystems/tahoe.nix
@@ -602,6 +604,7 @@
   ./services/networking/gdomap.nix
   ./services/networking/git-daemon.nix
   ./services/networking/gnunet.nix
+  ./services/networking/go-shadowsocks2.nix
   ./services/networking/gogoclient.nix
   ./services/networking/gvpe.nix
   ./services/networking/hans.nix
@@ -615,7 +618,6 @@
   ./services/networking/iodine.nix
   ./services/networking/iperf3.nix
   ./services/networking/ircd-hybrid/default.nix
-  ./services/networking/jormungandr.nix
   ./services/networking/iwd.nix
   ./services/networking/keepalived/default.nix
   ./services/networking/keybase.nix
@@ -714,6 +716,7 @@
   ./services/networking/tinc.nix
   ./services/networking/tinydns.nix
   ./services/networking/tftpd.nix
+  ./services/networking/trickster.nix
   ./services/networking/tox-bootstrapd.nix
   ./services/networking/tox-node.nix
   ./services/networking/toxvpn.nix
@@ -807,8 +810,10 @@
   ./services/web-apps/nexus.nix
   ./services/web-apps/pgpkeyserver-lite.nix
   ./services/web-apps/matomo.nix
+  ./services/web-apps/moinmoin.nix
   ./services/web-apps/restya-board.nix
   ./services/web-apps/tt-rss.nix
+  ./services/web-apps/trac.nix
   ./services/web-apps/selfoss.nix
   ./services/web-apps/shiori.nix
   ./services/web-apps/virtlyst.nix
@@ -859,6 +864,7 @@
   ./services/x11/hardware/multitouch.nix
   ./services/x11/hardware/synaptics.nix
   ./services/x11/hardware/wacom.nix
+  ./services/x11/hardware/digimend.nix
   ./services/x11/hardware/cmt.nix
   ./services/x11/gdk-pixbuf.nix
   ./services/x11/redshift.nix

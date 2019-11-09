@@ -1,7 +1,7 @@
-{ stdenv, fetchurl, pkgconfig, perlPackages, libXft
+{ stdenv, fetchurl, fetchpatch, pkgconfig, perlPackages, libXft
 , libpng, zlib, popt, boehmgc, libxml2, libxslt, glib, gtkmm3
 , glibmm, libsigcxx, lcms, boost, gettext, makeWrapper
-, gsl, python2, poppler, imagemagick, libwpg, librevenge
+, gsl, gtkspell2, cairo, python2, poppler, imagemagick, libwpg, librevenge
 , libvisio, libcdr, libexif, potrace, cmake, hicolor-icon-theme
 , gnome3
 , x11Support ? (!stdenv.isDarwin)
@@ -20,6 +20,14 @@ stdenv.mkDerivation rec {
     url = "https://media.inkscape.org/dl/resources/file/${name}.tar.bz2";
     sha256 = "57ec2da8177b36614a513e2822efd73af721e690f7ddc6bd0a5fbb1525b4515e";
   };
+
+  patches = [
+    (fetchpatch {
+      name = "inkscape-poppler_0_76_compat.patch";
+      url = "https://gitlab.com/inkscape/inkscape/commit/e831b034746f8dc3c3c1b88372751f6dcb974831.diff";
+      sha256 = "096rdyi6ppjq1h9jwwsm9hb99nggfrfinik8rm23jkn4h2zl01zf";
+    })
+  ];
 
   # Inkscape hits the ARGMAX when linking on macOS. It appears to be
   # CMake’s ARGMAX check doesn’t offer enough padding for NIX_LDFLAGS.
@@ -60,7 +68,9 @@ stdenv.mkDerivation rec {
     glibmm glib gtkmm3 libxslt gnome3.gdl
     ] ++ stdenv.lib.optional x11Support [
     libXft
-    ];
+    ]
+    ++ stdenv.lib.optional (!stdenv.isDarwin) gtkspell2
+    ++ stdenv.lib.optional stdenv.isDarwin cairo;
 
   enableParallelBuilding = true;
 
@@ -69,9 +79,6 @@ stdenv.mkDerivation rec {
     install_name_tool -change $out/lib/libinkscape_base.dylib $out/lib/inkscape/libinkscape_base.dylib $out/bin/inkscape
     install_name_tool -change $out/lib/libinkscape_base.dylib $out/lib/inkscape/libinkscape_base.dylib $out/bin/inkview
   '';
-
-  # 0.92.3 complains about an invalid conversion from const char * to char *
-  NIX_CFLAGS_COMPILE = " -fpermissive ";
 
   meta = with stdenv.lib; {
     license = "GPL";
