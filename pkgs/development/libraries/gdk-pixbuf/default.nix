@@ -25,7 +25,7 @@ in stdenv.mkDerivation rec {
   setupHook = ./setup-hook.sh;
 
   # !!! We might want to factor out the gdk-pixbuf-xlib subpackage.
-  buildInputs = stdenv.lib.optional x11Support [ libX11 ];
+  buildInputs = stdenv.lib.optional x11Support libX11;
 
   nativeBuildInputs = [
     meson ninja pkgconfig gettext python3 libxml2 libxslt docbook_xsl docbook_xml_dtd_43
