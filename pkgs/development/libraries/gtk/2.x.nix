@@ -1,11 +1,11 @@
-{ config, stdenv, fetchurl, pkgconfig, gettext, glib, atk, pango, cairo, perl, xorg
+{ config, stdenv, fetchurl, pkgconfig, gettext, glib, atk, pango, cairo, perl
 , gdk-pixbuf, xlibsWrapper, gobject-introspection
 , xineramaSupport ? stdenv.isLinux
 , cupsSupport ? config.gtk2.cups or stdenv.isLinux, cups ? null
 , gdktarget ? if stdenv.isDarwin then "quartz" else "x11"
 , AppKit, Cocoa
 , fetchpatch
-, config
+, x11Support ? xorg
 }:
 
 assert xineramaSupport -> xorg.libXinerama != null;
@@ -45,12 +45,12 @@ stdenv.mkDerivation rec {
   ];
 
   propagatedBuildInputs = with xorg;
-    [ glib cairo pango gd-_pixbuf atk ]
-    ++ optionals config.allowXorg [
+    [ glib cairo pango gdk-pixbuf atk ]
+    ++ optionals x11Support [
          libXrandr libXrender libXcomposite libXi libXcursor
        ]
-    ++ optionals config.allowXorg [ xlibsWrapper libXdamage ]
-    ++ optional (config.allowXorg && xineramaSupport) libXinerama
+    ++ optionals x11Support [ xlibsWrapper libXdamage ]
+    ++ optional (x11Support && xineramaSupport) libXinerama
     ++ optionals cupsSupport [ cups ]
     ++ optionals stdenv.isDarwin [ AppKit Cocoa ];
 
