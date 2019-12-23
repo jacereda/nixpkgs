@@ -19,11 +19,13 @@ let
       excludes = ["tests/*"]; # we don't run them and they don't apply
     };
   # the patch needs a small adaption for older versions
-  patch = if stdenv.lib.versionAtLeast version "2.37" then raw_patch else
+  patchToUse = if stdenv.lib.versionAtLeast version "2.37" then raw_patch else
   stdenv.mkDerivation {
     inherit (raw_patch) name;
     buildCommand = "sed s/dot_root/agroot/g ${raw_patch} > $out";
   };
+  # 2.42 has the patch included
+  patches = optional (stdenv.lib.versionOlder version "2.42") patchToUse;
 in
 
 stdenv.mkDerivation {
@@ -57,7 +59,7 @@ stdenv.mkDerivation {
   ] ++ optional (!x11Support) "--without-x"
     ++ optional quartzSupport "--with-quartz";
 
-  patches = optional (!stdenv.lib.versionAtLeast version "2.42") patch;
+  inherit patches;
 
   postPatch = ''
     for f in $(find . -name Makefile.in); do
