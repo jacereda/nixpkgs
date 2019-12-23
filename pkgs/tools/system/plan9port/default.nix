@@ -57,7 +57,7 @@ stdenv.mkDerivation {
   ]);
 
   builder = ./builder.sh;
-  libXt_dev = libXt.dev;
+  libXt_dev = stdenv.lib.optional (!stdenv.isDarwin) libXt.dev;
 
   doInstallCheck = true;
   installCheckPhase = ''
