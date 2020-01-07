@@ -31,7 +31,7 @@ stdenv.mkDerivation rec {
     ./hooks/drop-icon-theme-cache.sh
   ];
 
-  nativeBuildInputs = [ setupHooks perl pkgconfig gettext gobject-introspection ];
+  nativeBuildInputs = setupHooks ++ [ perl pkgconfig gettext gobject-introspection ];
 
   patches = [
     ./patches/2.0-immodules.cache.patch
