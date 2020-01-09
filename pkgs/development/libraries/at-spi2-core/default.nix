@@ -16,6 +16,7 @@
 , libXi
 
 , gnome3 # To pass updateScript
+, x11Support ? (!stdenv.isDarwin)
 }:
 
 stdenv.mkDerivation rec {
@@ -30,7 +31,8 @@ stdenv.mkDerivation rec {
   outputs = [ "out" "dev" ];
 
   nativeBuildInputs = [ meson ninja pkgconfig gobject-introspection makeWrapper ];
-  buildInputs = [ dbus glib libX11 libXtst libXi ];
+  buildInputs = [ dbus glib ]
+    ++ stdenv.lib.optional x11Support [ libX11 libXtst libXi ];
 
   doCheck = false; # fails with "AT-SPI: Couldn't connect to accessibility bus. Is at-spi-bus-launcher running?"
 
