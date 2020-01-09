@@ -1,4 +1,4 @@
-{ lib, fetchurl, pythonPackages, pkgconfig
+{ stdenv, lib, fetchurl, pythonPackages, pkgconfig
 , dbus
 , qmake, lndir
 , qtbase
@@ -57,11 +57,11 @@ in buildPythonPackage rec {
   ;
 
   buildInputs = [
-    dbus
     qtbase
     qtsvg
     qtdeclarative
   ]
+    ++ lib.optional (!stdenv.isDarwin) dbus
     ++ lib.optional withConnectivity qtconnectivity
     ++ lib.optional withWebKit qtwebkit
     ++ lib.optional withWebSockets qtwebsockets
