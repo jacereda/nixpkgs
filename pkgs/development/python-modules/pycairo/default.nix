@@ -1,4 +1,5 @@
-{ lib, fetchFromGitHub, meson, ninja, buildPythonPackage, pytest, pkgconfig, cairo, xlibsWrapper, isPy33, isPy3k }:
+{ stdenv, lib, fetchFromGitHub, meson, ninja, buildPythonPackage, pytest, pkgconfig, cairo, xlibsWrapper, isPy33, isPy3k
+, x11Support ? (!stdenv.isDarwin) }:
 
 buildPythonPackage rec {
   pname = "pycairo";
@@ -23,8 +24,7 @@ buildPythonPackage rec {
 
   buildInputs = [
     cairo
-    xlibsWrapper
-  ];
+  ] ++ lib.optional x11Support xlibsWrapper;
 
   checkInputs = [ pytest ];
 
