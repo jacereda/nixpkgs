@@ -1,5 +1,5 @@
 { stdenv, fetchurl, python27Packages, python36Packages, wmctrl,
-  qtbase, mkDerivationWith }:
+  qtbase, mkDerivationWith, x11Support ? (!stdenv.isDarwin) }:
 
 {
   stable = with python27Packages; buildPythonPackage rec {
@@ -21,7 +21,7 @@
     buildInputs           = [ pytest mock ];
     propagatedBuildInputs = [
       six setuptools pyserial appdirs hidapi wxPython xlib wmctrl dbus-python
-    ];
+    ] ++ stdenv.lib.optional x11Support xlib ;
   };
 
   dev = with python36Packages; mkDerivationWith buildPythonPackage rec {
@@ -44,7 +44,8 @@
     postPatch = "sed -i /PyQt5/d setup.cfg";
 
     checkInputs           = [ pytest mock ];
-    propagatedBuildInputs = [ Babel pyqt5 xlib pyserial appdirs wcwidth setuptools ];
+    propagatedBuildInputs = [ Babel pyqt5 pyserial appdirs wcwidth setuptools ]
+      ++ stdenv.lib.optional x11Support xlib;
 
     dontWrapQtApps = true;
 
