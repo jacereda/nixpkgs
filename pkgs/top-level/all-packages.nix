@@ -11298,7 +11298,6 @@ in
   ffmpeg = ffmpeg_3;
 
   ffmpeg-full = callPackage ../development/libraries/ffmpeg-full {
-    inherit (darwin) cf-private;
     inherit (darwin.apple_sdk.frameworks)
       AVFoundation AppKit ApplicationServices AudioToolbox Cocoa
       CoreAudio CoreGraphics CoreMedia CoreServices Foundation
