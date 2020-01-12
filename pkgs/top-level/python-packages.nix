@@ -779,6 +779,8 @@ in {
 
   jira = callPackage ../development/python-modules/jira { };
 
+  junit-xml = callPackage ../development/python-modules/junit-xml { };
+
   junitparser = callPackage ../development/python-modules/junitparser { };
 
   jwcrypto = callPackage ../development/python-modules/jwcrypto { };
@@ -1388,6 +1390,8 @@ in {
 
   stups-cli-support = callPackage ../development/python-modules/stups-cli-support { };
 
+  stups-fullstop = callPackage ../development/python-modules/stups-fullstop { };
+
   stups-tokens = callPackage ../development/python-modules/stups-tokens { };
 
   stups-zign = callPackage ../development/python-modules/stups-zign { };
@@ -1805,6 +1809,8 @@ in {
   colorspacious = callPackage ../development/python-modules/colorspacious { };
 
   colour = callPackage ../development/python-modules/colour {};
+
+  colormath = callPackage ../development/python-modules/colormath {};
 
   configshell = callPackage ../development/python-modules/configshell { };
 
@@ -3735,6 +3741,8 @@ in {
 
   hvac = callPackage ../development/python-modules/hvac { };
 
+  hydra = callPackage ../development/python-modules/hydra { };
+
   hypothesis = callPackage ../development/python-modules/hypothesis { };
 
   colored = callPackage ../development/python-modules/colored { };
@@ -4399,6 +4407,8 @@ in {
   ordereddict = callPackage ../development/python-modules/ordereddict { };
 
   od = callPackage ../development/python-modules/od { };
+
+  omegaconf = callPackage ../development/python-modules/omegaconf { };
 
   orderedset = callPackage ../development/python-modules/orderedset { };
 
