@@ -1392,6 +1392,8 @@ in {
 
   stups-fullstop = callPackage ../development/python-modules/stups-fullstop { };
 
+  stups-pierone = callPackage ../development/python-modules/stups-pierone { };
+
   stups-tokens = callPackage ../development/python-modules/stups-tokens { };
 
   stups-zign = callPackage ../development/python-modules/stups-zign { };
@@ -1668,6 +1670,8 @@ in {
   avro = callPackage ../development/python-modules/avro {};
 
   avro3k = callPackage ../development/python-modules/avro3k {};
+
+  avro-python3 = callPackage ../development/python-modules/avro-python3 {};
 
   aws-lambda-builders = callPackage ../development/python-modules/aws-lambda-builders { };
 
@@ -2651,6 +2655,8 @@ in {
   gplaycli = callPackage ../development/python-modules/gplaycli { };
 
   gpsoauth = callPackage ../development/python-modules/gpsoauth { };
+
+  gpxpy = callPackage ../development/python-modules/gpxpy { };
 
   grip = callPackage ../development/python-modules/grip { };
 
@@ -5006,6 +5012,8 @@ in {
   pysvn = callPackage ../development/python-modules/pysvn { };
 
   python-markdown-math = callPackage ../development/python-modules/python-markdown-math { };
+
+  python-miio = callPackage ../development/python-modules/python-miio { };
 
   python-pipedrive = callPackage ../development/python-modules/python-pipedrive { };
 
