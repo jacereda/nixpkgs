@@ -24,8 +24,7 @@ stdenv.mkDerivation rec {
     libX11 libXrandr libXinerama libXcursor libXi libXext
   ] ++ lib.optionals stdenv.isDarwin [
     Cocoa Kernel fixDarwinDylibNames
-  ];
-    ++ lib.optionals stdenv.isDarwin [ Cocoa Kernel fixDarwinDylibNames ];
+  ] ++ lib.optionals stdenv.isDarwin [ Cocoa Kernel fixDarwinDylibNames ];
 
   cmakeFlags = [ "-DBUILD_SHARED_LIBS=ON" ];
 
