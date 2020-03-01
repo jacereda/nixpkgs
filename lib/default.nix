@@ -37,10 +37,13 @@ let
     licenses = callLibs ./licenses.nix;
     systems = callLibs ./systems;
 
+    # serialization
+    cli = callLibs ./cli.nix;
+    generators = callLibs ./generators.nix;
+
     # misc
     asserts = callLibs ./asserts.nix;
     debug = callLibs ./debug.nix;
-    generators = callLibs ./generators.nix;
     misc = callLibs ./deprecated.nix;
 
     # domain-specific
@@ -70,7 +73,8 @@ let
       genAttrs isDerivation toDerivation optionalAttrs
       zipAttrsWithNames zipAttrsWith zipAttrs recursiveUpdateUntil
       recursiveUpdate matchAttrs overrideExisting getOutput getBin
-      getLib getDev chooseDevOutputs zipWithNames zip;
+      getLib getDev chooseDevOutputs zipWithNames zip
+      recurseIntoAttrs dontRecurseIntoAttrs;
     inherit (lists) singleton forEach foldr fold foldl foldl' imap0 imap1
       concatMap flatten remove findSingle findFirst any all count
       optional optionals toList range partition zipListsWith zipLists
@@ -100,7 +104,7 @@ let
     inherit (sources) pathType pathIsDirectory cleanSourceFilter
       cleanSource sourceByRegex sourceFilesBySuffices
       commitIdFromGitRepo cleanSourceWith pathHasContext
-      canCleanSource pathIsRegularFile;
+      canCleanSource pathIsRegularFile pathIsGitRepo;
     inherit (modules) evalModules unifyModuleSyntax
       applyIfFunction mergeModules
       mergeModules' mergeOptionDecls evalOptionValue mergeDefinitions

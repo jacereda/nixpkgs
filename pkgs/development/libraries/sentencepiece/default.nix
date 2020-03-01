@@ -8,24 +8,22 @@
 
 stdenv.mkDerivation rec {
   pname = "sentencepiece";
-  version = "0.1.84";
+  version = "0.1.85";
 
   src = fetchFromGitHub {
     owner = "google";
     repo = pname;
     rev = "v${version}";
-    sha256 = "144y25nj4rwxmgvzqbr7al9fjwh3539ssjswvzrx4gsgfk62lsm0";
+    sha256 = "1ncvyw9ar0z7nd47cysxg5xrjm01y1shdlhp8l2pdpx059p3yx3w";
   };
-
-  enableParallelBuilding = true;
 
   nativeBuildInputs = [ cmake gperftools ];
 
   meta = with stdenv.lib; {
-    homepage = https://github.com/google/sentencepiece;
+    homepage = "https://github.com/google/sentencepiece";
     description = "Unsupervised text tokenizer for Neural Network-based text generation";
     license = licenses.asl20;
-    platforms = [ "x86_64-linux" ];
+    platforms = platforms.unix;
     maintainers = with maintainers; [ pashashocky ];
   };
 }

@@ -31,8 +31,9 @@ stdenv.mkDerivation rec {
   outputs = [ "out" "dev" ];
 
   nativeBuildInputs = [ meson ninja pkgconfig gobject-introspection makeWrapper ];
-  buildInputs = [ dbus glib ]
-    ++ stdenv.lib.optional x11Support [ libX11 libXtst libXi ];
+  buildInputs = stdenv.lib.optional x11Support [ libX11 libXtst libXi ];
+  # In atspi-2.pc dbus-1 glib-2.0
+  propagatedBuildInputs = [ dbus glib ];
 
   doCheck = false; # fails with "AT-SPI: Couldn't connect to accessibility bus. Is at-spi-bus-launcher running?"
 

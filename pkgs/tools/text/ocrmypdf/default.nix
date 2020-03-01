@@ -10,6 +10,7 @@
 , stdenv
 , tesseract4
 , unpaper
+, substituteAll
 }:
 
 let
@@ -28,14 +29,14 @@ let
 
 in buildPythonApplication rec {
   pname = "ocrmypdf";
-  version = "9.2.0";
+  version = "9.6.0";
   disabled = ! python3Packages.isPy3k;
 
   src = fetchFromGitHub {
     owner = "jbarlow83";
     repo = "OCRmyPDF";
     rev = "v${version}";
-    sha256 = "1mvc6x5nn242z65pxv39ch71vaikgi89bb0sjbfy2jbw91vk41xa";
+    sha256 = "1cpj8fj1mzp6mbd1z9dj38fmlcg5q2gbya4vbag1ddd4vp7rvn2m";
   };
 
   nativeBuildInputs = with python3Packages; [
@@ -68,11 +69,12 @@ in buildPythonApplication rec {
     setuptools
   ] ++ runtimeDeps;
 
-  postPatch = ''
-    substituteInPlace src/ocrmypdf/leptonica.py \
-      --replace "lept = ffi.dlopen(_libpath)" \
-      'lept = ffi.dlopen("${stdenv.lib.makeLibraryPath [leptonica]}/liblept${stdenv.hostPlatform.extensions.sharedLibrary}")'
-  '';
+  patches = [
+    (substituteAll {
+      src = ./liblept.patch;
+      liblept = "${stdenv.lib.getLib leptonica}/lib/liblept${stdenv.hostPlatform.extensions.sharedLibrary}";
+    })
+  ];
 
   # The tests take potentially 20+ minutes, depending on machine
   doCheck = false;

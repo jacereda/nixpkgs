@@ -1,19 +1,21 @@
-{ stdenv, rustPlatform, fetchFromGitHub, coreutils, installShellFiles }:
+{ stdenv, rustPlatform, fetchFromGitHub, coreutils, libiconv, Security, installShellFiles }:
 
 rustPlatform.buildRustPackage rec {
   pname = "broot";
-  version = "0.11.8";
+  version = "0.13.1";
 
   src = fetchFromGitHub {
     owner = "Canop";
     repo = pname;
     rev = "v${version}";
-    sha256 = "1pbjlfwv4s50s731ryrcc54200g2i04acdxrxk4kpcvi6b19kbky";
+    sha256 = "13b1w9g68aj3r70w9bmrmdc772y959n77ajbdm2cpjs5f4kgfpak";
   };
 
-  cargoSha256 = "07ncclp4yqqr2lncw4bbcmknm09qzmdcq8iwkhyyfiy3fpyw9hqc";
+  cargoSha256 = "0zrwpmsrzwnjml0964zky8w222zmlargha3z0n6hf8cfshx23s4k";
 
   nativeBuildInputs = [ installShellFiles ];
+
+  buildInputs = stdenv.lib.optionals stdenv.isDarwin [ libiconv Security ];
 
   postPatch = ''
     substituteInPlace src/verb_store.rs --replace '"/bin/' '"${coreutils}/bin/'
