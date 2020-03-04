@@ -11,6 +11,4 @@ genieConfigurePhase() {
     runHook postConfigure
 }
 
-if [ -z "$configurePhase" ]; then
-    configurePhase=genieConfigurePhase
-fi
+configurePhase=genieConfigurePhase
