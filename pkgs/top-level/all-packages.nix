@@ -11884,7 +11884,7 @@ in
 
   gdata-sharp = callPackage ../development/libraries/gdata-sharp { };
 
-  gdk-pixbuf = callPackage ../development/libraries/gdk-pixbuf { };
+  gdk-pixbuf = callPackage ../development/libraries/gdk-pixbuf { gobject-introspection=null; };
 
   gnome-sharp = callPackage ../development/libraries/gnome-sharp { };
 
