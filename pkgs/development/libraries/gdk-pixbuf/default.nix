@@ -1,6 +1,6 @@
 { stdenv, fetchurl, nixosTests, fixDarwinDylibNames, meson, ninja, pkgconfig, gettext, python3, libxml2, libxslt, docbook_xsl
 , docbook_xml_dtd_43, gtk-doc, glib, libtiff, libjpeg, libpng, gnome3
-, jasper, gobject-introspection, doCheck ? false, makeWrapper
+, gobject-introspection, doCheck ? false, makeWrapper
 , x11Support ? !stdenv.isDarwin, libX11
 , fetchpatch
 }:

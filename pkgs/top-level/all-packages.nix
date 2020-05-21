@@ -10952,10 +10952,8 @@ in
 
   spin = callPackage ../development/tools/analysis/spin { };
 
-  spirv-cross = callPackage ../development/libraries/spirv-cross { };
   spirv-headers = callPackage ../development/libraries/spirv-headers { };
   spirv-tools = callPackage ../development/tools/spirv-tools { };
-
 
   splint = callPackage ../development/tools/analysis/splint {
     flex = flex_2_5_35;
