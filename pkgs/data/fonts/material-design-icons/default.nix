@@ -1,7 +1,7 @@
 { lib, fetchFromGitHub }:
 
 let
-  version = "4.7.95";
+  version = "5.1.45";
 in fetchFromGitHub {
   name = "material-design-icons-${version}";
   owner  = "Templarian";
@@ -16,7 +16,7 @@ in fetchFromGitHub {
     cp fonts/*.woff $out/share/fonts/woff/
     cp fonts/*.woff2 $out/share/fonts/woff2/
   '';
-  sha256 = "0da92kz8ryy60kb5xm52md13w28ih4sfap8g3v9b4ziyww66zjhz";
+  sha256 = "0h5vlzwlx43h5q8krwsv7mczwk11l5i933kvs5jpn1lvg0r3sbc4";
 
   meta = with lib; {
     description = "3200+ Material Design Icons from the Community";

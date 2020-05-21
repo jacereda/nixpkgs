@@ -41,7 +41,7 @@ rec {
     persistencedSha256 = "0vab5rj9b1n9yl9674q7i88w1i5p8nhvrwsayn7i1vh4wp3m840r";
   };
 
-  legacy_340 = generic {
+  legacy_340_107 = generic {
     version = "340.107";
     sha256_32bit = "0mh83affz6bim26ws7kkwwcfj2s6vkdy4d45hifsbshr82qd52wd";
     sha256_64bit = "0pv9yv3x0kg9hfkmc50xb54ahxkbnyy2vyy4hj2h0s6m9sb5kqz3";
@@ -50,6 +50,14 @@ rec {
     useGLVND = false;
 
     patches = [ ./vm_operations_struct-fault.patch ];
+  };
+
+  legacy_340 = generic {
+    version = "340.108";
+    sha256_32bit = "1jkwa1phf0x4sgw8pvr9d6krmmr3wkgwyygrxhdazwyr2bbalci0";
+    sha256_64bit = "06xp6c0sa7v1b82gf0pq0i5p0vdhmm3v964v0ypw36y0nzqx8wf6";
+    settingsSha256 = "0iz14pjd5bi644rb60h37fw615rhbrx39b064hd1jxmy8qfpyg6h";
+    persistencedSha256 = "1ihh16fm3xpkm1jrk0v7yd65yb5y63pcy61mgqmpj74fbihgw03n";
   };
 
   legacy_304 = generic {
