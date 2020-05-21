@@ -22090,6 +22090,10 @@ in
 
   surf = callPackage ../applications/networking/browsers/surf { gtk = gtk2; };
 
+  surfer = callPackage ../applications/networking/browsers/surfer {
+    gconf = pkgs.gnome2.GConf;
+  };
+
   surf-display = callPackage ../desktops/surf-display { };
 
   sunvox = callPackage ../applications/audio/sunvox { };
