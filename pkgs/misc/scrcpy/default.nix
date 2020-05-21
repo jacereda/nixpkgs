@@ -2,6 +2,7 @@
 , meson
 , ninja
 , pkgconfig
+, fetchpatch
 
 , platform-tools
 , ffmpeg
@@ -9,10 +10,10 @@
 }:
 
 let
-  version = "1.8";
+  version = "1.13";
   prebuilt_server = fetchurl {
-    url = "https://github.com/Genymobile/scrcpy/releases/download/v${version}/scrcpy-server-v${version}.jar";
-    sha256 = "1h755k5xpchlm7wq2yk5mlwjnh7y4yhviffixacby0srj3pmb443";
+    url = "https://github.com/Genymobile/scrcpy/releases/download/v${version}/scrcpy-server-v${version}";
+    sha256 = "11gqsl2x18hgwdjajag9q8qdxqvdqr9m67zka22z7hnd3k569vjz";
   };
 in
 stdenv.mkDerivation rec {
@@ -23,7 +24,7 @@ stdenv.mkDerivation rec {
     owner = "Genymobile";
     repo = pname;
     rev = "v${version}";
-    sha256 = "1cx7y3w699s3i8s53l1mb7lkrnbix457hf17liwh00jzb0i7aga7";
+    sha256 = "1zc73l5vm4hca8niaa3y76kpk7i9vj89wv4gbxmf1yjmixb71hby";
   };
 
   # postPatch:
@@ -44,10 +45,10 @@ stdenv.mkDerivation rec {
     echo -n > server/meson.build
   '';
 
-  mesonFlags = ["-Doverride_server_path=${prebuilt_server}"];
+  mesonFlags = [ "-Doverride_server_path=${prebuilt_server}" ];
   postInstall = ''
     mkdir -p "$out/share/scrcpy"
-    ln -s "${prebuilt_server}" "$out/share/scrcpy/scrcpy-server.jar"
+    ln -s "${prebuilt_server}" "$out/share/scrcpy/scrcpy-server"
 
     # runtime dep on `adb` to push the server
     wrapProgram "$out/bin/scrcpy" --prefix PATH : "${platform-tools}/bin"
@@ -55,7 +56,7 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "Display and control Android devices over USB or TCP/IP";
-    homepage = https://github.com/Genymobile/scrcpy;
+    homepage = "https://github.com/Genymobile/scrcpy";
     license = licenses.asl20;
     platforms = platforms.unix;
     maintainers = with maintainers; [ deltaevo lukeadams ];

@@ -5,7 +5,7 @@
 }:
 
 stdenv.mkDerivation rec {
-  name    = "chez-scheme-${version}";
+  pname = "chez-scheme";
   version = "9.5.2";
 
   src = fetchFromGitHub {
@@ -20,6 +20,8 @@ stdenv.mkDerivation rec {
   buildInputs = [ ncurses libiconv libuuid ] ++ stdenv.lib.optional x11Support libX11;
 
   enableParallelBuilding = true;
+
+  NIX_CFLAGS_COMPILE = stdenv.lib.optionalString stdenv.cc.isGNU "-Wno-error=format-truncation";
 
   /*
   ** We patch out a very annoying 'feature' in ./configure, which
@@ -66,7 +68,7 @@ stdenv.mkDerivation rec {
 
   meta = {
     description  = "A powerful and incredibly fast R6RS Scheme compiler";
-    homepage     = https://cisco.github.io/ChezScheme/;
+    homepage     = "https://cisco.github.io/ChezScheme/";
     license      = stdenv.lib.licenses.asl20;
     maintainers  = with stdenv.lib.maintainers; [ thoughtpolice ];
     platforms    = stdenv.lib.platforms.unix;

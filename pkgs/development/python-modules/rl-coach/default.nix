@@ -23,12 +23,12 @@
 }:
 
 buildPythonPackage rec {
-  version = "0.12.0";
+  version = "1.0.1";
   pname = "rl-coach";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "0kfm699rsy63726hpz3fyppl7zbl0fzf0vk2kkfgg718mcjxmdnh";
+    sha256 = "0i47hf0l76ydyrky6f8h760bfr0zg5g3vy675x6m6pgm9wrklkqc";
   };
 
   propagatedBuildInputs = [
@@ -94,5 +94,7 @@ buildPythonPackage rec {
     homepage = "https://nervanasystems.github.io/coach/";
     license = licenses.asl20;
     maintainers = with maintainers; [ timokau ];
+    # pythonPackages.gym is too new
+    broken = true; # since 2020-04-20
   };
 }

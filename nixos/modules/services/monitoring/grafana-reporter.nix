@@ -1,4 +1,4 @@
-{ options, config, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 with lib;
 
@@ -59,7 +59,7 @@ in {
           "-templates ${cfg.templateDir}"
         ];
       in {
-        ExecStart = "${pkgs.grafana_reporter.bin}/bin/grafana-reporter ${args}";
+        ExecStart = "${pkgs.grafana_reporter}/bin/grafana-reporter ${args}";
       };
     };
   };

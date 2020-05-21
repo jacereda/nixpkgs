@@ -1,4 +1,4 @@
-{ stdenv, callPackage, makeFontsConf, gnome2 }:
+{ callPackage, makeFontsConf, gnome2 }:
 
 let
   mkStudio = opts: callPackage (import ./common.nix opts) {
@@ -8,21 +8,21 @@ let
     inherit (gnome2) GConf gnome_vfs;
   };
   stableVersion = {
-    version = "3.4.1.0"; # "Android Studio 3.4.1"
-    build = "183.5522156";
-    sha256Hash = "0y4l9d1yrvv1csx6vl4jnqgqy96y44rl6p8hcxrnbvrg61iqnj30";
+    version = "3.6.3.0"; # "Android Studio 3.6.3"
+    build = "192.6392135";
+    sha256Hash = "0apxmp341m7mbpm2df3qvsbaifwy6yqq746kbhbwlw8bn9hrzv1k";
   };
   betaVersion = {
-    version = "3.5.0.16"; # "Android Studio 3.5 Beta 4"
-    build = "191.5619324";
-    sha256Hash = "1rg6v9b8fdnmslpv80khhpx59lvwhj1vwbkyabz2fryfj67wz01z";
+    version = "4.0.0.14"; # "Android Studio 4.0 Beta 5"
+    build = "193.6401094";
+    sha256Hash = "11fmpf58z44i78ldkapzivz6md65744vqczzbwv8mkjkv9nz95rs";
   };
   latestVersion = { # canary & dev
-    version = "3.6.0.3"; # "Android Studio 3.6 Canary 3"
-    build = "191.5618338";
-    sha256Hash = "0ryf61svn6ra8gh1rvfjqj3j282zmgcvkjvgfvql1wgkjlz21519";
+    version = "4.1.0.8"; # "Android Studio 4.1 Canary 8"
+    build = "193.6423924";
+    sha256Hash = "0ksgmhz9vhkw2mxzjapli0w6203ssd8ddgb0dq06rck8v7ysy8bp";
   };
-in rec {
+in {
   # Attributes are named by their corresponding release channels
 
   stable = mkStudio (stableVersion // {

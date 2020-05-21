@@ -1,25 +1,26 @@
-{ stdenv, buildGoPackage, fetchFromGitHub }:
+{ stdenv, buildGoModule, fetchFromGitHub, runCommand }:
 
-buildGoPackage rec {
-  name    = "cloudflared-${version}";
-  version = "2018.10.3";
-
-  goPackagePath = "github.com/cloudflare/cloudflared";
+buildGoModule rec {
+  pname = "cloudflared";
+  version = "2020.3.2";
 
   src = fetchFromGitHub {
     owner  = "cloudflare";
     repo   = "cloudflared";
-    rev    = "41916365b689bf2cc1446ea5717e4d26cc8aed43"; # untagged
-    sha256 = "109bhnmvlvj3ag9vw090fy202z8aaqr1rakhn8v550wwy30h9zkf";
+    rev    = version;
+    sha256 = "1vbxm5z72y9zfg4carmja3fc1vhkanmc25pgnlw550p1l14y6404";
   };
 
-  goDeps = ./deps.nix;
+  vendorSha256 = "14w2iz3ycbzfvlr8a6qn86aaa8687cm203d73wpfkfskp277hwz0";
+  deleteVendor = true;
+
+  buildFlagsArray = "-ldflags=-X main.Version=${version}";
 
   meta = with stdenv.lib; {
     description = "CloudFlare Argo Tunnel daemon (and DNS-over-HTTPS client)";
-    homepage    = https://www.cloudflare.com/products/argo-tunnel;
+    homepage    = "https://www.cloudflare.com/products/argo-tunnel";
     license     = licenses.unfree;
     platforms   = platforms.unix;
-    maintainers = [ maintainers.thoughtpolice ];
+    maintainers = [ maintainers.thoughtpolice maintainers.enorris ];
   };
 }

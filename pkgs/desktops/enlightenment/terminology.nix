@@ -1,32 +1,32 @@
-{ stdenv, fetchurl, meson, ninja, pkgconfig, efl, pcre, mesa_noglu, makeWrapper }:
+{ stdenv, fetchurl, meson, ninja, pkgconfig, efl, pcre, mesa, makeWrapper }:
 
 stdenv.mkDerivation rec {
   pname = "terminology";
-  version = "1.4.1";
+  version = "1.7.0";
 
   src = fetchurl {
     url = "http://download.enlightenment.org/rel/apps/${pname}/${pname}-${version}.tar.xz";
-    sha256 = "0mm9v5a94369is3kaarnr3a28wy42wslzi1mcisaidlcldgv7f6p";
+    sha256 = "11qan2k6w94cglysh95yxkbv6hw9x15ri927hkiy3k0hbmpbrxc8";
   };
 
   nativeBuildInputs = [
     meson
     ninja
-    (pkgconfig.override { vanilla = true; })
+    pkgconfig
     makeWrapper
   ];
 
   buildInputs = [
     efl
     pcre
-    mesa_noglu
+    mesa
   ];
 
   meta = {
     description = "Powerful terminal emulator based on EFL";
-    homepage = https://www.enlightenment.org/about-terminology;
-    platforms = stdenv.lib.platforms.linux;
+    homepage = "https://www.enlightenment.org/about-terminology";
     license = stdenv.lib.licenses.bsd2;
-    maintainers = with stdenv.lib.maintainers; [ matejc tstrobel ftrvxmtrx ];
+    platforms = stdenv.lib.platforms.linux;
+    maintainers = with stdenv.lib.maintainers; [ matejc tstrobel ftrvxmtrx romildo ];
   };
 }

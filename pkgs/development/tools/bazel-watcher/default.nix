@@ -1,34 +1,41 @@
 { buildBazelPackage
-, cacert
 , fetchFromGitHub
 , fetchpatch
 , git
 , go
 , python
 , stdenv
+, iana-etc
+, mailcap
+, tzdata
 }:
 
+let
+  patches = [
+    ./use-go-in-path.patch
+  ];
+in
 buildBazelPackage rec {
   name = "bazel-watcher-${version}";
-  version = "0.9.1";
+  version = "0.13.0";
 
   src = fetchFromGitHub {
     owner = "bazelbuild";
     repo = "bazel-watcher";
     rev = "v${version}";
-    sha256 = "1gjbv67ydyb0mafpp59qr9n8f8vva2mwhgan6lxxl0i9yfx7qc6p";
+    sha256 = "1fc3sp79znbbq1yjap56lham72n7cap8yfghpzrzmpl5brybjkvm";
   };
 
   nativeBuildInputs = [ go git python ];
+  removeRulesCC = false;
 
   bazelTarget = "//ibazel";
 
   fetchAttrs = {
+    inherit patches;
+
     preBuild = ''
       patchShebangs .
-
-      # tell rules_go to use the Go binary found in the PATH
-      sed -e 's:go_register_toolchains():go_register_toolchains(go_version = "host"):g' -i WORKSPACE
     '';
 
     preInstall = ''
@@ -42,6 +49,10 @@ buildBazelPackage rec {
       rm -rf $bazelOut/external/{go_sdk,\@go_sdk.marker}
       sed -e '/^FILE:@go_sdk.*/d' -i $bazelOut/external/\@*.marker
 
+      # Retains go build input markers
+      chmod -R 755 $bazelOut/external/{bazel_gazelle_go_repository_cache,@\bazel_gazelle_go_repository_cache.marker}
+      rm -rf $bazelOut/external/{bazel_gazelle_go_repository_cache,@\bazel_gazelle_go_repository_cache.marker}
+
       # Remove the gazelle tools, they contain go binaries that are built
       # non-deterministically. As long as the gazelle version matches the tools
       # should be equivalent.
@@ -49,15 +60,14 @@ buildBazelPackage rec {
       sed -e '/^FILE:@bazel_gazelle_go_repository_tools.*/d' -i $bazelOut/external/\@*.marker
     '';
 
-    sha256 = "0p6yarz4wlb6h33n4slkczkdkaa93zc9jx55h8wl9vv81ahp0md5";
+    sha256 = "0ili0123xcl0mjcrn4r1r1q9d7a8a3bbh9r3zhlshl39awfm4r2d";
   };
 
   buildAttrs = {
+    inherit patches;
+
     preBuild = ''
       patchShebangs .
-
-      # tell rules_go to use the Go binary found in the PATH
-      sed -e 's:go_register_toolchains():go_register_toolchains(go_version = "host"):g' -i WORKSPACE
     '';
 
     installPhase = ''
@@ -66,7 +76,7 @@ buildBazelPackage rec {
   };
 
   meta = with stdenv.lib; {
-    homepage = https://github.com/bazelbuild/bazel-watcher;
+    homepage = "https://github.com/bazelbuild/bazel-watcher";
     description = "Tools for building Bazel targets when source files change.";
     license = licenses.asl20;
     maintainers = with maintainers; [ kalbasit ];

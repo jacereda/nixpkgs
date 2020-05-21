@@ -1,9 +1,9 @@
 { stdenv
+, pythonOlder
 , fetchPypi
 , python
 , buildPythonPackage
 , isPy27
-, isPy33
 , isPy3k
 , numpy
 , llvmlite
@@ -13,17 +13,20 @@
 }:
 
 buildPythonPackage rec {
-  version = "0.40.1";
+  version = "0.48.0";
   pname = "numba";
+  # uses f-strings
+  disabled = pythonOlder "3.6";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "52d046c13bcf0de79dbfb936874b7228f141b9b8e3447cc35855e9ad3e12aa33";
+    sha256 = "9d21bc77e67006b5723052840c88cc59248e079a907cc68f1a1a264e1eaba017";
   };
 
   NIX_CFLAGS_COMPILE = stdenv.lib.optionalString stdenv.isDarwin "-I${libcxx}/include/c++/v1";
 
-  propagatedBuildInputs = [numpy llvmlite] ++ stdenv.lib.optional (!isPy3k) funcsigs ++ stdenv.lib.optional (isPy27 || isPy33) singledispatch;
+  propagatedBuildInputs = [numpy llvmlite]
+    ++ stdenv.lib.optionals isPy27 [ funcsigs singledispatch];
 
   # Copy test script into $out and run the test suite.
   checkPhase = ''
@@ -33,7 +36,7 @@ buildPythonPackage rec {
   doCheck = false;
 
   meta =  {
-    homepage = http://numba.pydata.org/;
+    homepage = "http://numba.pydata.org/";
     license = stdenv.lib.licenses.bsd2;
     description = "Compiling Python code using LLVM";
     maintainers = with stdenv.lib.maintainers; [ fridh ];

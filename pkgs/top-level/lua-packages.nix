@@ -5,13 +5,12 @@
    for each package in a separate file: the call to the function would
    be almost as must code as the function itself. */
 
-{ fetchurl, stdenv, lua, callPackage, unzip, zziplib, pkgconfig
+{ fetchurl, stdenv, lua, unzip, pkgconfig
 , pcre, oniguruma, gnulib, tre, glibc, sqlite, openssl, expat
-, glib, gobject-introspection, libevent, zlib, autoreconfHook, gnum4
+, autoreconfHook, gnum4
 , mysql, postgresql, cyrus_sasl
-, fetchFromGitHub, libmpack, which, fetchpatch, writeText
+, fetchFromGitHub, which, writeText
 , pkgs
-, fetchgit
 , lib
 , darwin
 }:
@@ -25,7 +24,7 @@ let
   isLua51 = (lib.versions.majorMinor lua.version) == "5.1";
   isLua52 = (lib.versions.majorMinor lua.version) == "5.2";
   isLua53 = lua.luaversion == "5.3";
-  isLuaJIT = (builtins.parseDrvName lua.name).name == "luajit";
+  isLuaJIT = lib.getName lua == "luajit";
 
   lua-setup-hook = callPackage ../development/interpreters/lua-5/setup-hook.nix { };
 
@@ -58,7 +57,7 @@ let
 
   buildLuaApplication = args: buildLuarocksPackage ({namePrefix="";} // args );
 
-  buildLuarocksPackage = with pkgs.lib; makeOverridable( callPackage ../development/interpreters/lua-5/build-lua-package.nix {
+  buildLuarocksPackage = with pkgs.lib; makeOverridable(callPackage ../development/interpreters/lua-5/build-lua-package.nix {
     inherit toLuaModule;
     inherit lua;
   });
@@ -66,17 +65,18 @@ in
 with self; {
 
   getLuaPathList = majorVersion: [
-     "lib/lua/${majorVersion}/?.lua" "share/lua/${majorVersion}/?.lua"
-    "share/lua/${majorVersion}/?/init.lua" "lib/lua/${majorVersion}/?/init.lua"
+    "share/lua/${majorVersion}/?.lua"
+    "share/lua/${majorVersion}/?/init.lua"
   ];
   getLuaCPathList = majorVersion: [
-     "lib/lua/${majorVersion}/?.so" "share/lua/${majorVersion}/?.so" "share/lua/${majorVersion}/?/init.so"
+    "lib/lua/${majorVersion}/?.so"
   ];
 
   # helper functions for dealing with LUA_PATH and LUA_CPATH
-  getPath       = lib : type : "${lib}/lib/lua/${lua.luaversion}/?.${type};${lib}/share/lua/${lua.luaversion}/?.${type}";
-  getLuaPath    = lib : getPath lib "lua";
-  getLuaCPath   = lib : getPath lib "so";
+  getPath = drv: pathListForVersion:
+    lib.concatMapStringsSep ";" (path: "${drv}/${path}") (pathListForVersion lua.luaversion);
+  getLuaPath = drv: getPath drv getLuaPathList;
+  getLuaCPath = drv: getPath drv getLuaCPathList;
 
   #define build lua package function
   buildLuaPackage = callPackage ../development/lua-modules/generic {
@@ -516,117 +516,41 @@ with self; {
     };
   };
 
-
-  luastdlib = buildLuaPackage rec {
-    name = "stdlib-${version}";
-    version = "41.2.1";
-
-    src = fetchFromGitHub {
-      owner = "lua-stdlib";
-      repo = "lua-stdlib";
-      rev = "release-v${version}";
-      sha256 = "03wd1qvkrj50fjszb2apzdkc8d5bpfbbi9pajl0vbrlzzmmi3jlq";
-    };
-
-    nativeBuildInputs = [ autoreconfHook unzip ];
-
-    meta = with stdenv.lib; {
-      description = "General Lua libraries";
-      homepage = "https://github.com/lua-stdlib/lua-stdlib";
-      license = licenses.mit;
-      maintainers = with maintainers; [ vyp ];
-      platforms = platforms.linux;
-    };
-  };
-
-  lrexlib = buildLuaPackage rec {
-    name = "lrexlib-${version}";
-    version = "2.8.0";
+  pulseaudio = buildLuaPackage rec {
+    pname = "pulseaudio";
+    version = "0.2";
+    name = "pulseaudio-${version}";
 
     src = fetchFromGitHub {
-      owner = "rrthomas";
-      repo = "lrexlib";
-      rev = "rel-2-8-0";
-      sha256 = "1c62ny41b1ih6iddw5qn81gr6dqwfffzdp7q6m8x09zzcdz78zhr";
+      owner = "doronbehar";
+      repo = "lua-pulseaudio";
+      rev = "v${version}";
+      sha256 = "140y1m6k798c4w7xfl0zb0a4ffjz6i1722bgkdcdg8g76hr5r8ys";
     };
+    disabled = (luaOlder "5.1") || (luaAtLeast "5.5");
+    buildInputs = [ pkgs.libpulseaudio ];
+    propagatedBuildInputs = [ lua ];
+    nativeBuildInputs = [ pkgs.pulseaudio pkgconfig ];
 
-    buildInputs = [ luastdlib pcre luarocks oniguruma gnulib tre glibc ];
-
-    buildPhase = let
-      luaVariable = ''LUA_PATH="${luastdlib}/share/lua/${lua.luaversion}/?/init.lua;${luastdlib}/share/lua/${lua.luaversion}/?.lua"'';
-      pcreVariable = "PCRE_DIR=${pcre.out} PCRE_INCDIR=${pcre.dev}/include";
-      onigVariable = "ONIG_DIR=${oniguruma}";
-      gnuVariable = "GNU_INCDIR=${gnulib}/lib";
-      treVariable = "TRE_DIR=${tre}";
-      posixVariable = "POSIX_DIR=${glibc.dev}";
-    in ''
-      sed -e 's@$(LUAROCKS) $(LUAROCKS_COMMAND) $$i;@$(LUAROCKS) $(LUAROCKS_COMMAND) $$i ${pcreVariable} ${onigVariable} ${gnuVariable} ${treVariable} ${posixVariable};@' -i Makefile
-      ${luaVariable} make
-    '';
-
-    installPhase = ''
-      mkdir -pv $out;
-      cp -r luarocks/lib $out;
+    makeFlags = [
+      "INST_LIBDIR=${placeholder "out"}/lib/lua/${lua.luaversion}"
+      "INST_LUADIR=${placeholder "out"}/share/lua/${lua.luaversion}"
+      "LUA_BINDIR=${placeholder "out"}/bin"
+    ];
+    preBuild = ''
+      mkdir -p ${placeholder "out"}/lib/lua/${lua.luaversion}
     '';
 
     meta = with stdenv.lib; {
-      description = "Lua bindings of various regex library APIs";
-      homepage = "https://github.com/rrthomas/lrexlib";
-      license = licenses.mit;
-      maintainers = with maintainers; [ vyp ];
-      platforms = platforms.linux;
+      homepage = "https://github.com/doronbehar/lua-pulseaudio";
+      description = "Libpulse Lua bindings";
+      maintainers = with maintainers; [ doronbehar ];
+      license = licenses.lgpl21;
     };
   };
-
-  luasqlite3 = buildLuaPackage rec {
-    name = "sqlite3-${version}";
-    version = "2.3.0";
-
-    src = fetchFromGitHub {
-      owner = "LuaDist";
-      repo = "luasql-sqlite3";
-      rev = version;
-      sha256 = "05k8zs8nsdmlwja3hdhckwknf7ww5cvbp3sxhk2xd1i3ij6aa10b";
-    };
-
-    disabled = isLua53;
-
-    buildInputs = [ sqlite ];
-
-    patches = [ ../development/lua-modules/luasql.patch ];
-
-    meta = with stdenv.lib; {
-      description = "Database connectivity for Lua";
-      homepage = "https://github.com/LuaDist/luasql-sqlite3";
-      license = licenses.mit;
-      maintainers = with maintainers; [ vyp ];
-      platforms = platforms.linux;
-    };
-  };
-
-  lfs = buildLuaPackage rec {
-    name = "lfs-${version}";
-    version = "1.7.0.2";
-
-    src = fetchFromGitHub {
-      owner = "keplerproject";
-      repo = "luafilesystem";
-      rev = "v" + stdenv.lib.replaceStrings ["."] ["_"] version;
-      sha256 = "0zmprgkm9zawdf9wnw0v3w6ibaj442wlc6alp39hmw610fl4vghi";
-    };
-
-    meta = with stdenv.lib; {
-      description = "Portable library for filesystem operations";
-      homepage = https://keplerproject.github.com/luafilesystem;
-      license = licenses.mit;
-      maintainers = with maintainers; [ vcunat ];
-      platforms = platforms.all;
-    };
-  };
-
 
   vicious = toLuaModule(stdenv.mkDerivation rec {
-    name = "vicious-${version}";
+    pname = "vicious";
     version = "2.3.1";
 
     src = fetchFromGitHub {
@@ -646,7 +570,7 @@ with self; {
 
     meta = with stdenv.lib; {
       description = "A modular widget library for the awesome window manager";
-      homepage    = https://github.com/Mic92/vicious;
+      homepage    = "https://github.com/Mic92/vicious";
       license     = licenses.gpl2;
       maintainers = with maintainers; [ makefu mic92 ];
       platforms   = platforms.linux;

@@ -2,20 +2,27 @@
 
 buildGoModule rec {
   pname = "bazelisk";
-  version = "0.0.4";
+  version = "1.4.0";
+
+  patches = [ ./gomod.patch ];
 
   src = fetchFromGitHub {
-    owner = "philwo";
+    owner = "bazelbuild";
     repo = pname;
     rev = "v${version}";
-    sha256 = "1hi4jmkqy1fjn91q72qlfvm63plz5jqb4hw4c1qv9ddqjgwrmxr3";
+    sha256 = "14zp0bi0p1rfbx1pxi5y28ndxwbqbvfx0pvy3jh1mnx5qsii1gcq";
   };
 
-  modSha256 = "1f73j6ryidzi3kfy3rhsqx047vzwvzaqcsl7ykhg87rn2l2s7fdl";
+  vendorSha256 = "10156k90ky3znb9rxhy7zasskxmlcs5cn9f3xk25ana1c66vxszr";
+
+  buildFlagsArray = [ "-ldflags=-s -w -X main.BazeliskVersion=${version}" ];
 
   meta = with stdenv.lib; {
     description = "A user-friendly launcher for Bazel";
-    homepage = https://github.com/philwo/bazelisk;
+    longDescription = ''
+      BEWARE: This package does not work on NixOS.
+    '';
+    homepage = "https://github.com/bazelbuild/bazelisk";
     license = licenses.asl20;
     maintainers = with maintainers; [ elasticdog ];
   };

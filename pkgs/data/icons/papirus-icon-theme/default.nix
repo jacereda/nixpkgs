@@ -1,24 +1,33 @@
-{ stdenv, fetchFromGitHub, gtk3 }:
+{ stdenv, fetchFromGitHub, gtk3, pantheon, breeze-icons, gnome-icon-theme, hicolor-icon-theme }:
 
 stdenv.mkDerivation rec {
-  name = "papirus-icon-theme-${version}";
-  version = "20190501";
+  pname = "papirus-icon-theme";
+  version = "20200430";
 
   src = fetchFromGitHub {
     owner = "PapirusDevelopmentTeam";
-    repo = "papirus-icon-theme";
+    repo = pname;
     rev = version;
-    sha256 = "1sdzbvlzzg42vqahjqcsj6v87y1xhchw7bgiv8jgwd2n4l3gg2zy";
+    sha256 = "1dgxf3fi4x5iy504xncj1jba8cd51axkn2j1cfb220rpc6mzv25l";
   };
 
-  nativeBuildInputs = [ gtk3 ];
+  nativeBuildInputs = [
+    gtk3
+  ];
+
+  propagatedBuildInputs = [
+    pantheon.elementary-icon-theme
+    breeze-icons
+    gnome-icon-theme
+    hicolor-icon-theme
+  ];
+
+  dontDropIconThemeCache = true;
 
   installPhase = ''
-     mkdir -p $out/share/icons
-     mv {,e}Papirus* $out/share/icons
-  '';
+    mkdir -p $out/share/icons
+    mv {,e}Papirus* $out/share/icons
 
-  postFixup = ''
     for theme in $out/share/icons/*; do
       gtk-update-icon-cache $theme
     done
@@ -26,8 +35,10 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "Papirus icon theme";
-    homepage = https://github.com/PapirusDevelopmentTeam/papirus-icon-theme;
+    homepage = "https://github.com/PapirusDevelopmentTeam/papirus-icon-theme";
     license = licenses.lgpl3;
-    platforms = platforms.all;
+    # darwin gives hash mismatch in source, probably because of file names differing only in case
+    platforms = platforms.linux;
+    maintainers = with maintainers; [ romildo ];
   };
 }

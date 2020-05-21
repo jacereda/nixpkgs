@@ -5,7 +5,7 @@
 }:
 
 stdenv.mkDerivation rec {
-  name = "moonlight-embedded-${version}";
+  pname = "moonlight-embedded";
   version = "2.4.10";
 
   src = fetchFromGitHub {
@@ -27,7 +27,7 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "Open source implementation of NVIDIA's GameStream";
-    homepage = https://github.com/irtimmer/moonlight-embedded;
+    homepage = "https://github.com/irtimmer/moonlight-embedded";
     license = licenses.gpl3;
     maintainers = [ maintainers.globin ];
     platforms = platforms.linux;

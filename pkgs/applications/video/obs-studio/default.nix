@@ -1,6 +1,7 @@
 { config, stdenv
+, mkDerivation
 , fetchFromGitHub
-, fetchpatch
+, addOpenGLRunpath
 , cmake
 , fdk_aac
 , ffmpeg
@@ -34,21 +35,19 @@
 }:
 
 let
-  optional = stdenv.lib.optional;
-in stdenv.mkDerivation rec {
-  name = "obs-studio-${version}";
-  version = "23.1.0";
+  inherit (stdenv.lib) optional optionals;
+in mkDerivation rec {
+  pname = "obs-studio";
+  version = "25.0.8";
 
   src = fetchFromGitHub {
-    owner = "jp9000";
+    owner = "obsproject";
     repo = "obs-studio";
-    rev = "${version}";
-    sha256 = "1iavrkjp7vgg0blm4lmj4mc4hrfx8yjaiwx55wmc5ynw80v37ybc";
+    rev = version;
+    sha256 = "0j2k65q3wfyfxhvkl6icz4qy0s3kfqhksizy2i3ah7yml266axbj";
   };
 
-  nativeBuildInputs = [ cmake
-                        pkgconfig
-                      ];
+  nativeBuildInputs = [ addOpenGLRunpath cmake pkgconfig ];
 
   buildInputs = [ curl
                   fdk_aac
@@ -68,7 +67,7 @@ in stdenv.mkDerivation rec {
                   makeWrapper
                   mbedtls
                 ]
-                ++ optional scriptingSupport [ luajit swig python3 ]
+                ++ optionals scriptingSupport [ luajit swig python3 ]
                 ++ optional alsaSupport alsaLib
                 ++ optional pulseaudioSupport libpulseaudio;
 
@@ -82,6 +81,11 @@ in stdenv.mkDerivation rec {
         --prefix "LD_LIBRARY_PATH" : "${xorg.libX11.out}/lib:${vlc}/lib"
   '';
 
+  postFixup = stdenv.lib.optionalString stdenv.isLinux ''
+      addOpenGLRunpath $out/lib/lib*.so
+      addOpenGLRunpath $out/lib/obs-plugins/*.so
+  '';
+
   meta = with stdenv.lib; {
     description = "Free and open source software for video recording and live streaming";
     longDescription = ''
@@ -89,7 +93,7 @@ in stdenv.mkDerivation rec {
       Software", software originally designed for recording and streaming live
       video content, efficiently
     '';
-    homepage = https://obsproject.com;
+    homepage = "https://obsproject.com";
     maintainers = with maintainers; [ jb55 MP2E ];
     license = licenses.gpl2;
     platforms = [ "x86_64-linux" "i686-linux" ];

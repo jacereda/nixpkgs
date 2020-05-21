@@ -37,9 +37,7 @@ let
   baseService = recursiveUpdate commonEnv {
     wants = [ "ipfs-init.service" ];
     # NB: migration must be performed prior to pre-start, else we get the failure message!
-    preStart = ''
-      ipfs repo fsck # workaround for BUG #4212 (https://github.com/ipfs/go-ipfs/issues/4214)
-    '' + optionalString cfg.autoMount ''
+    preStart = optionalString cfg.autoMount ''
       ipfs --local config Mounts.FuseAllowOther --json true
       ipfs --local config Mounts.IPFS ${cfg.ipfsMountDir}
       ipfs --local config Mounts.IPNS ${cfg.ipnsMountDir}
@@ -208,9 +206,9 @@ in {
 
   config = mkIf cfg.enable {
     environment.systemPackages = [ wrapped ];
-    environment.etc."fuse.conf" = mkIf cfg.autoMount { text = ''
-      user_allow_other
-    ''; };
+    programs.fuse = mkIf cfg.autoMount {
+      userAllowOther = true;
+    };
 
     users.users = mkIf (cfg.user == "ipfs") {
       ipfs = {
@@ -219,6 +217,9 @@ in {
         createHome = false;
         uid = config.ids.uids.ipfs;
         description = "IPFS daemon user";
+        packages = [
+          pkgs.ipfs-migrator
+        ];
       };
     };
 
@@ -236,7 +237,6 @@ in {
     systemd.services.ipfs-init = recursiveUpdate commonEnv {
       description = "IPFS Initializer";
 
-      after = [ "local-fs.target" ];
       before = [ "ipfs.service" "ipfs-offline.service" "ipfs-norouting.service" ];
 
       script = ''
@@ -263,21 +263,21 @@ in {
     systemd.services.ipfs = recursiveUpdate baseService {
       description = "IPFS Daemon";
       wantedBy = mkIf (cfg.defaultMode == "online") [ "multi-user.target" ];
-      after = [ "network.target" "local-fs.target" "ipfs-init.service" ];
+      after = [ "network.target" "ipfs-init.service" ];
       conflicts = [ "ipfs-offline.service" "ipfs-norouting.service"];
     };
 
     systemd.services.ipfs-offline = recursiveUpdate baseService {
       description = "IPFS Daemon (offline mode)";
       wantedBy = mkIf (cfg.defaultMode == "offline") [ "multi-user.target" ];
-      after = [ "local-fs.target" "ipfs-init.service" ];
+      after = [ "ipfs-init.service" ];
       conflicts = [ "ipfs.service" "ipfs-norouting.service"];
     };
 
     systemd.services.ipfs-norouting = recursiveUpdate baseService {
       description = "IPFS Daemon (no routing mode)";
       wantedBy = mkIf (cfg.defaultMode == "norouting") [ "multi-user.target" ];
-      after = [ "local-fs.target" "ipfs-init.service" ];
+      after = [ "ipfs-init.service" ];
       conflicts = [ "ipfs.service" "ipfs-offline.service"];
     };
 

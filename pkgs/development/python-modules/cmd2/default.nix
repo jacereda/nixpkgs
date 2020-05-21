@@ -6,11 +6,11 @@
 }:
 buildPythonPackage rec {
   pname = "cmd2";
-  version = "0.9.12";
+  version = "1.0.2";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "14pyvihikml1z7q21q9cvdfxvvlf8lhbaasj05hpiq6fjyvd7zsc";
+    sha256 = "1f18plbc9yyvhn0js3d2bii9yld8zfl775gxsaw9jza5pmlg9ss2";
   };
 
   LC_ALL="en_US.UTF-8";
@@ -18,8 +18,8 @@ buildPythonPackage rec {
   postPatch = stdenv.lib.optional stdenv.isDarwin ''
     # Fake the impure dependencies pbpaste and pbcopy
     mkdir bin
-    echo '#${stdenv.shell}' > bin/pbpaste
-    echo '#${stdenv.shell}' > bin/pbcopy
+    echo '#!${stdenv.shell}' > bin/pbpaste
+    echo '#!${stdenv.shell}' > bin/pbcopy
     chmod +x bin/{pbcopy,pbpaste}
     export PATH=$(realpath bin):$PATH
   '';
@@ -54,7 +54,7 @@ buildPythonPackage rec {
 
   meta = with stdenv.lib; {
     description = "Enhancements for standard library's cmd module";
-    homepage = https://github.com/python-cmd2/cmd2;
+    homepage = "https://github.com/python-cmd2/cmd2";
     maintainers = with maintainers; [ teto ];
   };
 }

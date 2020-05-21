@@ -6,8 +6,8 @@
 # See `pkgs/applications/editors/eclipse/*.nix`
 
 stdenv.mkDerivation rec {
-  name = "dbeaver-ce-${version}";
-  version = "6.0.5";
+  pname = "dbeaver-ce";
+  version = "7.0.5";
 
   desktopItem = makeDesktopItem {
     name = "dbeaver";
@@ -30,7 +30,7 @@ stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "https://dbeaver.io/files/${version}/dbeaver-ce-${version}-linux.gtk.x86_64.tar.gz";
-    sha256 = "19gn6vkjl8dpmqpn26llhvc3yahjwj00wqvvimfsrqd32wgj2and";
+    sha256 = "082a0dszdlynpf7lrkwijwcs2x8xmbzrjr8rrwmrmkznhzj50gqf";
   };
 
   installPhase = ''
@@ -55,7 +55,7 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with stdenv.lib; {
-    homepage = https://dbeaver.io/;
+    homepage = "https://dbeaver.io/";
     description = "Universal SQL Client for developers, DBA and analysts. Supports MySQL, PostgreSQL, MariaDB, SQLite, and more";
     longDescription = ''
       Free multi-platform database tool for developers, SQL programmers, database
@@ -65,6 +65,6 @@ stdenv.mkDerivation rec {
     '';
     license = licenses.asl20;
     platforms = [ "x86_64-linux" ];
-    maintainers = [ maintainers.samueldr ];
+    maintainers = [ maintainers.jojosch ];
   };
 }

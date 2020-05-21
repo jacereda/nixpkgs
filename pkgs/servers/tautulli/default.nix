@@ -1,9 +1,8 @@
 {stdenv, fetchFromGitHub, python }:
 
 stdenv.mkDerivation rec {
-  version = "2.1.29";
+  version = "2.2.3";
   pname = "Tautulli";
-  name = "${pname}-${version}";
 
   pythonPath = [ python.pkgs.setuptools ];
   buildInputs = [ python.pkgs.setuptools ];
@@ -13,7 +12,7 @@ stdenv.mkDerivation rec {
     owner = "Tautulli";
     repo = pname;
     rev = "v${version}";
-    sha256 = "1n5kpfcm59qg27xhlan3w2x71dp1h3gycdlp0iyxaqzaaw5splry";
+    sha256 = "0ni3dg5ly1xdyj1g931y2by3w17f0q031mpnrw2slhy6i792r5bp";
   };
 
   buildPhase = ":";
@@ -47,7 +46,7 @@ stdenv.mkDerivation rec {
 
   meta  = with stdenv.lib; {
     description = "A Python based monitoring and tracking tool for Plex Media Server.";
-    homepage = https://tautulli.com/;
+    homepage = "https://tautulli.com/";
     license = licenses.gpl3;
     platforms = platforms.linux;
     maintainers = with stdenv.lib.maintainers; [ csingley ];

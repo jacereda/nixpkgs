@@ -14,20 +14,23 @@ let
     # https://gitlab.com/graphviz/graphviz/issues/1367 CVE-2018-10196
     fetchpatch {
       name = "CVE-2018-10196.patch";
-      url = https://gitlab.com/graphviz/graphviz/uploads/30f8f0b00e357c112ac35fb20241604a/p.diff;
+      url = "https://gitlab.com/graphviz/graphviz/uploads/30f8f0b00e357c112ac35fb20241604a/p.diff";
       sha256 = "074qx6ch9blrnlilmz7p96fkiz2va84x2fbqdza5k4808rngirc7";
       excludes = ["tests/*"]; # we don't run them and they don't apply
     };
   # the patch needs a small adaption for older versions
-  patch = if stdenv.lib.versionAtLeast version "2.37" then raw_patch else
+  patchToUse = if stdenv.lib.versionAtLeast version "2.37" then raw_patch else
   stdenv.mkDerivation {
     inherit (raw_patch) name;
     buildCommand = "sed s/dot_root/agroot/g ${raw_patch} > $out";
   };
+  # 2.42 has the patch included
+  patches = optional (stdenv.lib.versionOlder version "2.42") patchToUse;
 in
 
-stdenv.mkDerivation rec {
-  name = "graphviz-${version}";
+stdenv.mkDerivation {
+  pname = "graphviz";
+  inherit version;
 
   src = fetchFromGitLab {
     owner = "graphviz";
@@ -56,9 +59,7 @@ stdenv.mkDerivation rec {
   ] ++ optional (!x11Support) "--without-x"
     ++ optional quartzSupport "--with-quartz";
 
-  patches = [
-    patch
-  ];
+  inherit patches;
 
   postPatch = ''
     for f in $(find . -name Makefile.in); do
@@ -88,7 +89,7 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with stdenv.lib; {
-    homepage = https://graphviz.org;
+    homepage = "https://graphviz.org";
     description = "Graph visualization tools";
     license = licenses.epl10;
     platforms = platforms.unix;

@@ -1,8 +1,8 @@
 { lib, fetchFromGitHub, buildGoPackage }:
   
 buildGoPackage rec {
-  name = "govc-${version}";
-  version = "0.20.0";
+  pname = "govc";
+  version = "0.22.1";
 
   goPackagePath = "github.com/vmware/govmomi";
 
@@ -12,12 +12,12 @@ buildGoPackage rec {
     rev = "v${version}";
     owner = "vmware";
     repo = "govmomi";
-    sha256 = "16pgjhlps21vk3cb5h2y0b6skq095rd8kl0618rwrz84chdnzahk";
+    sha256 = "1z4am6143jrrls0023flnqgadm1z9p60w09cp1j5pnslm60vvw78";
   };
 
   meta = {
     description = "A vSphere CLI built on top of govmomi";
-    homepage = https://github.com/vmware/govmomi/tree/master/govc;
+    homepage = "https://github.com/vmware/govmomi/tree/master/govc";
     license = lib.licenses.asl20;
     maintainers = with lib.maintainers; [ nicknovitski ];
   };

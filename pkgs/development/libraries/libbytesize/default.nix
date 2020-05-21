@@ -4,15 +4,16 @@
 }:
 
 let
-  version = "2.0";
+  version = "2.2";
 in stdenv.mkDerivation rec {
-  name = "libbytesize-${version}";
+  pname = "libbytesize";
+  inherit version;
 
   src = fetchFromGitHub {
     owner = "storaged-project";
     repo = "libbytesize";
     rev = version;
-    sha256 = "0m950idlyv6mbkhr8ngnda5l5wwb5lzs4wn4kxl73cvdlcvklmwj";
+    sha256 = "0n4gmn68ypsk3gcw6akcghlgk3aj3wskwg3mlg93cw5y3a33nbhm";
   };
 
   outputs = [ "out" "dev" "devdoc" ];

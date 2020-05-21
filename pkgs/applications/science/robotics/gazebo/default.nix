@@ -1,7 +1,7 @@
 { stdenv, fetchurl, cmake, pkgconfig, boost, protobuf, freeimage
   , boost-build, boost_process
   , xorg_sys_opengl, tbb, ogre, tinyxml-2
-  , libtar, glxinfo,  libusb, libxslt, ignition
+  , libtar, glxinfo,  libusb-compat-0_1, libxslt, ignition
   , pythonPackages, utillinux
 
   # these deps are hidden; cmake doesn't catch them
@@ -24,10 +24,10 @@
 
 stdenv.mkDerivation rec {
   inherit version;
-  name = "gazebo-${version}";
+  pname = "gazebo";
 
   src = fetchurl {
-    url = "https://osrf-distributions.s3.amazonaws.com/gazebo/releases/${name}.tar.bz2";
+    url = "https://osrf-distributions.s3.amazonaws.com/gazebo/releases/${pname}-${version}.tar.bz2";
     sha256 = src-sha256;
   };
 
@@ -52,7 +52,7 @@ stdenv.mkDerivation rec {
     tinyxml-2
     libtar
     glxinfo
-    libusb
+    libusb-compat-0_1
     libxslt
     ignition.math2
     sdformat
@@ -75,7 +75,7 @@ stdenv.mkDerivation rec {
     ++ optional withHdf5Support hdf5;
 
   meta = with stdenv.lib; {
-    homepage = http://gazebosim.org/;
+    homepage = "http://gazebosim.org/";
     description = "Multi-robot simulator for outdoor environments";
     license = licenses.asl20;
     maintainers = with maintainers; [ pxc ];
