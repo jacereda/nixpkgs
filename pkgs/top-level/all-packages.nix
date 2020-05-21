@@ -8156,6 +8156,8 @@ in
     '';
   };
 
+  copper = callPackage ../development/compilers/copper {};
+
   cryptol = haskell.lib.justStaticExecutables haskellPackages.cryptol;
 
   inherit (callPackages ../development/compilers/crystal {
