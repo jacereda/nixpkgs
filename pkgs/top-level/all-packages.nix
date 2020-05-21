@@ -2672,6 +2672,12 @@ in
 
   biosdevname = callPackage ../tools/networking/biosdevname { };
 
+  code-browser-qt = libsForQt5.callPackage ../applications/editors/code-browser { withQt = true;
+                                                                                };
+  code-browser-gtk = callPackage ../applications/editors/code-browser { withGtk = true;
+                                                                        qtbase = qt5.qtbase;
+                                                                      };
+
   c14 = callPackage ../applications/networking/c14 { };
 
   certstrap = callPackage ../tools/security/certstrap { };
@@ -8156,6 +8162,8 @@ in
       echo "--gcc-toolchain=${cc.gcc}" >> $out/nix-support/cc-cflags
     '';
   };
+
+  copper = callPackage ../development/compilers/copper {};
 
   cryptol = haskell.lib.justStaticExecutables haskellPackages.cryptol;
 
