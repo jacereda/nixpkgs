@@ -7,13 +7,13 @@
 
 stdenv.mkDerivation rec {
   pname = "pt2-clone";
-  version = "1.12";
+  version = "1.17";
 
   src = fetchFromGitHub {
     owner = "8bitbubsy";
     repo = "pt2-clone";
     rev = "v${version}";
-    sha256 = "1y7kv889rm3nvaigcda4bglvwm799f3gp0zrivkvrg1lrlygs89f";
+    sha256 = "0paagzc1c7gdnvs2wwsw2h15d0x8a7fl995qq3pi06g8kmdm85pi";
   };
 
   nativeBuildInputs = [ cmake ];
