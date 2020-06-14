@@ -111,13 +111,11 @@ stdenv.mkDerivation rec {
     zlib
   ] ++ stdenv.lib.optional x11Support [
     libXft
-    ]
   ] ++ stdenv.lib.optionals (!stdenv.isDarwin) [
     gtkspell2
   ] ++ stdenv.lib.optionals stdenv.isDarwin [
     cairo
-  ];
-    ++ stdenv.lib.optional (!stdenv.isDarwin) gtkspell2
+  ] ++ stdenv.lib.optional (!stdenv.isDarwin) gtkspell2
     ++ stdenv.lib.optional stdenv.isDarwin cairo;
 
   # Make sure PyXML modules can be found at run-time.
