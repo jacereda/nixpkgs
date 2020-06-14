@@ -1,72 +1,57 @@
-{ stdenv, libarchive, radare2, jq, buildFHSUserEnv, squashfsTools, writeScript }:
+{ stdenv
+, bash
+, binutils-unwrapped
+, coreutils
+, gawk
+, libarchive
+, pv
+, squashfsTools
+, buildFHSUserEnv
+, pkgs
+}:
 
 rec {
-
-  extract = { name, src }: stdenv.mkDerivation {
-    name = "${name}-extracted";
-    inherit src;
-    nativeBuildInputs = [ radare2 libarchive jq squashfsTools ];
-    buildCommand = ''
-      # https://github.com/AppImage/libappimage/blob/ca8d4b53bed5cbc0f3d0398e30806e0d3adeaaab/src/libappimage/utils/MagicBytesChecker.cpp#L45-L63
-      eval $(r2 $src -nn -Nqc "p8j 3 @ 8" |
-        jq -r '{appimageSignature: (.[:-1]|implode), appimageType: .[-1]}|
-          @sh "appimageSignature=\(.appimageSignature) appimageType=\(.appimageType)"')
-
-      # check AppImage signature
-      if [[ "$appimageSignature" != "AI" ]]; then
-        echo "Not an appimage."
-        exit
-      fi
-
-      case "$appimageType" in
-        1)
-          mkdir $out
-          bsdtar -x -C $out -f $src
-          ;;
-
-        2)
-          # multiarch offset one-liner using same method as AppImage
-          # see https://gist.github.com/probonopd/a490ba3401b5ef7b881d5e603fa20c93
-          offset=$(r2 $src -nn -Nqc "pfj.elf_header @ 0" |\
-            jq 'map({(.name): .value}) | add | .shoff + (.shnum * .shentsize)')
-
-          unsquashfs -q -d $out -o $offset $src
-          chmod go-w $out
-          ;;
-
-        # 3) get ready, https://github.com/TheAssassin/type3-runtime
-        *) echo "Unsupported AppImage Type: $appimageType";;
-      esac
-    '';
+  appimage-exec = pkgs.substituteAll {
+    src = ./appimage-exec.sh;
+    isExecutable = true;
+    dir = "bin";
+    path = with pkgs; stdenv.lib.makeBinPath [
+      bash
+      binutils-unwrapped
+      coreutils
+      gawk
+      libarchive
+      pv
+      squashfsTools
+    ];
   };
 
+  extract = { name, src }: pkgs.runCommand "${name}-extracted" {
+      buildInputs = [ appimage-exec ];
+    } ''
+      appimage-exec.sh -x $out ${src}
+    '';
+
+  # for compatibility, deprecated
   extractType1 = extract;
   extractType2 = extract;
+  wrapType1 = wrapType2;
 
-  wrapAppImage = args@{ name, src, extraPkgs, ... }: buildFHSUserEnv (defaultFhsEnvArgs // {
-    inherit name;
+  wrapAppImage = args@{ name, src, extraPkgs, ... }: buildFHSUserEnv
+    (defaultFhsEnvArgs // {
+      inherit name;
 
-    targetPkgs = pkgs: defaultFhsEnvArgs.targetPkgs pkgs ++ extraPkgs pkgs;
+      targetPkgs = pkgs: [ appimage-exec ]
+        ++ defaultFhsEnvArgs.targetPkgs pkgs ++ extraPkgs pkgs;
 
-    runScript = writeScript "run" ''
-      #!${stdenv.shell}
+      runScript = "appimage-exec.sh -w ${src}";
+    } // (removeAttrs args (builtins.attrNames (builtins.functionArgs wrapAppImage))));
 
-      export APPDIR=${src}
-      export APPIMAGE_SILENT_INSTALL=1
-      cd $APPDIR
-      exec ./AppRun "$@"
-    '';
-  } // (removeAttrs args (builtins.attrNames (builtins.functionArgs wrapAppImage))));
-
-  wrapType1 = args@{ name, src, extraPkgs ? pkgs: [], ... }: wrapAppImage (args // {
-    inherit name extraPkgs;
-    src = extractType1 { inherit name src; };
-  });
-
-  wrapType2 = args@{ name, src, extraPkgs ? pkgs: [], ... }: wrapAppImage (args // {
-    inherit name extraPkgs;
-    src = extractType2 { inherit name src; };
-  });
+  wrapType2 = args@{ name, src, extraPkgs ? pkgs: [ ], ... }: wrapAppImage
+    (args // {
+      inherit name extraPkgs;
+      src = extract { inherit name src; };
+    });
 
   defaultFhsEnvArgs = {
     name = "appimage-env";

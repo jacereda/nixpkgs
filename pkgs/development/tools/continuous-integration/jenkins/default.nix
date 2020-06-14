@@ -2,11 +2,11 @@
 
 stdenv.mkDerivation rec {
   pname = "jenkins";
-  version = "2.204.4";
+  version = "2.222.4";
 
   src = fetchurl {
     url = "http://mirrors.jenkins.io/war-stable/${version}/jenkins.war";
-    sha256 = "0m4g0hm7cfmma5lrs9jsdy2gzp383hhh4k968s41krdms2pf5jhf";
+    sha256 = "0z64w5rv1x9kpjxcb05if9pk0abl9nlbijh2i3nlja97j0dp55bc";
   };
 
   buildCommand = ''
@@ -16,7 +16,7 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "An extendable open source continuous integration server";
-    homepage = https://jenkins-ci.org;
+    homepage = "https://jenkins-ci.org";
     license = licenses.mit;
     platforms = platforms.all;
     maintainers = with maintainers; [ coconnor fpletz earldouglas ];

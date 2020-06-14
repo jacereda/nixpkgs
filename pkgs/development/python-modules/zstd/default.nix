@@ -12,7 +12,7 @@ buildPythonPackage rec {
 
   postPatch = ''
     substituteInPlace setup.py \
-      --replace "/usr/bin/pkg-config" "${pkgconfig}/bin/pkg-config"
+      --replace "/usr/bin/pkg-config" "${pkgconfig}/bin/${pkgconfig.targetPrefix}pkg-config"
   '';
 
   nativeBuildInputs = [ pkgconfig ];
@@ -37,7 +37,7 @@ buildPythonPackage rec {
 
   meta = with stdenv.lib; {
     description = "Simple python bindings to Yann Collet ZSTD compression library";
-    homepage = https://github.com/sergey-dryabzhinsky/python-zstd;
+    homepage = "https://github.com/sergey-dryabzhinsky/python-zstd";
     license = licenses.bsd2;
     maintainers = with maintainers; [
       eadwu

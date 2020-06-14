@@ -1,4 +1,4 @@
-{ lib, stdenv, buildPythonApplication, fetchPypi, pythonOlder,
+{ lib, stdenv, buildPythonApplication, fetchFromGitHub, pythonOlder,
   attrs, aiohttp, appdirs, click, keyring, Logbook, peewee, janus,
   prompt_toolkit, matrix-nio, dbus-python, pydbus, notify2, pygobject3,
 
@@ -9,13 +9,16 @@
 
 buildPythonApplication rec {
   pname = "pantalaimon";
-  version = "0.4";
+  version = "0.6.1";
 
   disabled = pythonOlder "3.6";
 
-  src = fetchPypi {
-    inherit pname version;
-    sha256 = "1canj9w72wh1rcw6fivrvaahpxy13gb6gh1k8nss6bgixalvnq9m";
+  # pypi tarball miss tests
+  src = fetchFromGitHub {
+    owner = "matrix-org";
+    repo = pname;
+    rev = version;
+    sha256 = "0hn3731jh6xwyjayzdf41skhpdx002qs7n5l7ffh4dplhnv9vbxx";
   };
 
   propagatedBuildInputs = [

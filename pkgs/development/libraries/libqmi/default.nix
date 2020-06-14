@@ -2,11 +2,11 @@
 
 stdenv.mkDerivation rec {
   pname = "libqmi";
-  version = "1.24.4";
+  version = "1.24.12";
 
   src = fetchurl {
     url = "https://www.freedesktop.org/software/libqmi/${pname}-${version}.tar.xz";
-    sha256 = "12licfsszr6qxpg9b2b04qm2glk8d42fcy32zr8jzwrgr7gbl5h3";
+    sha256 = "0scb8a2kh0vnzx6kxanfy2s2slnfppvrwg202rxv30m8p2i92frd";
   };
 
   outputs = [ "out" "dev" "devdoc" ];
@@ -25,6 +25,8 @@ stdenv.mkDerivation rec {
     libgudev
     libmbim
   ];
+
+  enableParallelBuilding = true;
 
   doCheck = true;
 

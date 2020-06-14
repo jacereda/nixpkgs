@@ -10,7 +10,7 @@
 , rtmpSupport ? true
 , phantomjsSupport ? false
 , hlsEncryptedSupport ? true
-, makeWrapper }:
+, installShellFiles, makeWrapper }:
 
 buildPythonPackage rec {
 
@@ -18,14 +18,14 @@ buildPythonPackage rec {
   # The websites youtube-dl deals with are a very moving target. That means that
   # downloads break constantly. Because of that, updates should always be backported
   # to the latest stable release.
-  version = "2020.03.06";
+  version = "2020.06.06";
 
   src = fetchurl {
     url = "https://yt-dl.org/downloads/${version}/${pname}-${version}.tar.gz";
-    sha256 = "16c10rgkjrjv115w4r7gsr9hcakqq5s2cg250b1hwvxdsxqp8vnv";
+    sha256 = "1qrrr14glv0jv377n61paq55b6k58jpnwbz2sp5xfl4wnxy5hqny";
   };
 
-  nativeBuildInputs = [ makeWrapper ];
+  nativeBuildInputs = [ installShellFiles makeWrapper ];
   buildInputs = [ zip ] ++ lib.optional generateManPage pandoc;
   propagatedBuildInputs = lib.optional hlsEncryptedSupport pycryptodome;
 
@@ -46,8 +46,7 @@ buildPythonPackage rec {
   ];
 
   postInstall = ''
-    mkdir -p $out/share/zsh/site-functions
-    cp youtube-dl.zsh $out/share/zsh/site-functions/_youtube-dl
+    installShellCompletion youtube-dl.zsh
   '';
 
   # Requires network

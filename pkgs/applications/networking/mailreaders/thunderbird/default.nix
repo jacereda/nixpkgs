@@ -72,13 +72,13 @@ assert waylandSupport -> gtk3Support == true;
 
 stdenv.mkDerivation rec {
   pname = "thunderbird";
-  version = "68.5.0";
+  version = "68.9.0";
 
   src = fetchurl {
     url =
       "mirror://mozilla/thunderbird/releases/${version}/source/thunderbird-${version}.source.tar.xz";
     sha512 =
-      "15hi1193z6gp05dx6pqakxydyrxzls4xhfpvrk5qg458gxhdfj4qbgb33mcf944g7vf2hk5mk6nbgmdxlb9svw1n72ym2adyaca6n5v";
+      "3q0dikgkfr72hhz39pxi2f0cljn09lw4940qcn9kzfwfid2h290j7pihx6gs0z6h82fl78f9fl1598d064lwl1i2434dzx6bg4p4549";
   };
 
   nativeBuildInputs = [
@@ -191,7 +191,7 @@ stdenv.mkDerivation rec {
           lib.getVersion stdenv.cc.cc
         } -isystem ${stdenv.cc.cc}/include/c++/${
           lib.getVersion stdenv.cc.cc
-        }/$(cc -dumpmachine)"
+        }/${stdenv.hostPlatform.config}"
       } \
       $NIX_CFLAGS_COMPILE"
 

@@ -8,7 +8,7 @@
 , pytest
 , numpy
 , isPy3k
-, ffmpeg
+, ffmpeg_3
 , futures
 , enum34
 }:
@@ -23,7 +23,7 @@ buildPythonPackage rec {
   };
 
   checkInputs = [ pytest psutil ] ++ stdenv.lib.optionals isPy3k [
-    imageio-ffmpeg ffmpeg
+    imageio-ffmpeg ffmpeg_3
     ];
   propagatedBuildInputs = [ numpy pillow ] ++ stdenv.lib.optionals (!isPy3k) [
     futures
@@ -50,7 +50,7 @@ buildPythonPackage rec {
 
   meta = with stdenv.lib; {
     description = "Library for reading and writing a wide range of image, video, scientific, and volumetric data formats";
-    homepage = http://imageio.github.io/;
+    homepage = "http://imageio.github.io/";
     license = licenses.bsd2;
   };
 

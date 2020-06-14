@@ -1,19 +1,21 @@
-{ stdenv, fetchFromGitHub, buildGoPackage }:
+{ stdenv, fetchFromGitHub, buildGoPackage, installShellFiles }:
 
 buildGoPackage rec {
   pname = "vault";
-  version = "1.3.2";
+  version = "1.4.2";
 
   src = fetchFromGitHub {
     owner = "hashicorp";
     repo = "vault";
     rev = "v${version}";
-    sha256 = "17zymmm1r4yxwazn2qx2l01i7g91rn40h7hzgwf0pr6pwmdxvkzg";
+    sha256 = "0aschysngs6f50plqkqbnhgl6zryd0bpypr50zd45cgww7jvvqd4";
   };
 
   goPackagePath = "github.com/hashicorp/vault";
 
   subPackages = [ "." ];
+
+  nativeBuildInputs = [ installShellFiles ];
 
   buildFlagsArray = [
     "-tags='vault'"
@@ -21,12 +23,12 @@ buildGoPackage rec {
   ];
 
   postInstall = ''
-    mkdir -p $bin/share/bash-completion/completions
-    echo "complete -C $bin/bin/vault vault" > $bin/share/bash-completion/completions/vault
+    echo "complete -C $out/bin/vault vault" > vault.bash
+    installShellCompletion vault.bash
   '';
 
   meta = with stdenv.lib; {
-    homepage = https://www.vaultproject.io;
+    homepage = "https://www.vaultproject.io/";
     description = "A tool for managing secrets";
     platforms = platforms.linux ++ platforms.darwin;
     license = licenses.mpl20;

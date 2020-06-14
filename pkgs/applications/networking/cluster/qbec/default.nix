@@ -2,20 +2,20 @@
 
 buildGoModule rec {
   pname = "qbec";
-  version = "0.7.5";
+  version = "0.11.2";
 
   src = fetchFromGitHub {
     owner = "splunk";
     repo = "qbec";
     rev = "v${version}";
-    sha256 = "1q3rbxih4fn0zv8dni5dxb3pq840spplfy08x941najqfgflv9gb";
+    sha256 = "1lf9srkmi7r6p3him19akzag13hj8arwlkm9mdy8a8fg1ascqbm4";
   };
 
-  modSha256 = "0s1brqvzm1ghhqb46aqfj0lpnaq76rav0hwwb82ccw8h7052y4jn";
+  vendorSha256 = "1cyr621fb6hxwswz9lf75brc9qjy1n9rqjkwi6r8s3y6nhw20db6";
 
   meta = with lib; {
     description = "Configure kubernetes objects on multiple clusters using jsonnet https://qbec.io";
-    homepage = https://github.com/splunk/qbec;
+    homepage = "https://github.com/splunk/qbec";
     license = licenses.asl20;
     maintainers = with maintainers; [ groodt ];
   };

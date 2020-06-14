@@ -2,13 +2,13 @@
 
 stdenv.mkDerivation rec {
   pname = "openxr-loader";
-  version = "1.0.3";
+  version = "1.0.9";
 
   src = fetchFromGitHub {
     owner = "KhronosGroup";
     repo = "OpenXR-SDK-Source";
     rev = "release-${version}";
-    sha256 = "0hqf0z38gk4id8d6vcms66mh3gllh2xib5mr11069sh9ak6b3mmp";
+    sha256 = "0xm5bwbsv2qlx1mg9zr98q7rm5hginrff4z0ahv7jrqrzv24acp7";
   };
 
   nativeBuildInputs = [ cmake python3 ];
@@ -32,7 +32,7 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "Khronos OpenXR loader";
-    homepage    = https://www.khronos.org/openxr;
+    homepage    = "https://www.khronos.org/openxr";
     platforms   = platforms.linux;
     license     = licenses.asl20;
     maintainers = [ maintainers.ralith ];

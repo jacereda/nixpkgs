@@ -25,12 +25,12 @@
 
 buildPythonPackage rec {
   pname = "snowflake-connector-python";
-  version = "2.2.0";
+  version = "2.2.5";
   disabled = isPy27;
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "1d3qxjqc79fi2l4sns5svbc6kfaihivsrpycflmh50h7x0k9sv7f";
+    sha256 = "2f720c4989b2ad92c1fc3c221f049102155f2d8006527daa15f2b54ecfdaf652";
   };
 
   propagatedBuildInputs = [
@@ -54,6 +54,11 @@ buildPythonPackage rec {
     pyasn1-modules
     urllib3
   ];
+
+  postPatch = ''
+    substituteInPlace setup.py \
+      --replace "'cffi>=1.9,<1.14'," "'cffi~=1.9',"
+  '';
 
   # tests are not working
   # XXX: fix the tests

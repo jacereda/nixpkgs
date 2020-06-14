@@ -9,14 +9,14 @@ assert useVulkan -> withExamples;
 
 stdenv.mkDerivation rec {
   pname = "dav1d";
-  version = "0.5.2";
+  version = "0.7.0";
 
   src = fetchFromGitLab {
     domain = "code.videolan.org";
     owner = "videolan";
     repo = pname;
     rev = version;
-    sha256 = "0acxlgyz6c8ckw8vfgn60y2zg2n00l5xsq5jlxvwbh5w5pkc3ahf";
+    sha256 = "0zmn4ald518vgs3cc0ga227aimr38h16mkliq5j8mg6p9dn7nx1w";
   };
 
   nativeBuildInputs = [ meson ninja nasm pkgconfig ];
@@ -38,6 +38,8 @@ stdenv.mkDerivation rec {
       subsampling and bit-depth parameters.
     '';
     inherit (src.meta) homepage;
+    changelog = "https://code.videolan.org/videolan/dav1d/-/tags/${version}";
+    # More technical: https://code.videolan.org/videolan/dav1d/blob/${version}/NEWS
     license = licenses.bsd2;
     platforms = platforms.unix;
     maintainers = with maintainers; [ primeos ];
