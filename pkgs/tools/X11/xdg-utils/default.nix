@@ -1,7 +1,9 @@
 { stdenv, fetchurl, fetchFromGitHub
 , file, libxslt, docbook_xml_dtd_412, docbook_xsl, xmlto
 , w3m, gnugrep, gnused, coreutils, xset, perlPackages
-, mimiSupport ? false, gawk ? null }:
+, mimiSupport ? false, gawk ? null
+, useXorg ? (!stdenv.isDarwin)
+}:
 
 assert mimiSupport -> gawk != null;
 
@@ -14,9 +16,9 @@ let
     sha256 = "15gw2nyrqmdsdin8gzxihpn77grhk9l97jp7s7pr7sl4n9ya2rpj";
   };
 
-  perlPath = with perlPackages; makePerlPath [
-    NetDBus XMLTwig XMLParser X11Protocol
-  ];
+  perlPath = with perlPackages; makePerlPath ([
+    NetDBus XMLTwig XMLParser
+  ] ++ stdenv.lib.optionals useXorg [X11Protocol]);
 
 in
 
@@ -43,7 +45,9 @@ stdenv.mkDerivation rec {
     file()  { ${file}/bin/file      "$@"; }\
     awk()   { ${gawk}/bin/awk       "$@"; }\
     sort()  { ${coreutils}/bin/sort "$@"; }\
+  '' + stdenv.lib.optionalString useXorg ''
     xset()  { ${xset}/bin/xset      "$@"; }\
+  '' + ''
     perl()  { PERL5LIB=${perlPath} ${perlPackages.perl}/bin/perl "$@"; }\
     mimetype() { ${perlPackages.FileMimeInfo}/bin/mimetype "$@"; }\
     &#' -i "$out"/bin/*

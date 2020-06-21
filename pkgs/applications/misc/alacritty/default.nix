@@ -32,12 +32,16 @@
 , CoreText
 , Foundation
 , OpenGL
+
+, useXorg ? (!stdenv.isDarwin)
 }:
 let
   rpathLibs = [
     expat
     fontconfig
     freetype
+  ]
+  ++ lib.optionals useXorg [
     libGL
     libX11
     libXcursor
