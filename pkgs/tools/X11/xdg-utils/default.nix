@@ -50,6 +50,7 @@ stdenv.mkDerivation rec {
   '' + ''
     perl()  { PERL5LIB=${perlPath} ${perlPackages.perl}/bin/perl "$@"; }\
     mimetype() { ${perlPackages.FileMimeInfo}/bin/mimetype "$@"; }\
+    PATH=$PATH:'"$out"'/bin\
     &#' -i "$out"/bin/*
 
     substituteInPlace $out/bin/xdg-open \
