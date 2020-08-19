@@ -1,4 +1,4 @@
-{ stdenv, closureInfo, xorriso, syslinux
+{ stdenv, closureInfo, xorriso, syslinux, libossp_uuid
 
 , # The file name of the resulting ISO image.
   isoName ? "cd.iso"
@@ -35,7 +35,7 @@
   isohybridMbrImage ? ""
 
 , # Whether to compress the resulting ISO image with zstd.
-  compressImage ? false
+  compressImage ? false, zstd
 
 , # The volume ID.
   volumeID ? ""
@@ -48,7 +48,7 @@ assert usbBootable -> isohybridMbrImage != "";
 stdenv.mkDerivation {
   name = isoName;
   builder = ./make-iso9660-image.sh;
-  buildInputs = [ xorriso syslinux zstd ];
+  buildInputs = [ xorriso syslinux zstd libossp_uuid ];
 
   inherit isoName bootable bootImage compressImage volumeID efiBootImage efiBootable isohybridMbrImage usbBootable;
 

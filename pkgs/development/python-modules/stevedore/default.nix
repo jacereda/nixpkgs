@@ -1,12 +1,13 @@
-{ stdenv, buildPythonPackage, fetchPypi, pbr, setuptools, six }:
+{ stdenv, buildPythonPackage, fetchPypi, pythonOlder, pbr, setuptools, six }:
 
 buildPythonPackage rec {
   pname = "stevedore";
-  version = "1.32.0";
+  version = "2.0.1";
+  disabled = pythonOlder "3.6";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "02shnm8r8c0bv494m8sjnrrlqy0pz5q5xrzpq069bx9sc8fszbqq";
+    sha256 = "609912b87df5ad338ff8e44d13eaad4f4170a65b79ae9cb0aa5632598994a1b7";
   };
 
   doCheck = false;

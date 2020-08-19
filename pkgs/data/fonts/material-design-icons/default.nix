@@ -1,7 +1,7 @@
 { lib, fetchFromGitHub }:
 
 let
-  version = "5.1.45";
+  version = "5.3.45";
 in fetchFromGitHub {
   name = "material-design-icons-${version}";
   owner  = "Templarian";
@@ -16,10 +16,10 @@ in fetchFromGitHub {
     cp fonts/*.woff $out/share/fonts/woff/
     cp fonts/*.woff2 $out/share/fonts/woff2/
   '';
-  sha256 = "0h5vlzwlx43h5q8krwsv7mczwk11l5i933kvs5jpn1lvg0r3sbc4";
+  sha256 = "1nwha6dbj97ybiwlf69la57l3ibmwgnzs0nr104bfqnqxjs471sx";
 
   meta = with lib; {
-    description = "3200+ Material Design Icons from the Community";
+    description = "4600+ Material Design Icons from the Community";
     longDescription = ''
       Material Design Icons' growing icon collection allows designers and
       developers targeting various platforms to download icons in the format,

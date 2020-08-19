@@ -693,6 +693,10 @@ in
       wantedBy = [ "multi-user.target" ];
       wants = concatLists (map (vhostConfig: ["acme-${vhostConfig.serverName}.service" "acme-selfsigned-${vhostConfig.serverName}.service"]) acmeEnabledVhosts);
       after = [ "network.target" ] ++ map (vhostConfig: "acme-selfsigned-${vhostConfig.serverName}.service") acmeEnabledVhosts;
+      # Nginx needs to be started in order to be able to request certificates
+      # (it's hosting the acme challenge after all)
+      # This fixes https://github.com/NixOS/nixpkgs/issues/81842
+      before = map (vhostConfig: "acme-${vhostConfig.serverName}.service") acmeEnabledVhosts;
       stopIfChanged = false;
       preStart = ''
         ${cfg.preStart}
@@ -700,7 +704,10 @@ in
       '';
       serviceConfig = {
         ExecStart = execCommand;
-        ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
+        ExecReload = [
+          "${execCommand} -t"
+          "${pkgs.coreutils}/bin/kill -HUP $MAINPID"
+        ];
         Restart = "always";
         RestartSec = "10s";
         StartLimitInterval = "1min";
@@ -757,8 +764,7 @@ in
       serviceConfig.TimeoutSec = 60;
       script = ''
         if /run/current-system/systemd/bin/systemctl -q is-active nginx.service ; then
-          ${execCommand} -t && \
-            /run/current-system/systemd/bin/systemctl reload nginx.service
+          /run/current-system/systemd/bin/systemctl reload nginx.service
         fi
       '';
       serviceConfig.RemainAfterExit = true;

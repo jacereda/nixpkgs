@@ -64,10 +64,10 @@ in {
   enterprise-integrations = glPlugin rec {
     name = "graylog-enterprise-integrations-${version}";
     pluginName = "graylog-plugin-enterprise-integrations";
-    version = "3.3.0";
+    version = "3.3.4";
     src = fetchurl {
       url = "https://downloads.graylog.org/releases/graylog-enterprise-integrations/graylog-enterprise-integrations-plugins-${version}.tgz";
-      sha256 = "1480ccii3nzvm0jp1xm2iddgc789zcwbgd19201q7p3v0ph02yj8";
+      sha256 = "0ln0vmnfgxg6hdq7sh58xdqn14bl86qrgy3923f3q3hx209v6vn9";
     };
     installPhase = ''
       mkdir -p $out/bin
@@ -75,7 +75,7 @@ in {
       cp ${pluginName}-${version}.jar $out/bin/${pluginName}-${version}.jar
     '';
     meta = {
-      homepage = "https://docs.graylog.org/en/3.2/pages/integrations.html#enterprise";
+      homepage = "https://docs.graylog.org/en/3.3/pages/integrations.html#enterprise";
       description = "Integrations are tools that help Graylog work with external systems (unfree enterprise integrations)";
       license = stdenv.lib.licenses.unfree;
     };
@@ -96,10 +96,10 @@ in {
   integrations = glPlugin rec {
     name = "graylog-integrations-${version}";
     pluginName = "graylog-plugin-integrations";
-    version = "3.3.0";
+    version = "3.3.4";
     src = fetchurl {
       url = "https://downloads.graylog.org/releases/graylog-integrations/graylog-integrations-plugins-${version}.tgz";
-      sha256 = "08cpxviwk2p4zsgbr2h3symr88rf3fjfz1kkg4iglvdc5mqf71xx";
+      sha256 = "14g6vdyibp3rva8bwss7vjbi9fpxvgp2gbk1r8divbhhpiwsjyxc";
     };
     installPhase = ''
       mkdir -p $out/bin

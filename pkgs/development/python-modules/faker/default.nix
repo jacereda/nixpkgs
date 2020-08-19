@@ -17,11 +17,11 @@ assert pythonOlder "3.3" -> ipaddress != null;
 
 buildPythonPackage rec {
   pname = "Faker";
-  version = "3.0.1";
+  version = "4.1.1";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "c7f7466cb9ba58d582f713494acdb5ebcc462336c5e38c5230b0cdab37069985";
+    sha256 = "c006b3664c270a2cfd4785c5e41ff263d48101c4e920b5961cf9c237131d8418";
   };
 
   nativeBuildInputs = [ pytestrunner ];

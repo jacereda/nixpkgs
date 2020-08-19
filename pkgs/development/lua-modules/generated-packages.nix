@@ -155,9 +155,9 @@ cassowary = buildLuarocksPackage {
   propagatedBuildInputs = [ lua penlight ];
 
   meta = with stdenv.lib; {
-    homepage = "https://github.com/simoncozens/cassowary.lua";
-    description = "The cassowary constraint solver.";
-    maintainers = with maintainers; [ marsam ];
+    homepage = "https://github.com/sile-typesetter/cassowary.lua";
+    description = "The cassowary constraint solver";
+    maintainers = with maintainers; [ marsam alerque ];
     license.fullName = "Apache 2";
   };
 };
@@ -357,6 +357,33 @@ inspect = buildLuarocksPackage {
     homepage = "https://github.com/kikito/inspect.lua";
     description = "Lua table visualizer, ideal for debugging";
     license.fullName = "MIT <http://opensource.org/licenses/MIT>";
+  };
+};
+ldbus = buildLuarocksPackage {
+  pname = "ldbus";
+  version = "scm-0";
+
+  knownRockspec = (fetchurl {
+    url    = "https://luarocks.org/dev/ldbus-scm-0.rockspec";
+    sha256 = "1yhkw5y8h1qf44vx31934k042cmnc7zcv2k0pv0g27wsmlxrlznx";
+  }).outPath;
+
+  src = fetchgit ( removeAttrs (builtins.fromJSON ''{
+  "url": "git://github.com/daurnimator/ldbus.git",
+  "rev": "9e176fe851006037a643610e6d8f3a8e597d4073",
+  "date": "2019-08-16T14:26:05+10:00",
+  "sha256": "06wcz4i5b7kphqbry274q3ivnsh331rxiyf7n4qk3zx2kvarq08s",
+  "fetchSubmodules": true
+}
+ '') ["date"]) ;
+
+  disabled = (luaOlder "5.1") || (luaAtLeast "5.4");
+  propagatedBuildInputs = [ lua ];
+
+  meta = with stdenv.lib; {
+    homepage = "https://github.com/daurnimator/ldbus";
+    description = "A Lua library to access dbus.";
+    license.fullName = "MIT/X11";
   };
 };
 ldoc = buildLuarocksPackage {
@@ -1349,17 +1376,18 @@ nvim-client = buildLuarocksPackage {
 };
 penlight = buildLuarocksPackage {
   pname = "penlight";
-  version = "1.7.0-1";
+  version = "1.8.0-1";
 
   src = fetchurl {
-    url    = "mirror://luarocks/penlight-1.7.0-1.src.rock";
-    sha256 = "0rr56vc33b2knr5qmfdjrb1wk98lyp3zmlyzz6m15v2s1s5yxgah";
+    url    = "mirror://luarocks/penlight-1.8.0-1.src.rock";
+    sha256 = "05x00dgsa79wzq187ww6i8j0s74nh2c852awni7xfshxgihwhc42";
   };
   propagatedBuildInputs = [ luafilesystem ];
 
   meta = with stdenv.lib; {
     homepage = "http://tieske.github.io/Penlight";
     description = "Lua utility libraries loosely based on the Python standard libraries";
+    maintainers = with maintainers; [ alerque ];
     license.fullName = "MIT/X11";
   };
 };
@@ -1378,6 +1406,23 @@ rapidjson = buildLuarocksPackage {
     homepage = "https://github.com/xpol/lua-rapidjson";
     description = "Json module based on the very fast RapidJSON.";
     license.fullName = "MIT";
+  };
+};
+readline = buildLuarocksPackage {
+  pname = "readline";
+  version = "2.6-0";
+
+  src = fetchurl {
+    url    = mirror://luarocks/readline-2.6-0.src.rock;
+    sha256 = "1fvz7nqvkdazp30wn5n62n8i97qrfgznbykdpf8cnflqfpd1shms";
+  };
+  disabled = (luaOlder "5.1") || (luaAtLeast "5.4");
+  propagatedBuildInputs = [ lua luaposix ];
+
+  meta = with stdenv.lib; {
+    homepage = "http://www.pjb.com.au/comp/lua/readline.html";
+    description = "Interface to the readline library";
+    license.fullName = "MIT/X11";
   };
 };
 say = buildLuarocksPackage {
@@ -1453,24 +1498,6 @@ stdlib = buildLuarocksPackage {
     description = "General Lua Libraries";
     maintainers = with maintainers; [ vyp ];
     license.fullName = "MIT/X11";
-  };
-};
-pulseaudio = buildLuarocksPackage {
-  pname = "pulseaudio";
-  version = "0.2-1";
-
-  src = fetchurl {
-    url    = "mirror://luarocks/pulseaudio-0.2-1.src.rock";
-    sha256 = "06w8fmwddrpm02yam818yi30gghw4ckb18zljjncy3x0zfijyhz7";
-  };
-  disabled = (luaOlder "5.1");
-  propagatedBuildInputs = [ lua ];
-
-  meta = with stdenv.lib; {
-    homepage = "https://github.com/doronbehar/lua-pulseaudio";
-    description = "Bindings to libpulse";
-    maintainers = with maintainers; [ doronbehar ];
-    license.fullName = "Apache v2.0";
   };
 };
 vstruct = buildLuarocksPackage {
