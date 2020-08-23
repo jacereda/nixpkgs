@@ -2806,6 +2806,12 @@ in
 
   biosdevname = callPackage ../tools/networking/biosdevname { };
 
+  code-browser-qt = libsForQt5.callPackage ../applications/editors/code-browser { withQt = true;
+                                                                                };
+  code-browser-gtk = callPackage ../applications/editors/code-browser { withGtk = true;
+                                                                        qtbase = qt5.qtbase;
+                                                                      };
+
   c14 = callPackage ../applications/networking/c14 { };
 
   certstrap = callPackage ../tools/security/certstrap { };
@@ -8455,6 +8461,10 @@ in
     '';
   };
 
+  copper = callPackage ../development/compilers/copper {};
+
+  cryptol = haskell.lib.justStaticExecutables haskellPackages.cryptol;
+
   inherit (callPackages ../development/compilers/crystal {
     inherit (llvmPackages_10) stdenv clang llvm;
   })
@@ -11392,7 +11402,6 @@ in
   spirv-headers = callPackage ../development/libraries/spirv-headers { };
   spirv-tools = callPackage ../development/tools/spirv-tools { };
 
-
   splint = callPackage ../development/tools/analysis/splint {
     flex = flex_2_5_35;
   };
@@ -12132,6 +12141,7 @@ in
 
   ffmpeg-full = callPackage ../development/libraries/ffmpeg-full {
     ffmpeg = ffmpeg_4;
+    inherit (darwin) cf-private;
     inherit (darwin.apple_sdk.frameworks)
       AVFoundation AppKit ApplicationServices AudioToolbox Cocoa
       CoreAudio CoreGraphics CoreMedia CoreServices Foundation
@@ -14442,6 +14452,7 @@ in
   openct = callPackage ../development/libraries/openct { };
 
   opencv2 = callPackage ../development/libraries/opencv {
+    inherit (darwin) cf-private;
     inherit (darwin.apple_sdk.frameworks) Cocoa QTKit;
   };
 
@@ -14457,7 +14468,7 @@ in
     inherit (darwin.apple_sdk.frameworks) AVFoundation Cocoa VideoDecodeAcceleration;
   };
 
-  opencv = opencv4;
+  opencv = if stdenv.isDarwin then opencv4 else opencv2;
 
   openexr = callPackage ../development/libraries/openexr { };
 

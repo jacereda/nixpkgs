@@ -74,7 +74,7 @@ stdenv.mkDerivation rec {
 
   mesonFlags = [
     "-Ddocs=true"
-    "-Dx11=false" # use gdk-pixbuf-xlib
+    "-Dx11=${if x11Support then "true" else "false"}"
     "-Dgir=${if gobject-introspection != null then "true" else "false"}"
     "-Dgio_sniffing=false"
   ];

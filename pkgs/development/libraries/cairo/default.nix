@@ -4,7 +4,7 @@
 , gobjectSupport ? true, glib
 , xcbSupport ? x11Support, libxcb, xcbutil # no longer experimental since 1.12
 , libGLSupported ? stdenv.lib.elem stdenv.hostPlatform.system stdenv.lib.platforms.mesaPlatforms
-, glSupport ? x11Support && config.cairo.gl or (libGLSupported && stdenv.isLinux)
+, glSupport ? config.cairo.gl or stdenv.isDarwin or (libGLSupported && stdenv.isLinux)
 , libGL ? null # libGLU libGL is no longer a big dependency
 , pdfSupport ? true
 , darwin

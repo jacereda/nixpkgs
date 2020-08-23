@@ -578,7 +578,7 @@ self: super:
     nativeBuildInputs = attrs.nativeBuildInputs ++ [ meson ninja ];
     # adds support for printproto needed for libXp
     mesonFlags = [ "-Dlegacy=true" ];
-    meta.broken = true;
+    meta.broken = stdenv.isDarwin;
   });
 
   xorgserver = with self; super.xorgserver.overrideAttrs (attrs_passed:

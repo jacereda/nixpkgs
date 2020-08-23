@@ -160,6 +160,7 @@
 , Security
 , VideoDecodeAcceleration
 , VideoToolbox
+, cf-private
 }:
 
 /* Maintainer notes:
@@ -436,7 +437,7 @@ stdenv.mkDerivation rec {
     libxcb libXv libXext lzma openal openjpeg libpulseaudio rtmpdump opencore-amr
     samba SDL2 soxr speex srt vid-stab vo-amrwbenc wavpack x264 x265 xavs xvidcore
     zeromq4 zlib
-  ] ++ optional openglExtlib [ libGL libGLU ]
+  ] ++ optionals openglExtlib [ libGL libGLU ]
     ++ optionals x11Support [ libX11 libXv libxcb libXext ]
     ++ optionals nonfreeLicensing [ fdk_aac openssl ]
     ++ optional ((isLinux || isFreeBSD) && libva != null) libva
