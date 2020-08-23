@@ -7,14 +7,12 @@
 , gnome3
 , gettext
 , gobject-introspection
-, upower
 , cairo
 , pango
-, cogl
 , json-glib
 , libstartup_notification
 , zenity
-, libcanberra-gtk3
+, libcanberra
 , ninja
 , xkeyboard_config
 , libxkbfile
@@ -25,7 +23,6 @@
 , glib
 , gtk3
 , gnome-desktop
-, geocode-glib
 , pipewire
 , libgudev
 , libwacom
@@ -45,14 +42,25 @@
 
 let self = stdenv.mkDerivation rec {
   pname = "mutter";
-  version = "3.36.4";
+  version = "3.36.5";
 
   outputs = [ "out" "dev" "man" ];
 
   src = fetchurl {
     url = "mirror://gnome/sources/mutter/${stdenv.lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
-    sha256 = "0p3jglw6f2h67kwk89qz1rz23y25lip8m2mp2xshf2vrg4a930as";
+    sha256 = "1py7sqrpvg2qvswxclshysx7hd9jk65i6cwqsagd6rg6rnjhblp0";
   };
+
+  patches = [
+    # Drop inheritable cap_sys_nice, to prevent the ambient set from leaking
+    # from mutter/gnome-shell, see https://github.com/NixOS/nixpkgs/issues/71381
+    ./drop-inheritable.patch
+
+    (substituteAll {
+      src = ./fix-paths.patch;
+      inherit zenity;
+    })
+  ];
 
   mesonFlags = [
     "-Degl_device=true"
@@ -86,16 +94,14 @@ let self = stdenv.mkDerivation rec {
 
   buildInputs = [
     cairo
-    cogl
     egl-wayland
-    geocode-glib
     glib
     gnome-desktop
     gnome-settings-daemon
     gobject-introspection
     gsettings-desktop-schemas
     gtk3
-    libcanberra-gtk3
+    libcanberra
     libgudev
     libinput
     libstartup_notification
@@ -105,23 +111,9 @@ let self = stdenv.mkDerivation rec {
     pango
     pipewire
     sysprof
-    upower
     xkeyboard_config
     xwayland
-    zenity
-    zenity
     wayland-protocols
-  ];
-
-  patches = [
-    # Drop inheritable cap_sys_nice, to prevent the ambient set from leaking
-    # from mutter/gnome-shell, see https://github.com/NixOS/nixpkgs/issues/71381
-    ./drop-inheritable.patch
-
-    (substituteAll {
-      src = ./fix-paths.patch;
-      inherit zenity;
-    })
   ];
 
   postPatch = ''

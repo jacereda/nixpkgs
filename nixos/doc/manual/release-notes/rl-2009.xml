@@ -44,6 +44,11 @@
    </listitem>
    <listitem>
     <para>
+     PHP 7.2 is no longer supported due to upstream not supporting this version for the entire lifecycle of the 20.09 release.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
      Python 3 now defaults to Python 3.8 instead of 3.7.
     </para>
    </listitem>
@@ -109,6 +114,17 @@ systemd.services.mysql.serviceConfig.ProtectHome = lib.mkForce "read-only";
 systemd.services.mysql.serviceConfig.ReadWritePaths = [ "/var/data" ];
 </programlisting>
     </para>
+    <para>
+      The MySQL service no longer runs its <literal>systemd</literal> service startup script as <literal>root</literal> anymore. A dedicated non <literal>root</literal>
+      super user account is required for operation. This means users with an existing MySQL or MariaDB database server are required to run the following SQL statements
+      as a super admin user before upgrading:
+<programlisting>
+CREATE USER IF NOT EXISTS 'mysql'@'localhost' identified with unix_socket;
+GRANT ALL PRIVILEGES ON *.* TO 'mysql'@'localhost' WITH GRANT OPTION;
+</programlisting>
+      If you use MySQL instead of MariaDB please replace <literal>unix_socket</literal> with <literal>auth_socket</literal>. If you have changed the value of <xref linkend="opt-services.mysql.user"/>
+      from the default of <literal>mysql</literal> to a different user please change <literal>'mysql'@'localhost'</literal> to the corresponding user instead.
+    </para>
    </listitem>
    <listitem>
     <para>
@@ -121,8 +137,63 @@ systemd.services.mysql.serviceConfig.ReadWritePaths = [ "/var/data" ];
    </listitem>
    <listitem>
     <para>
-     <varname>services.postfix.sslCACert</varname> was replaced by <varname>services.postfix.tlsTrustedAuthorities</varname> which now defaults to system certifcate authorities.
+     <varname>services.postfix.sslCACert</varname> was replaced by <varname>services.postfix.tlsTrustedAuthorities</varname> which now defaults to system certificate authorities.
     </para>
+   </listitem>
+   <listitem>
+    <para>
+      Subordinate GID and UID mappings are now set up automatically for all normal users.
+      This will make container tools like Podman work as non-root users out of the box.
+    </para>
+   </listitem>
+   <listitem>
+     <para>
+       The various documented workarounds to use steam have been converted to a module. <varname>programs.steam.enable</varname> enables steam, controller support and the workarounds.
+     </para>
+   </listitem>
+   <listitem>
+     <para>
+       Support for built-in LCDs in various pieces of Logitech hardware (keyboards and USB speakers). <varname>hardware.logitech.lcd.enable</varname> enables support for all hardware supported by the g15daemon project.
+     </para>
+   </listitem>
+   <listitem>
+    <para>
+      Zabbix now defaults to 5.0, updated from 4.4. Please carefully read through
+      <link xlink:href="https://www.zabbix.com/documentation/current/manual/installation/upgrade/sources">the upgrade guide</link>
+      and apply any changes required. Be sure to take special note of the section on
+      <link xlink:href="https://www.zabbix.com/documentation/current/manual/installation/upgrade_notes_500#enabling_extended_range_of_numeric_float_values">enabling extended range of numeric (float) values</link>
+      as you will need to apply this database migration manually.
+    </para>
+    <para>
+      If you are using Zabbix Server with a MySQL or MariaDB database you should note that using a character set of <literal>utf8</literal> and a collate of <literal>utf8_bin</literal> has become mandatory with
+      this release. See the upstream <link xlink:href="https://support.zabbix.com/browse/ZBX-17357">issue</link> for further discussion. Before upgrading you should check the character set and collation used by
+      your database and ensure they are correct:
+<programlisting>
+  SELECT
+    default_character_set_name,
+    default_collation_name
+  FROM
+    information_schema.schemata
+  WHERE
+    schema_name = 'zabbix';
+</programlisting>
+      If these values are not correct you should take a backup of your database and convert the character set and collation as required. Here is an
+      <link xlink:href="https://www.zabbix.com/forum/zabbix-help/396573-reinstall-after-upgrade?p=396891#post396891">example</link> of how to do so, taken from
+      the Zabbix forums:
+<programlisting>
+  ALTER DATABASE `zabbix` DEFAULT CHARACTER SET utf8 COLLATE utf8_bin;
+
+  -- the following will produce a list of SQL commands you should subsequently execute
+  SELECT CONCAT("ALTER TABLE ", TABLE_NAME," CONVERT TO CHARACTER SET utf8 COLLATE utf8_bin;") AS ExecuteTheString
+  FROM information_schema.`COLUMNS`
+  WHERE table_schema = "zabbix" AND COLLATION_NAME = "utf8_general_ci";
+</programlisting>
+    </para>
+   </listitem>
+   <listitem>
+     <para>
+      The NixOS module system now supports freeform modules as a mix between <literal>types.attrsOf</literal> and <literal>types.submodule</literal>. These allow you to explicitly declare a subset of options while still permitting definitions without an associated option. See <xref linkend='sec-freeform-modules'/> for how to use them.
+     </para>
    </listitem>
   </itemizedlist>
  </section>
@@ -167,12 +238,10 @@ systemd.services.mysql.serviceConfig.ReadWritePaths = [ "/var/data" ];
      in the source tree for downloaded modules instead of using go's <link
      xlink:href="https://golang.org/cmd/go/#hdr-Module_proxy_protocol">module
      proxy protocol</link>. This storage format is simpler and therefore less
-     likekly to break with future versions of go. As a result
+     likely to break with future versions of go. As a result
      <literal>buildGoModule</literal> switched from
      <literal>modSha256</literal> to the <literal>vendorSha256</literal>
-     attribute to pin fetched version data. <literal>buildGoModule</literal>
-     still accepts <literal>modSha256</literal> with a warning, but support will
-     be removed in the next release.
+     attribute to pin fetched version data.
     </para>
    </listitem>
    <listitem>
@@ -181,7 +250,7 @@ systemd.services.mysql.serviceConfig.ReadWritePaths = [ "/var/data" ];
      <link xlink:href="https://grafana.com/docs/grafana/latest/guides/whats-new-in-v6-4/">deprecated in Grafana</link>
      and the <package>phantomjs</package> project is
      <link xlink:href="https://github.com/ariya/phantomjs/issues/15344#issue-302015362">currently unmaintained</link>.
-     It can still be enabled by providing <literal>phantomJsSupport = true</literal> to the package instanciation:
+     It can still be enabled by providing <literal>phantomJsSupport = true</literal> to the package instantiation:
 <programlisting>{
   services.grafana.package = pkgs.grafana.overrideAttrs (oldAttrs: rec {
     phantomJsSupport = false;
@@ -193,7 +262,7 @@ systemd.services.mysql.serviceConfig.ReadWritePaths = [ "/var/data" ];
     <para>
       The <link linkend="opt-services.supybot.enable">supybot</link> module now uses <literal>/var/lib/supybot</literal>
       as its default <link linkend="opt-services.supybot.stateDir">stateDir</link> path if <literal>stateVersion</literal>
-      is 20.09 or higher. It also enables number of
+      is 20.09 or higher. It also enables a number of
       <link xlink:href="https://www.freedesktop.org/software/systemd/man/systemd.exec.html#Sandboxing">systemd sandboxing options</link>
       which may possibly interfere with some plugins. If this is the case you can disable the options through attributes in
       <option>systemd.services.supybot.serviceConfig</option>.
@@ -507,6 +576,46 @@ systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/var/www" ];
    <listitem>
     <para>
      In the <literal>resilio</literal> module, <xref linkend="opt-services.resilio.httpListenAddr"/> has been changed to listen to <literal>[::1]</literal> instead of <literal>0.0.0.0</literal>.
+     </para>
+   </listitem>
+   <listitem>
+    <para>
+     Users of <link xlink:href="http://openafs.org">OpenAFS 1.6</link> must
+     upgrade their services to OpenAFS 1.8! In this release, the OpenAFS package
+     version 1.6.24 is marked broken but can be used during transition to
+     OpenAFS 1.8.x. Use the options
+     <option>services.openafsClient.packages.module</option>,
+     <option>services.openafsClient.packages.programs</option> and
+     <option>services.openafsServer.package</option> to select a different
+     OpenAFS package. OpenAFS 1.6 will be removed in the next release. The
+     package <literal>openafs</literal> and the service options will then
+     silently point to the OpenAFS 1.8 release.
+    </para>
+    <para>
+     See also the OpenAFS <link
+     xlink:href="http://docs.openafs.org/AdminGuide/index.html">Administrator
+     Guide</link> for instructions. Beware of the following when updating
+     servers:
+     <itemizedlist>
+      <listitem>
+       <para>
+       The storage format of the server key has changed and the key must be converted before running the new release.
+       </para>
+      </listitem>
+      <listitem>
+       <para>
+       When updating multiple database servers, turn off the database servers
+       from the highest IP down to the lowest with resting periods in
+       between. Start up in reverse order. Do not concurrently run database
+       servers working with different OpenAFS releases!
+       </para>
+      </listitem>
+      <listitem>
+       <para>
+       Update servers first, then clients.
+       </para>
+      </listitem>
+     </itemizedlist>
     </para>
    </listitem>
    <listitem>
@@ -521,8 +630,117 @@ systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/var/www" ];
    </listitem>
    <listitem>
     <para>
+      <literal>udpt</literal> experienced a complete rewrite from C++ to rust. The configuration format changed from ini to toml.
+      The new configuration documentation can be found at
+      <link xlink:href="https://naim94a.github.io/udpt/config.html">the official website</link> and example
+      configuration is packaged in <literal>${udpt}/share/udpt/udpt.toml</literal>.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
      We now have a unified <xref linkend="opt-services.xserver.displayManager.autoLogin"/> option interface
      to be used for every display-manager in NixOS.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
+     The <literal>bitcoind</literal> module has changed to multi-instance, using submodules.
+     Therefore, it is now mandatory to name each instance.
+     To use this new multi-instance config with an existing bitcoind data directory and user,
+     you have to adjust the original config, e.g.:
+<programlisting>
+  services.bitcoind = {
+    enable = true;
+    extraConfig = "...";
+    ...
+  };
+</programlisting>
+     To something similar:
+<programlisting>
+  services.bitcoind.mainnet = {
+    enable = true;
+    dataDir = "/var/lib/bitcoind";
+    user = "bitcoin";
+    extraConfig = "...";
+    ...
+  };
+</programlisting>
+     The key settings are:
+     <itemizedlist>
+      <listitem>
+       <para>
+        <literal>dataDir</literal> - to continue using the same data directory.
+       </para>
+      </listitem>
+      <listitem>
+       <para>
+        <literal>user</literal> - to continue using the same user so that bitcoind maintains access to its files.
+       </para>
+      </listitem>
+     </itemizedlist>
+    </para>
+   </listitem>
+   <listitem>
+    <para>
+      Graylog introduced a change in the LDAP server certificate validation behaviour for version 3.3.3 which might break existing setups.
+      When updating Graylog from a version before 3.3.3 make sure to check the Graylog <link xlink:href="https://www.graylog.org/post/announcing-graylog-v3-3-3">release info</link> for information on how to avoid the issue.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
+     The <literal>dokuwiki</literal> module has changed to multi-instance, using submodules.
+     Therefore, it is now mandatory to name each instance. Moreover, forcing SSL by default has been dropped, so
+     <literal>nginx.forceSSL</literal> and <literal>nginx.enableACME</literal> are no longer set to <literal>true</literal>.
+     To continue using your service with the original SSL settings, you have to adjust the original config, e.g.:
+<programlisting>
+services.dokuwiki = {
+  enable = true;
+  ...
+};
+</programlisting>
+     To something similar:
+<programlisting>
+services.dokuwiki."mywiki" = {
+  enable = true;
+  nginx = {
+    forceSSL = true;
+    enableACME = true;
+  };
+  ...
+};
+</programlisting>
+     The base package has also been upgraded to the 2020-07-29 "Hogfather" release. Plugins might be incompatible or require upgrading.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
+      The <xref linkend="opt-services.postgresql.dataDir"/> option is now set to <literal>"/var/lib/postgresql/${cfg.package.psqlSchema}"</literal> regardless of your
+      <xref linkend="opt-system.stateVersion"/>. Users with an existing postgresql install that have a <xref linkend="opt-system.stateVersion"/> of <literal>17.03</literal> or below
+      should double check what the value of their <xref linkend="opt-services.postgresql.dataDir"/> option is (<literal>/var/db/postgresql</literal>) and then explicitly
+      set this value to maintain compatibility:
+<programlisting>
+services.postgresql.dataDir = "/var/db/postgresql";
+</programlisting>
+    </para>
+    <para>
+     The postgresql module now expects there to be a database super user account called <literal>postgres</literal> regardless of your <xref linkend="opt-system.stateVersion"/>. Users
+     with an existing postgresql install that have a <xref linkend="opt-system.stateVersion"/> of <literal>17.03</literal> or below should run the following SQL statements as a
+     database super admin user before upgrading:
+<programlisting>
+CREATE ROLE postgres LOGIN SUPERUSER;
+</programlisting>
+    </para>
+   </listitem>
+   <listitem>
+    <para>
+     The USBGuard module now removes options and instead hardcodes values for <literal>IPCAccessControlFiles</literal>, <literal>ruleFiles</literal>, and <literal>auditFilePath</literal>. Audit logs can be found in the journal.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
+     The NixOS module system now evaluates option definitions more strictly, allowing it to detect a larger set of problems.
+     As a result, what previously evaluated may not do so anymore.
+     See <link xlink:href="https://github.com/NixOS/nixpkgs/pull/82743#issuecomment-674520472">the PR that changed this</link> for more info.
     </para>
    </listitem>
   </itemizedlist>
@@ -558,6 +776,11 @@ systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/var/www" ];
    <listitem>
     <para>
       The default output of <literal>buildGoPackage</literal> is now <literal>$out</literal> instead of <literal>$bin</literal>.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
+     <literal>buildGoModule</literal> <literal>doCheck</literal> now defaults to <literal>true</literal>.
     </para>
    </listitem>
    <listitem>
@@ -615,6 +838,37 @@ systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/var/www" ];
     <para>
      The <literal>hardware.u2f</literal> module, which was installing udev rules
      was removed, as udev gained native support to handle FIDO security tokens.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
+     The <literal>services.transmission</literal> module
+     was enhanced with the new options:
+     <xref linkend="opt-services.transmission.credentialsFile"/>,
+     <xref linkend="opt-services.transmission.openFirewall"/>,
+     and <xref linkend="opt-services.transmission.performanceNetParameters"/>.
+    </para>
+    <para>
+     <literal>transmission-daemon</literal> is now started with additional systemd sandbox/hardening options for better security.
+     Please <link xlink:href="https://github.com/NixOS/nixpkgs/issues">report</link>
+     any use case where this is not working well.
+     In particular, the <literal>RootDirectory</literal> option newly set
+     forbids uploading or downloading a torrent outside of the default directory
+     configured at <link linkend="opt-services.transmission.settings">settings.download-dir</link>.
+     If you really need Transmission to access other directories,
+     you must include those directories into the <literal>BindPaths</literal> of the service:
+<programlisting>
+systemd.services.transmission.serviceConfig.BindPaths = [ "/path/to/alternative/download-dir" ];
+</programlisting>
+    </para>
+    <para>
+     Also, connection to the RPC (Remote Procedure Call) of <literal>transmission-daemon</literal>
+     is now only available on the local network interface by default.
+     Use:
+<programlisting>
+services.transmission.settings.rpc-bind-address = "0.0.0.0";
+</programlisting>
+     to get the previous behavior of listening on all network interfaces.
     </para>
    </listitem>
    <listitem>
@@ -697,6 +951,24 @@ systemd.services.nginx.serviceConfig.ReadWritePaths = [ "/var/www" ];
     <para>
      The <link linkend="opt-nix.buildMachines">nix.buildMachines</link> option is now type-checked.
      There are no functional changes, however this may require updating some configurations to use correct types for all attributes.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
+     The <literal>fontconfig</literal> module stopped generating fontconfig 2.10.x config and cache.
+     Fontconfig 2.10.x was removed from Nixpkgs - it hasn't been used in any nixpkgs package anymore.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
+      The packages <package>perl</package>, <package>rsync</package> and <package>strace</package> were removed from <option>systemPackages</option>. If you need them, install them again with <code><xref linkend="opt-environment.systemPackages"/> = with pkgs; [ perl rsync strace ];</code> in your <filename>configuration.nix</filename>.
+    </para>
+   </listitem>
+   <listitem>
+    <para>
+      The <literal>undervolt</literal> option no longer needs to apply its
+      settings every 30s. If they still become undone, open an issue and restore
+      the previous behaviour using <literal>undervolt.useTimer</literal>.
     </para>
    </listitem>
   </itemizedlist>

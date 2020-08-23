@@ -2,6 +2,7 @@
 , python, cmake, meson, vim, ruby
 , which, fetchFromGitHub, fetchgit, fetchurl, fetchzip, fetchpatch
 , llvmPackages, rustPlatform
+, pkgconfig, curl, openssl, libgit2, libiconv
 , xkb-switch, fzf, skim, stylish-haskell
 , python3, boost, icu, ncurses
 , ycmd, rake
@@ -61,16 +62,18 @@ self: super: {
   };
 
   LanguageClient-neovim = let
-    version = "0.1.157";
-    LanguageClient-neovim-src = fetchurl {
-      url = "https://github.com/autozimu/LanguageClient-neovim/archive/${version}.tar.gz";
-      sha256 = "1ccq5akkm8n612ni5g7w7v5gv73g7p1d9i92k0bnsy33fvi3pmnh";
+    version = "0.1.158";
+    LanguageClient-neovim-src = fetchFromGitHub {
+      owner = "autozimu";
+      repo = "LanguageClient-neovim";
+      rev = version;
+      sha256 = "14xggdgp5qw4yj4gdsgr8s2nxm098m88q8rx6fzd2j20njv308ki";
     };
     LanguageClient-neovim-bin = rustPlatform.buildRustPackage {
       name = "LanguageClient-neovim-bin";
       src = LanguageClient-neovim-src;
 
-      cargoSha256 = "0r3f7sixkvgfrw0j81bxj1jpam5si9dnivrw63s29cvjxrdbnmqz";
+      cargoSha256 = "0nin1gydf6q4mmxljm2xbd1jfl3wpzx3pvlqwspahblv9j2bf5ck";
       buildInputs = stdenv.lib.optionals stdenv.isDarwin [ CoreServices ];
 
       # FIXME: Use impure version of CoreFoundation because of missing symbols.
@@ -98,8 +101,6 @@ self: super: {
     # These usually implicitly set by cc-wrapper around clang (pkgs/build-support/cc-wrapper).
     # The linked ruby code shows generates the required '.clang_complete' for cmake based projects
     # https://gist.github.com/Mic92/135e83803ed29162817fce4098dec144
-    # as an alternative you can execute the following command:
-    # $ eval echo $(nix-instantiate --eval --expr 'with (import <nixpkgs>) {}; clang.default_cxx_stdlib_compile')
     preFixup = ''
       substituteInPlace "$out"/share/vim-plugins/clang_complete/plugin/clang_complete.vim \
         --replace "let g:clang_library_path = '' + "''" + ''" "let g:clang_library_path='${llvmPackages.clang.cc.lib}/lib/libclang.so'"
@@ -442,12 +443,28 @@ self: super: {
     passthru.python3Dependencies = ps: with ps; [ jedi ];
   });
 
+  ncm2-neoinclude = super.ncm2-neoinclude.overrideAttrs(old: {
+    dependencies = with super; [ neoinclude-vim ];
+  });
+
+  ncm2-neosnippet = super.ncm2-neosnippet.overrideAttrs(old: {
+    dependencies = with super; [ neosnippet-vim ];
+  });
+
+  ncm2-syntax = super.ncm2-syntax.overrideAttrs(old: {
+    dependencies = with super; [ neco-syntax ];
+  });
+
   ncm2-ultisnips = super.ncm2-ultisnips.overrideAttrs(old: {
     dependencies = with super; [ ultisnips ];
   });
 
   fzf-vim = super.fzf-vim.overrideAttrs(old: {
     dependencies = [ self.fzfWrapper ];
+  });
+
+  skim-vim = super.skim-vim.overrideAttrs(old: {
+    dependencies = [ self.skim ];
   });
 
   sved = let
@@ -747,5 +764,31 @@ self: super: {
         echo "Building unicode cache"
         ${vim}/bin/vim --cmd ":set rtp^=$PWD" -c 'ru plugin/unicode.vim' -c 'UnicodeCache' -c ':echohl Normal' -c ':q' > /dev/null
       '';
+  });
+
+  vim-clap = super.vim-clap.overrideAttrs(old: {
+    preFixup = let
+      maple-bin = rustPlatform.buildRustPackage {
+        name = "maple";
+        src = old.src;
+
+        nativeBuildInputs = [
+          pkgconfig
+        ];
+
+        buildInputs = [
+          openssl
+        ] ++ stdenv.lib.optionals stdenv.isDarwin [
+          CoreServices
+          curl
+          libgit2
+          libiconv
+        ];
+
+        cargoSha256 = "0qqys51slz85rnx6knjyivnmyq4rj6rrnz7w72kqcl8da8zjbx7b";
+      };
+    in ''
+      ln -s ${maple-bin}/bin/maple $target/bin/maple
+    '';
   });
 }

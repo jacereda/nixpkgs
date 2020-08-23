@@ -14,7 +14,7 @@ buildGoPackage rec {
     sha256 = "12q5al48mkjhgyk7z5wyklzzrdbcqhwxl79axa4gh9ld75prghbq";
   };
 
-  patches = [ ./fix-tpl-path.nix ];
+  patches = [ ./fix-tpl-path.patch ];
 
   buildInputs = [ libcap ];
 
@@ -32,7 +32,6 @@ buildGoPackage rec {
     description = "Namecoin to DNS bridge daemon";
     homepage = "https://github.com/namecoin/ncdns";
     license = licenses.gpl3Plus;
-    platforms = platforms.all;
     maintainers = with maintainers; [ rnhmjoj ];
   };
 
