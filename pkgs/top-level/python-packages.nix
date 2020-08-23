@@ -3371,6 +3371,10 @@ in {
 
   measurement = callPackage ../development/python-modules/measurement {};
 
+  mercurial = disabledIf (!isPy3k) (toPythonModule (pkgs.mercurial.override {
+    python3Packages = self;
+  }));
+
   midiutil = callPackage ../development/python-modules/midiutil {};
 
   mido = callPackage ../development/python-modules/mido { };
@@ -3820,6 +3824,8 @@ in {
 
   django-webpack-loader = callPackage ../development/python-modules/django-webpack-loader { };
 
+  django-widget-tweaks = callPackage ../development/python-modules/django-widget-tweaks { };
+
   django_tagging = callPackage ../development/python-modules/django_tagging { };
 
   django_classytags = callPackage ../development/python-modules/django_classytags { };
@@ -4078,6 +4084,8 @@ in {
   pytorchWithoutCuda = self.pytorch.override {
     cudaSupport = false;
   };
+
+  pytorch-lightning = callPackage ../development/python-modules/pytorch-lightning { };
 
   pytorch-metric-learning = callPackage ../development/python-modules/pytorch-metric-learning { };
 
@@ -5952,6 +5960,8 @@ in {
 
   rdflib = callPackage ../development/python-modules/rdflib { };
 
+  rdflib-jsonld = callPackage ../development/python-modules/rdflib-jsonld { };
+
   isodate = callPackage ../development/python-modules/isodate { };
 
   owslib = callPackage ../development/python-modules/owslib { };
@@ -7163,6 +7173,8 @@ in {
 
   xcffib = callPackage ../development/python-modules/xcffib {};
 
+  xpybutil = callPackage ../development/python-modules/xpybutil {};
+
   pafy = callPackage ../development/python-modules/pafy { };
 
   suds = callPackage ../development/python-modules/suds { };
@@ -7628,6 +7640,8 @@ in {
   pulp  = callPackage ../development/python-modules/pulp { };
 
   pure-pcapy3 = callPackage ../development/python-modules/pure-pcapy3 { };
+
+  cucumber-tag-expressions = callPackage ../development/python-modules/cucumber-tag-expressions { };
 
   behave = callPackage ../development/python-modules/behave { };
 
