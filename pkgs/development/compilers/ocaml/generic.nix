@@ -7,7 +7,7 @@ let
   real_url = if url == null then
     "http://caml.inria.fr/pub/distrib/ocaml-${versionNoPatch}/ocaml-${version}.tar.xz"
   else url;
-  safeX11 = stdenv: !(stdenv.isAarch32 || stdenv.isMips);
+  safeX11 = stdenv: !(stdenv.isAarch32 || stdenv.isMips || stdenv.isDarwin);
 in
 
 { stdenv, fetchurl, ncurses, buildEnv
@@ -16,7 +16,7 @@ in
 , flambdaSupport ? false
 }:
 
-assert useX11 -> !stdenv.isAarch32 && !stdenv.isMips;
+assert useX11 -> !stdenv.isAarch32 && !stdenv.isMips && !stdenv.isDarwin;
 assert aflSupport -> stdenv.lib.versionAtLeast version "4.05";
 assert flambdaSupport -> stdenv.lib.versionAtLeast version "4.03";
 
@@ -105,5 +105,3 @@ stdenv.mkDerivation (args // {
   };
 
 })
-
-

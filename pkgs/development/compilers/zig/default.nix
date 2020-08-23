@@ -27,6 +27,10 @@ llvmPackages.stdenv.mkDerivation rec {
     })
   ];
 
+  cmakeFlags = [
+    "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.13"
+  ];
+
   preBuild = ''
     export HOME=$TMPDIR;
   '';
