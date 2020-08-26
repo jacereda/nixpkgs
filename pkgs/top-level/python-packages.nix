@@ -1560,6 +1560,8 @@ in {
 
   sabyenc = callPackage ../development/python-modules/sabyenc { };
 
+  sabyenc3 = callPackage ../development/python-modules/sabyenc3 { };
+
   salmon-mail = callPackage ../development/python-modules/salmon-mail { };
 
   sanic-auth = callPackage ../development/python-modules/sanic-auth { };
@@ -4901,6 +4903,8 @@ in {
 
   multiprocess = callPackage ../development/python-modules/multiprocess { };
 
+  multitasking = callPackage ../development/python-modules/multitasking { };
+
   munkres = callPackage ../development/python-modules/munkres { };
 
   musicbrainzngs = callPackage ../development/python-modules/musicbrainzngs { };
@@ -5934,7 +5938,8 @@ in {
 
   readchar = callPackage ../development/python-modules/readchar { };
 
-  retworkx = callPackage ../development/python-modules/retworkx { };
+  retworkx = disabledIf (pythonOlder "3.5")
+    (toPythonModule (callPackage ../development/python-modules/retworkx { } ));
 
   rivet = disabledIf (!isPy3k) (toPythonModule (pkgs.rivet.override {
     python3 = python;
@@ -6734,6 +6739,8 @@ in {
   telethon-session-sqlalchemy = callPackage ../development/python-modules/telethon-session-sqlalchemy { };
 
   terminaltables = callPackage ../development/python-modules/terminaltables { };
+
+  test-tube = callPackage ../development/python-modules/test-tube { };
 
   testpath = callPackage ../development/python-modules/testpath { };
 
@@ -7727,6 +7734,8 @@ in {
 
   yattag = callPackage ../development/python-modules/yattag { };
 
+  yfinance = callPackage ../development/python-modules/yfinance { };
+
   xenomapper = disabledIf (!isPy3k) (callPackage ../applications/science/biology/xenomapper { });
 
   z3 = (toPythonModule (pkgs.z3.override {
@@ -7821,6 +7830,8 @@ in {
   pony = callPackage ../development/python-modules/pony { };
 
   rxv     = callPackage ../development/python-modules/rxv     { };
+
+  userpath = callPackage ../development/python-modules/userpath { };
 
 });
 

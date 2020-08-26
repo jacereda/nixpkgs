@@ -10,7 +10,7 @@
 , withGtk ? false, wrapQtAppsHook ? null
 }:
 stdenv.mkDerivation rec {
-  name = "code-browser";
+  pname = "code-browser";
   version = "7.1.20";
   src = fetchurl {
     url = "https://tibleiz.net/download/code-browser-${version}-src.tar.gz";
@@ -35,7 +35,6 @@ stdenv.mkDerivation rec {
     "COPPER=${copper}/bin/copper-elf64"
     "with-local-libs"
     "QINC=${qtbase.dev}/include"
-#    "DEBUG=1"
   ]
   ++ stdenv.lib.optionals withQt [ "UI=qt" ]
   ++ stdenv.lib.optionals withGtk [ "UI=gtk" ];
