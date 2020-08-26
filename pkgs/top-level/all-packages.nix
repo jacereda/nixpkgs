@@ -4572,7 +4572,7 @@ in
 
   isync = callPackage ../tools/networking/isync { };
 
-  itm-tools = callPackage ../development/tools/misc/itm-tools { };  
+  itm-tools = callPackage ../development/tools/misc/itm-tools { };
 
   ix = callPackage ../tools/misc/ix { };
 
@@ -8479,11 +8479,8 @@ in
 
   copper = callPackage ../development/compilers/copper {};
 
-<<<<<<< HEAD
   cryptol = haskell.lib.justStaticExecutables haskellPackages.cryptol;
 
-=======
->>>>>>> code-browser
   inherit (callPackages ../development/compilers/crystal {
     inherit (llvmPackages_10) stdenv clang llvm;
   })
@@ -27496,7 +27493,7 @@ in
   sequeler = callPackage ../applications/misc/sequeler { };
 
   sequelpro = callPackage ../applications/misc/sequelpro {};
-  
+
   snowsql = callPackage ../applications/misc/snowsql {};
 
   sidequest = callPackage ../applications/misc/sidequest {};
