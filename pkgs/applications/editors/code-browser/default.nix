@@ -19,6 +19,7 @@ stdenv.mkDerivation rec {
   postPatch = ''
     substituteInPlace Makefile --replace "LFLAGS=-no-pie" "LFLAGS=-no-pie -L."
     substituteInPlace libs/copper-ui/Makefile --replace "moc -o" "${qtbase.dev}/bin/moc -o"
+    patchShebangs .
   '';
   nativeBuildInputs = [ copper
                         python3
