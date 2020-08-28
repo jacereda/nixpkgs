@@ -49,6 +49,7 @@ in
   ceph-multi-node = handleTestOn ["x86_64-linux"] ./ceph-multi-node.nix {};
   certmgr = handleTest ./certmgr.nix {};
   cfssl = handleTestOn ["x86_64-linux"] ./cfssl.nix {};
+  charliecloud = handleTest ./charliecloud.nix {};
   chromium = (handleTestOn ["x86_64-linux"] ./chromium.nix {}).stable or {};
   cjdns = handleTest ./cjdns.nix {};
   clickhouse = handleTest ./clickhouse.nix {};
@@ -66,11 +67,13 @@ in
   containers-macvlans = handleTest ./containers-macvlans.nix {};
   containers-physical_interfaces = handleTest ./containers-physical_interfaces.nix {};
   containers-portforward = handleTest ./containers-portforward.nix {};
+  containers-reloadable = handleTest ./containers-reloadable.nix {};
   containers-restart_networking = handleTest ./containers-restart_networking.nix {};
   containers-tmpfs = handleTest ./containers-tmpfs.nix {};
   convos = handleTest ./convos.nix {};
   corerad = handleTest ./corerad.nix {};
   couchdb = handleTest ./couchdb.nix {};
+  cri-o = handleTestOn ["x86_64-linux"] ./cri-o.nix {};
   deluge = handleTest ./deluge.nix {};
   dhparams = handleTest ./dhparams.nix {};
   dnscrypt-proxy2 = handleTestOn ["x86_64-linux"] ./dnscrypt-proxy2.nix {};
@@ -79,15 +82,13 @@ in
   docker = handleTestOn ["x86_64-linux"] ./docker.nix {};
   oci-containers = handleTestOn ["x86_64-linux"] ./oci-containers.nix {};
   docker-edge = handleTestOn ["x86_64-linux"] ./docker-edge.nix {};
-  docker-preloader = handleTestOn ["x86_64-linux"] ./docker-preloader.nix {};
   docker-registry = handleTest ./docker-registry.nix {};
   docker-tools = handleTestOn ["x86_64-linux"] ./docker-tools.nix {};
   docker-tools-overlay = handleTestOn ["x86_64-linux"] ./docker-tools-overlay.nix {};
   documize = handleTest ./documize.nix {};
   dokuwiki = handleTest ./dokuwiki.nix {};
   dovecot = handleTest ./dovecot.nix {};
-  # ec2-config doesn't work in a sandbox as the simulated ec2 instance needs network access
-  #ec2-config = (handleTestOn ["x86_64-linux"] ./ec2.nix {}).boot-ec2-config or {};
+  ec2-config = (handleTestOn ["x86_64-linux"] ./ec2.nix {}).boot-ec2-config or {};
   ec2-nixops = (handleTestOn ["x86_64-linux"] ./ec2.nix {}).boot-ec2-nixops or {};
   ecryptfs = handleTest ./ecryptfs.nix {};
   ejabberd = handleTest ./xmpp/ejabberd.nix {};
@@ -307,6 +308,7 @@ in
   sanoid = handleTest ./sanoid.nix {};
   sddm = handleTest ./sddm.nix {};
   service-runner = handleTest ./service-runner.nix {};
+  shadowsocks = handleTest ./shadowsocks.nix {};
   shattered-pixel-dungeon = handleTest ./shattered-pixel-dungeon.nix {};
   shiori = handleTest ./shiori.nix {};
   signal-desktop = handleTest ./signal-desktop.nix {};
@@ -321,6 +323,7 @@ in
   spike = handleTest ./spike.nix {};
   sonarr = handleTest ./sonarr.nix {};
   sslh = handleTest ./sslh.nix {};
+  sssd = handleTestOn ["x86_64-linux"] ./sssd.nix {};
   strongswan-swanctl = handleTest ./strongswan-swanctl.nix {};
   sudo = handleTest ./sudo.nix {};
   switchTest = handleTest ./switch-test.nix {};
