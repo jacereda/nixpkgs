@@ -121,7 +121,9 @@ in
   autoPatchelfHook = makeSetupHook { name = "auto-patchelf-hook"; }
     ../build-support/setup-hooks/auto-patchelf.sh;
 
-  appimageTools = callPackage ../build-support/appimage { };
+  appimageTools = callPackage ../build-support/appimage {
+    buildFHSUserEnv = buildFHSUserEnvBubblewrap;
+  };
 
   appindicator-sharp = callPackage ../development/libraries/appindicator-sharp { };
 
@@ -4959,6 +4961,8 @@ in
 
   minergate-cli = callPackage ../applications/misc/minergate-cli { };
 
+  minica = callPackage ../tools/security/minica { };
+
   minidlna = callPackage ../tools/networking/minidlna { };
 
   minisign = callPackage ../tools/security/minisign { };
@@ -7633,6 +7637,8 @@ in
   verilator = callPackage ../applications/science/electronics/verilator {};
 
   verilog = callPackage ../applications/science/electronics/verilog {};
+
+  vgrep = callPackage ../tools/text/vgrep { };
 
   vhd2vl = callPackage ../applications/science/electronics/vhd2vl { };
 
@@ -19697,7 +19703,11 @@ in
 
   calculix = callPackage ../applications/science/math/calculix {};
 
-  calibre = libsForQt5.callPackage ../applications/misc/calibre { };
+  calibre-py2 = libsForQt5.callPackage ../applications/misc/calibre { pythonPackages = python2Packages; };
+
+  calibre-py3 = libsForQt5.callPackage ../applications/misc/calibre { pythonPackages = python3Packages; };
+
+  calibre = calibre-py3;
 
   calligra = libsForQt5.callPackage ../applications/office/calligra {
     inherit (kdeApplications) akonadi-calendar akonadi-contacts;
