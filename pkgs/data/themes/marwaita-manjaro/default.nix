@@ -8,13 +8,13 @@
 
 stdenv.mkDerivation rec {
   pname = "marwaita-manjaro";
-  version = "2020-08-29";
+  version = "1.6";
 
   src = fetchFromGitHub {
     owner = "darkomarko42";
     repo = pname;
-    rev = "d97e852931732ae5134784d11b332eadd71b6bbf";
-    sha256 = "1qa2mlc6k82i4fkgbkahjz3fhghcf8rx1ayxw0r4xl21mkna7bfy";
+    rev = version;
+    sha256 = "133b9ri1yhvwrm9fm648mq0xnbr9mccy6yar7d390n4659j09v3s";
   };
 
   buildInputs = [

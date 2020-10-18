@@ -9,6 +9,7 @@
 , nfs-utils
 , gawk, gnugrep, gnused, systemd
 , smartmontools, sysstat, sudo
+, pkgconfig
 
 # Kernel dependencies
 , kernel ? null
@@ -94,17 +95,14 @@ let
         substituteInPlace ./cmd/vdev_id/vdev_id \
           --replace "PATH=/bin:/sbin:/usr/bin:/usr/sbin" \
           "PATH=${makeBinPath [ coreutils gawk gnused gnugrep systemd ]}"
-      '' + optionalString stdenv.hostPlatform.isMusl ''
-        substituteInPlace config/user-libtirpc.m4 \
-          --replace /usr/include/tirpc ${libtirpc}/include/tirpc
       '';
 
       nativeBuildInputs = [ autoreconfHook nukeReferences ]
-        ++ optionals buildKernel (kernel.moduleBuildDependencies ++ [ perl ]);
-      buildInputs = optionals buildUser [ zlib libuuid attr ]
+        ++ optionals buildKernel (kernel.moduleBuildDependencies ++ [ perl ])
+        ++ optional buildUser pkgconfig;
+      buildInputs = optionals buildUser [ zlib libuuid attr libtirpc ]
         ++ optional buildUser openssl
-        ++ optional (buildUser && enablePython) python3
-        ++ optional stdenv.hostPlatform.isMusl libtirpc;
+        ++ optional (buildUser && enablePython) python3;
 
       # for zdb to get the rpath to libgcc_s, needed for pthread_cancel to work
       NIX_CFLAGS_LINK = "-lgcc_s";
@@ -113,6 +111,7 @@ let
 
       configureFlags = [
         "--with-config=${configFile}"
+        "--with-tirpc=1"
         (withFeatureAs (buildUser && enablePython) "python" python3.interpreter)
       ] ++ optionals buildUser [
         "--with-dracutdir=$(out)/lib/dracut"
@@ -207,9 +206,9 @@ in {
     # incompatibleKernelVersion = "4.19";
 
     # this package should point to a version / git revision compatible with the latest kernel release
-    version = "2.0.0-rc1";
+    version = "2.0.0-rc3";
 
-    sha256 = "0d1m5zwgqzfwbscvb60zvzkjgl5nkbvas22vjsyci3xygz0qwjsb";
+    sha256 = "00fljxs6vacfhzc13bgsrmq6p3agpzcq6waw4iv2m58dr90jhlcz";
     isUnstable = true;
   };
 }

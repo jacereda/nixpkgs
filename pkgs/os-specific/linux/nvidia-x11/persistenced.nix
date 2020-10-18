@@ -2,12 +2,14 @@ nvidia_x11: sha256:
 
 { stdenv, fetchurl, m4 }:
 
-stdenv.mkDerivation {
+stdenv.mkDerivation rec {
   pname = "nvidia-persistenced";
-  inherit (nvidia_x11) version;
+  version = nvidia_x11.persistencedVersion;
 
-  src = fetchurl {
-    url = "https://download.nvidia.com/XFree86/nvidia-persistenced/nvidia-persistenced-${nvidia_x11.version}.tar.bz2";
+  src = fetchFromGitHub {
+    owner = "NVIDIA";
+    repo = "nvidia-persistenced";
+    rev = nvidia_x11.persistencedVersion;
     inherit sha256;
   };
 

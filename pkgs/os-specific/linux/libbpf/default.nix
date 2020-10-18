@@ -1,19 +1,35 @@
 { stdenv, fetchFromGitHub, pkgconfig
 , libelf, zlib
+, fetchpatch
 }:
 
 with builtins;
 
 stdenv.mkDerivation rec {
   pname = "libbpf";
-  version = "0.1.0";
+  version = "0.1.1";
 
   src = fetchFromGitHub {
     owner  = "libbpf";
     repo   = "libbpf";
     rev    = "v${version}";
-    sha256 = "1wi3a795jq0smqg1c5ml2ghai47n1m5ijmch017wscybx4jdlynv";
+    sha256 = "0ilnnm4q22f8fagwp8kb37licy4ks861i2iqh2djsypqhnxvx3fv";
   };
+
+  patches = [
+    (fetchpatch { # included upstream for > 0.1.0
+      name = "link-zlib.patch";
+      url = "https://github.com/libbpf/libbpf/commit/8b14cb43ff837.diff";
+      sha256 = "17mvjrs7s727drz013a8qlyj0345ldi2kph6pazcmxv6kl1qrz2z";
+    })
+  ];
+  patchFlags = "-p2";
+  # https://github.com/libbpf/libbpf/pull/201#issuecomment-689174740
+  postPatch = ''
+    substituteInPlace ../scripts/check-reallocarray.sh \
+      --replace 'mktemp /tmp/' 'mktemp ' \
+      --replace '/bin/rm' 'rm'
+  '';
 
   nativeBuildInputs = [ pkgconfig ];
   buildInputs = [ libelf zlib ];
@@ -21,14 +37,6 @@ stdenv.mkDerivation rec {
   sourceRoot = "source/src";
   enableParallelBuilding = true;
   makeFlags = [ "PREFIX=$(out)" ];
-
-  patchPhase = ''
-    substituteInPlace ../scripts/check-reallocarray.sh \
-      --replace '/bin/rm' 'rm'
-    # Without patching this the config-test program will be refused by our CC wrapper.
-    chmod +w ../scripts
-    sed -e '2a NIX_ENFORCE_PURITY=0' -i ../scripts/check-reallocarray.sh
-  '';
 
   # FIXME: Multi-output requires some fixes to the way the pkgconfig file is
   # constructed (it gets put in $out instead of $dev for some reason, with

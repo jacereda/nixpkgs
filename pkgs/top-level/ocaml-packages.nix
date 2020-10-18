@@ -101,13 +101,7 @@ let
       libpng = pkgs.libpng12;
       giflib = pkgs.giflib_4_1;
     };
-    camlimages_4_1 = callPackage ../development/ocaml-modules/camlimages/4.1.nix {
-      giflib = pkgs.giflib_4_1;
-    };
-    camlimages =
-          if lib.versionOlder "4.06" ocaml.version
-          then callPackage ../development/ocaml-modules/camlimages { }
-          else camlimages_4_1;
+    camlimages = callPackage ../development/ocaml-modules/camlimages { };
 
     benchmark = callPackage ../development/ocaml-modules/benchmark { };
 
@@ -322,6 +316,10 @@ let
       inherit (pkgs) gnuplot;
     };
 
+    gsl = callPackage ../development/ocaml-modules/gsl {
+      inherit (pkgs) gsl;
+    };
+
     hacl_x25519 = callPackage ../development/ocaml-modules/hacl_x25519 { };
 
     herelib = callPackage ../development/ocaml-modules/herelib { };
@@ -351,8 +349,6 @@ let
     ipaddr-cstruct = callPackage ../development/ocaml-modules/ipaddr/cstruct.nix { };
 
     ipaddr-sexp = callPackage ../development/ocaml-modules/ipaddr/sexp.nix { };
-
-    irmin_1 = callPackage ../development/ocaml-modules/irmin/1.4.nix { };
 
     iso8601 = callPackage ../development/ocaml-modules/iso8601 { };
 
@@ -882,7 +878,15 @@ let
 
     ptmap = callPackage ../development/ocaml-modules/ptmap { };
 
+    ptset = callPackage ../development/ocaml-modules/ptset { };
+
     pycaml = callPackage ../development/ocaml-modules/pycaml { };
+
+    qcheck-alcotest = callPackage ../development/ocaml-modules/qcheck/alcotest.nix { };
+
+    qcheck-core = callPackage ../development/ocaml-modules/qcheck/core.nix { };
+
+    qcheck-ounit = callPackage ../development/ocaml-modules/qcheck/ounit.nix { };
 
     qcheck = callPackage ../development/ocaml-modules/qcheck { };
 
@@ -986,6 +990,10 @@ let
     yaml = callPackage ../development/ocaml-modules/yaml { };
 
     yojson = callPackage ../development/ocaml-modules/yojson { };
+
+    z3 = callPackage ../development/ocaml-modules/z3 {
+      inherit (pkgs) z3;
+    };
 
     zarith = callPackage ../development/ocaml-modules/zarith { };
 
