@@ -150,6 +150,8 @@ in {
 
   absl-py = callPackage ../development/python-modules/absl-py { };
 
+  accuweather = callPackage ../development/python-modules/accuweather { };
+
   accupy = callPackage ../development/python-modules/accupy { };
 
   acebinf = callPackage ../development/python-modules/acebinf { };
@@ -451,6 +453,8 @@ in {
   attrdict = callPackage ../development/python-modules/attrdict { };
 
   attrs = callPackage ../development/python-modules/attrs { };
+
+  aubio = callPackage ../development/python-modules/aubio { };
 
   audio-metadata = callPackage ../development/python-modules/audio-metadata { };
 
@@ -769,6 +773,8 @@ in {
   bandit = callPackage ../development/python-modules/bandit { };
 
   bap = callPackage ../development/python-modules/bap { bap = pkgs.ocaml-ng.ocamlPackages_4_07.bap; };
+
+  baron = callPackage ../development/python-modules/baron { };
 
   base58 = callPackage ../development/python-modules/base58 { };
 
@@ -2001,6 +2007,8 @@ in {
   fastparquet = callPackage ../development/python-modules/fastparquet { };
 
   fastpbkdf2 = callPackage ../development/python-modules/fastpbkdf2 { };
+
+  fastprogress = callPackage ../development/python-modules/fastprogress { };
 
   fastrlock = callPackage ../development/python-modules/fastrlock { };
 
@@ -4358,6 +4366,8 @@ in {
 
   pathtools = callPackage ../development/python-modules/pathtools { };
 
+  patool = callPackage ../development/python-modules/patool { };
+
   patsy = callPackage ../development/python-modules/patsy { };
 
   paver = callPackage ../development/python-modules/paver { };
@@ -4509,6 +4519,8 @@ in {
   pkuseg = callPackage ../development/python-modules/pkuseg { };
 
   python-csxcad = callPackage ../development/python-modules/python-csxcad { };
+
+  python-openems = callPackage ../development/python-modules/python-openems { };
 
   pkutils = callPackage ../development/python-modules/pkutils { };
 
@@ -4751,6 +4763,8 @@ in {
   pyads = callPackage ../development/python-modules/pyads { };
 
   pyaes = callPackage ../development/python-modules/pyaes { };
+
+  pyaftership = callPackage ../development/python-modules/pyaftership { };
 
   pyairvisual = callPackage ../development/python-modules/pyairvisual { };
 
@@ -5248,6 +5262,8 @@ in {
   pyparsing = callPackage ../development/python-modules/pyparsing { };
 
   pyparted = callPackage ../development/python-modules/pyparted { };
+
+  pypblib = callPackage ../development/python-modules/pypblib { };
 
   pypcap = callPackage ../development/python-modules/pypcap { };
 
@@ -5825,6 +5841,8 @@ in {
 
   python-rtmidi = callPackage ../development/python-modules/python-rtmidi { };
 
+  python-sat = callPackage ../development/python-modules/python-sat { };
+
   python-simple-hipchat = callPackage ../development/python-modules/python-simple-hipchat { };
   python_simple_hipchat = self.python-simple-hipchat;
 
@@ -6094,6 +6112,8 @@ in {
 
   recommonmark = callPackage ../development/python-modules/recommonmark { };
 
+  redbaron = callPackage ../development/python-modules/redbaron { };
+
   redis = callPackage ../development/python-modules/redis { };
 
   rednose = callPackage ../development/python-modules/rednose { };
@@ -6308,6 +6328,8 @@ in {
   sabyenc3 = callPackage ../development/python-modules/sabyenc3 { };
 
   sabyenc = callPackage ../development/python-modules/sabyenc { };
+
+  sacn = callPackage ../development/python-modules/sacn { };
 
   sacremoses = callPackage ../development/python-modules/sacremoses { };
 
@@ -7546,6 +7568,8 @@ in {
 
   willow = callPackage ../development/python-modules/willow { };
 
+  wled = callPackage ../development/python-modules/wled { };
+
   word2vec = callPackage ../development/python-modules/word2vec { };
 
   wordcloud = callPackage ../development/python-modules/wordcloud { };
@@ -7672,6 +7696,8 @@ in {
   xxhash = callPackage ../development/python-modules/xxhash { };
 
   yahooweather = callPackage ../development/python-modules/yahooweather { };
+
+  yamale = callPackage ../development/python-modules/yamale { };
 
   yamllint = callPackage ../development/python-modules/yamllint { };
 

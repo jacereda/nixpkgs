@@ -520,6 +520,12 @@
     githubId = 293191;
     name = "Andres Loeh";
   };
+  andresilva = {
+    email = "andre.beat@gmail.com";
+    github = "andresilva";
+    githubId = 123550;
+    name = "André Silva";
+  };
   andrestylianos = {
     email = "andre.stylianos@gmail.com";
     github = "andrestylianos";
@@ -4240,6 +4246,12 @@
     githubId = 1786438;
     name = "Jonas Schievink";
   };
+  jshcmpbll = {
+    email = "me@joshuadcampbell.com";
+    github = "jshcmpbll";
+    githubId = 16374374;
+    name = "Joshua Campbell";
+  };
   jtcoolen = {
     email = "jtcoolen@pm.me";
     name = "Julien Coolen";
@@ -7406,6 +7418,12 @@
     github = "rszibele";
     githubId = 1387224;
     name = "Richard Szibele";
+  };
+  rtburns-jpl = {
+    email = "rtburns@jpl.nasa.gov";
+    github = "rtburns-jpl";
+    githubId = 47790121;
+    name = "Ryan Burns";
   };
   rtreffer = {
     email = "treffer+nixos@measite.de";
