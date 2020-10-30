@@ -1597,7 +1597,13 @@ in {
 
   distutils_extra = callPackage ../development/python-modules/distutils_extra { };
 
-  django_2_2 = callPackage ../development/python-modules/django/2_2.nix { };
+  django = self.django_2;
+
+  # Current LTS
+  django_2 = callPackage ../development/python-modules/django/2.nix { };
+
+  # Current latest
+  django_3 = callPackage ../development/python-modules/django/3.nix { };
 
   django-allauth = callPackage ../development/python-modules/django-allauth { };
 
@@ -1656,8 +1662,6 @@ in {
 
   django-logentry-admin = callPackage ../development/python-modules/django-logentry-admin { };
 
-  django_lts = self.django_2_2;
-
   django-mailman3 = callPackage ../development/python-modules/django-mailman3 { };
 
   django_modelcluster = callPackage ../development/python-modules/django_modelcluster { };
@@ -1703,8 +1707,6 @@ in {
   django_reversion = callPackage ../development/python-modules/django_reversion { };
 
   django-sampledatahelper = callPackage ../development/python-modules/django-sampledatahelper { };
-
-  django = self.django_lts;
 
   django-sesame = callPackage ../development/python-modules/django-sesame { };
 
@@ -2397,6 +2399,8 @@ in {
 
   gmusicapi = callPackage ../development/python-modules/gmusicapi { };
 
+  gntp = callPackage ../development/python-modules/gntp { };
+
   gnureadline = callPackage ../development/python-modules/gnureadline { };
 
   gnutls = callPackage ../development/python-modules/gnutls { };
@@ -2568,7 +2572,7 @@ in {
 
   grappelli_safe = callPackage ../development/python-modules/grappelli_safe { };
 
-  graspy = callPackage ../development/python-modules/graspy { };
+  graspologic = callPackage ../development/python-modules/graspologic { };
 
   greatfet = callPackage ../development/python-modules/greatfet { };
 
@@ -2873,6 +2877,8 @@ in {
     callPackage ../development/python-modules/imbalanced-learn/0.4.nix { }
   else
     callPackage ../development/python-modules/imbalanced-learn { };
+
+  imdbpy = callPackage ../development/python-modules/imdbpy { };
 
   img2pdf = callPackage ../development/python-modules/img2pdf { };
 
@@ -4494,6 +4500,8 @@ in {
 
   pims = callPackage ../development/python-modules/pims { };
 
+  pinboard = callPackage ../development/python-modules/pinboard { };
+
   pint = callPackage ../development/python-modules/pint { };
 
   pip = callPackage ../development/python-modules/pip { };
@@ -5019,6 +5027,8 @@ in {
   pygments-markdown-lexer = callPackage ../development/python-modules/pygments-markdown-lexer { };
 
   pygmo = callPackage ../development/python-modules/pygmo { };
+
+  pygmt = callPackage ../development/python-modules/pygmt { };
 
   pygobject2 = callPackage ../development/python-modules/pygobject { inherit (pkgs) pkgconfig; };
 
@@ -6399,6 +6409,16 @@ in {
     disabled = !isPy3k;
   });
 
+  scipy_1_4 = self.scipy.overridePythonAttrs (oldAttrs: rec {
+    version = "1.4.1";
+    src = oldAttrs.src.override {
+      inherit version;
+      sha256 = "0ndw7zyxd2dj37775mc75zm4fcyiipnqxclc45mkpxy8lvrvpqfy";
+    };
+    doCheck = false;
+    disabled = !isPy3k;
+  });
+
   scipy = let
     scipy_ = callPackage ../development/python-modules/scipy { };
     scipy_1_2 = scipy_.overridePythonAttrs (oldAttrs: rec {
@@ -6496,6 +6516,8 @@ in {
   setuptools-git = callPackage ../development/python-modules/setuptools-git { };
 
   setuptools-lint = callPackage ../development/python-modules/setuptools-lint { };
+
+  setuptools-rust = callPackage ../development/python-modules/setuptools-rust { };
 
   setuptools_scm = callPackage ../development/python-modules/setuptools_scm { };
 
@@ -6619,6 +6641,8 @@ in {
   smugline = callPackage ../development/python-modules/smugline { };
 
   smugpy = callPackage ../development/python-modules/smugpy { };
+
+  snack = toPythonModule (pkgs.newt.override { inherit (self) python; });
 
   snakebite = callPackage ../development/python-modules/snakebite { };
 
@@ -7793,6 +7817,8 @@ in {
   zigpy-xbee = callPackage ../development/python-modules/zigpy-xbee { };
 
   zigpy-zigate = callPackage ../development/python-modules/zigpy-zigate { };
+
+  zigpy-znp = callPackage ../development/python-modules/zigpy-znp { };
 
   zimports = callPackage ../development/python-modules/zimports { };
 
