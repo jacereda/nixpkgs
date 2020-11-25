@@ -10062,11 +10062,6 @@ in
 
   kanif = callPackage ../applications/networking/cluster/kanif { };
 
-  lobster = callPackage ../development/interpreters/lobster {
-    inherit (darwin) cf-private;
-    inherit (darwin.apple_sdk.frameworks) Cocoa AudioToolbox OpenGL Foundation ForceFeedback;
-  };
-
   lumo = callPackage ../development/interpreters/clojurescript/lumo {
     nodejs = nodejs_latest;
   };
