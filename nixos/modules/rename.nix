@@ -19,6 +19,7 @@ with lib;
     # Completely removed modules
     (mkRemovedOptionModule [ "fonts" "fontconfig" "penultimate" ] "The corresponding package has removed from nixpkgs.")
     (mkRemovedOptionModule [ "services" "chronos" ] "The corresponding package was removed from nixpkgs.")
+    (mkRemovedOptionModule [ "services" "deepin" ] "The corresponding packages were removed from nixpkgs.")
     (mkRemovedOptionModule [ "services" "firefox" "syncserver" "user" ] "")
     (mkRemovedOptionModule [ "services" "firefox" "syncserver" "group" ] "")
     (mkRemovedOptionModule [ "services" "marathon" ] "The corresponding package was removed from nixpkgs.")
@@ -66,6 +67,8 @@ with lib;
       udev rules from libu2f-host to the system. Udev gained native support
       to handle FIDO security tokens, so this isn't necessary anymore.
     '')
+
+    (mkRemovedOptionModule [ "services" "seeks" ] "")
 
     # Do NOT add any option renames here, see top of the file
   ];

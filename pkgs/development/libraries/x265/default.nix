@@ -21,6 +21,8 @@ let
     (mkFlag custatsSupport "DETAILED_CU_STATS")
     (mkFlag unittestsSupport "ENABLE_TESTS")
     (mkFlag werrorSupport "WARNINGS_AS_ERRORS")
+  ] ++ stdenv.lib.optionals stdenv.hostPlatform.isPower [
+    "-DENABLE_ALTIVEC=OFF"
   ];
 
   version = "3.2";
@@ -84,9 +86,11 @@ stdenv.mkDerivation rec {
     "-DENABLE_SHARED=ON"
     "-DHIGH_BIT_DEPTH=OFF"
     "-DENABLE_HDR10_PLUS=OFF"
+  ] ++ stdenv.lib.optionals is64bit [
     "-DEXTRA_LIB=${libx265-10}/lib/libx265.a;${libx265-12}/lib/libx265.a"
     "-DLINKED_10BIT=ON"
     "-DLINKED_12BIT=ON"
+  ] ++ [
     (mkFlag cliSupport "ENABLE_CLI")
   ] ++ cmakeFlagsAll;
 
