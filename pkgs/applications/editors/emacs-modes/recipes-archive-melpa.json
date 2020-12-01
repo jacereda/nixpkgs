@@ -10922,7 +10922,7 @@
  },
  {
   "ename": "clang-format",
-  "commit": "be27e728327016b819535ef8cae10020e5a07c2e",
+  "commit": "llvmorg-12-init",
   "sha256": "0v8nvgjadzmsz088q6cgli5s99z45bz9qb508qln1yips42zn258",
   "fetcher": "github",
   "repo": "emacsmirror/clang-format",
@@ -10934,7 +10934,7 @@
    "deps": [
     "cl-lib"
    ],
-   "commit": "2d6a4526a2518b7c0059a8a0dfee156e90a49369",
+   "commit": "llvmorg-12-init",
    "sha256": "1l64r9rr59g26mlph6r8pkn8vzadmh3mh8gvv398kz8skayfa55f"
   }
  },

@@ -20,7 +20,7 @@ stdenv.mkDerivation rec {
 
   buildInputs = stdenv.lib.optionals stdenv.isDarwin [ CoreServices AudioUnit AudioToolbox ];
 
-  propagatedBuildInputs = [ SDL2 libogg libvorbis fluidsynth smpeg2 flac libmodplug opusfile mpg123 ];
+  propagatedBuildInputs = [ SDL2 libogg libvorbis fluidsynth smpeg2 flac opusfile mpg123 ];
 
   configureFlags = [ "--disable-music-ogg-shared" ]
     ++ lib.optional enableNativeMidi "--enable-music-native-midi-gpl";
