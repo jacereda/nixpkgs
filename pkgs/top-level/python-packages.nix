@@ -3465,13 +3465,13 @@ in {
       p.overrideAttrs (super: {
         meta = super.meta // {
           outputsToInstall = [ "py" ];
-          broken = (super.meta.broken or false) || pythonAtLeast "3.8";
+          broken = super.meta.broken or isPy27;
         };
       }))
     (p:
       p.override {
         enablePython = true;
-        inherit python;
+        python3 = python;
       })
     (p: p.py)
   ];
@@ -4548,6 +4548,8 @@ in {
 
   phpserialize = callPackage ../development/python-modules/phpserialize { };
 
+  phx-class-registry = callPackage ../development/python-modules/phx-class-registry { };
+
   piccata = callPackage ../development/python-modules/piccata { };
 
   pickleshare = callPackage ../development/python-modules/pickleshare { };
@@ -4608,6 +4610,8 @@ in {
   pkginfo = callPackage ../development/python-modules/pkginfo { };
 
   pkuseg = callPackage ../development/python-modules/pkuseg { };
+
+  pysbd = callPackage ../development/python-modules/pysbd { };
 
   python-csxcad = callPackage ../development/python-modules/python-csxcad { };
 
@@ -5854,6 +5858,8 @@ in {
 
   python-forecastio = callPackage ../development/python-modules/python-forecastio { };
 
+  python-frontmatter = callPackage ../development/python-modules/python-frontmatter { };
+
   python-gitlab = callPackage ../development/python-modules/python-gitlab { };
 
   python-gnupg = callPackage ../development/python-modules/python-gnupg { };
@@ -6568,6 +6574,8 @@ in {
 
   seabreeze = callPackage ../development/python-modules/seabreeze { };
 
+  seccomp = callPackage ../development/python-modules/seccomp { };
+
   secp256k1 = callPackage ../development/python-modules/secp256k1 { inherit (pkgs) secp256k1 pkgconfig; };
 
   secretstorage = if isPy3k then
@@ -7269,6 +7277,8 @@ in {
   tinycss = callPackage ../development/python-modules/tinycss { };
 
   tinydb = callPackage ../development/python-modules/tinydb { };
+
+  tinyobjloader-py = callPackage ../development/python-modules/tinyobjloader-py { };
 
   tiros = callPackage ../development/python-modules/tiros { };
 
