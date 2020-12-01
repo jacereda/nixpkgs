@@ -2,11 +2,11 @@
 
 buildPythonPackage rec {
   pname = "identify";
-  version = "1.5.5";
+  version = "1.5.9";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "7c22c384a2c9b32c5cc891d13f923f6b2653aa83e2d75d8f79be240d6c86c4f4";
+    sha256 = "c9504ba6a043ee2db0a9d69e43246bc138034895f6338d5aed1b41e4a73b1513";
   };
 
   # Tests not included in PyPI tarball

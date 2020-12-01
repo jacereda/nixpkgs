@@ -2,13 +2,13 @@
 
 stdenv.mkDerivation rec {
   pname = "googler";
-  version = "4.2";
+  version = "4.3.1";
 
   src = fetchFromGitHub {
     owner = "jarun";
     repo = pname;
     rev = "v${version}";
-    sha256 = "0c480wzc7q4pks1f6mnayr580c73jhzshliz4hgznzc7zwcdf41w";
+    sha256 = "04wa0mlbfjnzwham2dpd9lch7800js4vp3ikgjl4qnwilvr1lw74";
   };
 
   buildInputs = [ python ];
@@ -26,8 +26,8 @@ stdenv.mkDerivation rec {
   meta = with stdenv.lib; {
     homepage = "https://github.com/jarun/googler";
     description = "Google Search, Google Site Search, Google News from the terminal";
-    license = licenses.gpl3;
-    maintainers = with maintainers; [ koral filalex77 ];
+    license = licenses.gpl3Plus;
+    maintainers = with maintainers; [ koral Br1ght0ne ];
     platforms = python.meta.platforms;
   };
 }

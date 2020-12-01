@@ -1,5 +1,13 @@
-{ stdenv, lib, fetchFromGitHub, meson, ninja, buildPythonPackage, pytest, pkgconfig, cairo, xlibsWrapper, isPy3k
-, x11Support ? (!stdenv.isDarwin) }:
+{ lib
+, fetchFromGitHub
+, meson
+, ninja
+, buildPythonPackage
+, pytestCheckHook
+, pkg-config
+, cairo
+, isPy3k
+}:
 
 buildPythonPackage rec {
   pname = "pycairo";
@@ -17,21 +25,25 @@ buildPythonPackage rec {
   nativeBuildInputs = [
     meson
     ninja
-    pkgconfig
+    pkg-config
   ];
 
   buildInputs = [
     cairo
-  ] ++ lib.optional x11Support xlibsWrapper;
+  ];
 
-  checkInputs = [ pytest ];
+  checkInputs = [
+    pytestCheckHook
+  ];
 
-  mesonFlags = [ "-Dpython=${if isPy3k then "python3" else "python"}" ];
+  mesonFlags = [
+    "-Dpython=${if isPy3k then "python3" else "python"}"
+  ];
 
   meta = with lib; {
     description = "Python 2/3 bindings for cairo";
     homepage = "https://pycairo.readthedocs.io/";
-    license = with licenses; [ lgpl2 mpl11 ];
+    license = with licenses; [ lgpl21Only mpl11 ];
     platforms = lib.platforms.linux ++ lib.platforms.darwin;
   };
 }

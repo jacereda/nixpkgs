@@ -2,7 +2,7 @@
 
 buildGoModule rec {
   pname = "grafana";
-  version = "7.2.0";
+  version = "7.3.4";
 
   excludedPackages = [ "release_publisher" ];
 
@@ -10,15 +10,15 @@ buildGoModule rec {
     rev = "v${version}";
     owner = "grafana";
     repo = "grafana";
-    sha256 = "1pzsg6kr5kq5767plji7m6ssy2z9jxjp9zp182baxjd634mmclcx";
+    sha256 = "0vav3zhn4yw87z8xlcljs62xx4v3mxxvy0kgjh7w4njyqq1j3ayi";
   };
 
   srcStatic = fetchurl {
     url = "https://dl.grafana.com/oss/release/grafana-${version}.linux-amd64.tar.gz";
-    sha256 = "003sn06r94m68b6l91cjr3xr3i7hq54ay0gb562i6y5swrfkqqwz";
+    sha256 = "1fmfscfbdg2wdzf5fbad83pln4azy2y3fcghcanafkvqr2vv4hwk";
   };
 
-  vendorSha256 = "1b33kibvfa1qgalqb9ngxqimcn92cy8sllsc81wc9gmz4giz9mn1";
+  vendorSha256 = "0rn1zqczqa44k6g8rm9xdrd6hw5rbbvihcbzcdx758gv2lpbikxq";
 
   postPatch = ''
     substituteInPlace pkg/cmd/grafana-server/main.go \

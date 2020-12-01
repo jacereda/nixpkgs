@@ -34,6 +34,8 @@ let
 
   gh = callPackage ./gh { };
 
+  ghorg = callPackage ./ghorg { };
+
   ghq = callPackage ./ghq { };
 
   git = appendToName "minimal" gitBase;
@@ -72,6 +74,8 @@ let
   # support for bugzilla
   git-bz = callPackage ./git-bz { };
 
+  git-chglog = callPackage ./git-chglog { };
+
   git-cinnabar = callPackage ./git-cinnabar { };
 
   git-codeowners = callPackage ./git-codeowners { };
@@ -81,6 +85,8 @@ let
   git-cola = callPackage ./git-cola { };
 
   git-crypt = callPackage ./git-crypt { };
+
+  git-delete-merged-branches = callPackage ./git-delete-merged-branches { };
 
   git-dit = callPackage ./git-dit {
     inherit (darwin.apple_sdk.frameworks) CoreFoundation Security;
@@ -129,7 +135,7 @@ let
   git-radar = callPackage ./git-radar { };
 
   git-recent = callPackage ./git-recent {
-    utillinux = if stdenv.isLinux then utillinuxMinimal else utillinux;
+    util-linux = if stdenv.isLinux then util-linuxMinimal else util-linux;
   };
 
   git-remote-codecommit = python3Packages.callPackage ./git-remote-codecommit { };
@@ -194,8 +200,10 @@ let
   gitstatus = callPackage ./gitstatus { };
 
   gitui = callPackage ./gitui {
-    inherit (darwin.apple_sdk.frameworks) Security;
+    inherit (darwin.apple_sdk.frameworks) Security AppKit;
   };
+
+  glab = callPackage ./glab { };
 
   grv = callPackage ./grv { };
 
@@ -238,6 +246,8 @@ let
   top-git = callPackage ./topgit { };
 
   transcrypt = callPackage ./transcrypt { };
+
+  git-vanity-hash = callPackage ./git-vanity-hash { };
 
   ydiff = pkgs.python3.pkgs.toPythonApplication pkgs.python3.pkgs.ydiff;
 

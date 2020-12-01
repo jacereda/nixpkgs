@@ -2,13 +2,13 @@
 
 stdenv.mkDerivation rec {
   pname = "bpytop";
-  version = "1.0.25";
+  version = "1.0.50";
 
   src = fetchFromGitHub {
     owner = "aristocratos";
     repo = pname;
     rev = "v${version}";
-    sha256 = "0sxwrckv2j1283h888pyyxply2g93x6jn6cghqh207igmcg4iaj3";
+    sha256 = "10j2g19sh2hl5lzbcllr862hkzr0mc1z8n24afzaycn1sphri8fc";
   };
 
   buildInputs = [ makeWrapper ];

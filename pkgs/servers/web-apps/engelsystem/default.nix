@@ -11,8 +11,6 @@ in stdenv.mkDerivation rec {
     url =
       "https://github.com/engelsystem/engelsystem/releases/download/v3.1.0/engelsystem-v3.1.0.zip";
     sha256 = "01wra7li7n5kn1l6xkrmw4vlvvyqh089zs43qzn98hj0mw8gw7ai";
-    # This is needed, because the zip contains a directory with world write access, which is not allowed in nix
-    extraPostFetch = "chmod -R a-w $out";
   };
 
   buildInputs = [ phpExt ];
@@ -43,7 +41,7 @@ in stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description =
-      "Coordinate your helpers in teams, assign them to work shifts or let them decide for themselves when and where they want to help with what";
+      "Coordinate your volunteers in teams, assign them to work shifts or let them decide for themselves when and where they want to help with what";
     license = licenses.gpl2;
     homepage = "https://engelsystem.de";
     maintainers = with maintainers; [ kloenk ];

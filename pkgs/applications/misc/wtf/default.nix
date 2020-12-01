@@ -8,16 +8,16 @@
 
 buildGoModule rec {
   pname = "wtf";
-  version = "0.32.0";
+  version = "0.34.0";
 
   src = fetchFromGitHub {
     owner = "wtfutil";
     repo = pname;
     rev = "v${version}";
-    sha256 = "1055shnf716ga46wwcaffdpgc1glr8vrqrbs2sqbkr3wjan6n0nw";
+    sha256 = "01zydr1w8byjhxf4xj6z001q4ynq0452cn332ap1l1w0dmx9mxyr";
    };
 
-  vendorSha256 = "0l1q29mdb13ir7n1x65jfnrmy1lamlsa6hm2jagf6yjbm6wf1kw4";
+  vendorSha256 = "1xyai417l8q44b562ssp5qqw04klrhg5397ahr4pc3i30csz8a7a";
 
   doCheck = false;
 

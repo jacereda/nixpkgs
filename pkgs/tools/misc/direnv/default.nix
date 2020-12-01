@@ -2,7 +2,7 @@
 
 buildGoModule rec {
   pname = "direnv";
-  version = "2.22.0";
+  version = "2.24.0";
 
   vendorSha256 = null;
 
@@ -10,13 +10,18 @@ buildGoModule rec {
     owner = "direnv";
     repo = "direnv";
     rev = "v${version}";
-    sha256 = "06z85r99w0nr093fawva6sysdlrdsfjjf7asx96k1sjv56sb306m";
+    sha256 = "1hgivmz6f5knpchkyi3njj1h81hixm77ad5g2v0m9bid09b97nh8";
   };
 
   # we have no bash at the moment for windows
   BASH_PATH =
     stdenv.lib.optionalString (!stdenv.hostPlatform.isWindows)
     "${bash}/bin/bash";
+
+  # fix hardcoded GOFLAGS in makefile. remove once https://github.com/direnv/direnv/issues/718 is closed.
+  postPatch = ''
+    substituteInPlace GNUmakefile --replace "export GOFLAGS=-mod=vendor" ""
+  '';
 
   # replace the build phase to use the GNUMakefile instead
   buildPhase = ''

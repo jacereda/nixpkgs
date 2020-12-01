@@ -2,6 +2,7 @@
 , bzip2
 , cargo
 , common-updater-scripts
+, copyDesktopItems
 , coreutils
 , curl
 , dbus
@@ -32,7 +33,7 @@
 , nasm
 , nodejs
 , nspr
-, nss
+, nss_3_53
 , pango
 , perl
 , pkgconfig
@@ -70,18 +71,19 @@ assert waylandSupport -> gtk3Support == true;
 
 stdenv.mkDerivation rec {
   pname = "thunderbird";
-  version = "78.3.1";
+  version = "78.5.0";
 
   src = fetchurl {
     url =
       "mirror://mozilla/thunderbird/releases/${version}/source/thunderbird-${version}.source.tar.xz";
     sha512 =
-      "16b05e51776ba16503bc5fba02a6d0b5050a206e264a4707544354ad76af61902fd2dcf5d97b82b432dc69362ccd18543a0acccd80e06648e6c6f470886da450";
+      "0c32dz8p7rrr0w13l2ynf9snj59ij1v2ld3s75vz1hvks4dikwgcbm44wmvmbisvgyfgzdsphafzlq3kz3j1ja30qjigl0dj709vr6s";
   };
 
   nativeBuildInputs = [
     autoconf213
     cargo
+    copyDesktopItems
     gnused
     llvmPackages.llvm
     m4
@@ -118,7 +120,7 @@ stdenv.mkDerivation rec {
     libvpx
     libwebp
     nspr
-    nss
+    nss_3_53
     pango
     perl
     sqlite
@@ -142,7 +144,7 @@ stdenv.mkDerivation rec {
 
   NIX_CFLAGS_COMPILE =[
     "-I${glib.dev}/include/gio-unix-2.0"
-    "-I${nss.dev}/include/nss"
+    "-I${nss_3_53.dev}/include/nss"
   ];
 
   patches = [
@@ -257,8 +259,8 @@ stdenv.mkDerivation rec {
 
   doCheck = false;
 
-  postInstall = let
-    desktopItem = makeDesktopItem {
+  desktopItems = [
+    (makeDesktopItem {
       categories = lib.concatStringsSep ";" [ "Application" "Network" ];
       desktopName = "Thunderbird";
       genericName = "Mail Reader";
@@ -278,12 +280,12 @@ stdenv.mkDerivation rec {
         "x-scheme-handler/snews"
         "x-scheme-handler/nntp"
       ];
-    };
-  in ''
+    })
+  ];
+
+  postInstall = ''
     # TODO: Move to a dev output?
     rm -rf $out/include $out/lib/thunderbird-devel-* $out/share/idl
-
-    ${desktopItem.buildCommand}
   '';
 
   preFixup = ''
@@ -320,6 +322,8 @@ stdenv.mkDerivation rec {
     inherit writeScript lib common-updater-scripts xidel coreutils gnused
       gnugrep curl runtimeShell;
   };
+
+  requiredSystemFeatures = [ "big-parallel" ];
 
   meta = with stdenv.lib; {
     description = "A full-featured e-mail client";

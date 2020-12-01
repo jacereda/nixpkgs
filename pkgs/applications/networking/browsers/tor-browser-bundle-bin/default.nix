@@ -91,23 +91,22 @@ let
   fteLibPath = makeLibraryPath [ stdenv.cc.cc gmp ];
 
   # Upstream source
-  version = "10.0";
+  version = "10.0.5";
 
   lang = "en-US";
 
   srcs = {
     x86_64-linux = fetchurl {
       url = "https://dist.torproject.org/torbrowser/${version}/tor-browser-linux64-${version}_${lang}.tar.xz";
-      sha256 = "1l2rfknffnh6hsi16dzps1wav5s723vyk57fzv9y5vjmbcbf7l2l";
+      sha256 = "1cxh39x69m4lgqin5k5p67gs9g26w7cnlbdpjqi8dw47y0bpr9xw";
     };
 
     i686-linux = fetchurl {
       url = "https://dist.torproject.org/torbrowser/${version}/tor-browser-linux32-${version}_${lang}.tar.xz";
-      sha256 = "0x80w02ckb6mznrm1gjdpkxk9yf2rdcl16ljjglivq358a309cl2";
+      sha256 = "1cyg5ic7mrj6x1gxw5w609933d9ripa5b5gxyqnvnxfa23dkh608";
     };
   };
 in
-
 stdenv.mkDerivation rec {
   pname = "tor-browser-bundle-bin";
   inherit version;
@@ -232,9 +231,10 @@ stdenv.mkDerivation rec {
 
     # Preload extensions by moving into the runtime instead of storing under the
     # user's profile directory.
-    mkdir -p "$TBB_IN_STORE/browser/extensions"
+    # See https://support.mozilla.org/en-US/kb/deploying-firefox-with-extensions
+    mkdir -p "$TBB_IN_STORE/distribution/extensions"
     mv "$TBB_IN_STORE/TorBrowser/Data/Browser/profile.default/extensions/"* \
-      "$TBB_IN_STORE/browser/extensions"
+      "$TBB_IN_STORE/distribution/extensions"
 
     # Hard-code paths to geoip data files.  TBB resolves the geoip files
     # relative to torrc-defaults_path but if we do not hard-code them
@@ -404,7 +404,7 @@ stdenv.mkDerivation rec {
     homepage = "https://www.torproject.org/";
     changelog = "https://gitweb.torproject.org/builders/tor-browser-build.git/plain/projects/tor-browser/Bundle-Data/Docs/ChangeLog.txt?h=maint-${version}";
     platforms = attrNames srcs;
-    maintainers = with maintainers; [ offline matejc doublec thoughtpolice joachifm hax404 cap KarlJoad ];
+    maintainers = with maintainers; [ offline matejc thoughtpolice joachifm hax404 cap KarlJoad ];
     hydraPlatforms = [];
     # MPL2.0+, GPL+, &c.  While it's not entirely clear whether
     # the compound is "libre" in a strict sense (some components place certain

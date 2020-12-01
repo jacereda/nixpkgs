@@ -1,4 +1,4 @@
-{ lib
+{ stdenv
 , buildPythonPackage
 , fetchPypi
 , pythonOlder
@@ -10,15 +10,18 @@
 
 buildPythonPackage rec {
   pname = "jupyterlab_git";
-  version = "0.20.0";
+  version = "0.23.1";
   disabled = pythonOlder "3.5";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "0qs3wrcils07xlz698xr7giqf9v63n2qb338mlh7wql93rmjg45i";
+    sha256 = "3c709c33df0b838e50f76fa2e7e0302bd3c32ec24e161ee0e8f436a3844e8b16";
   };
 
   propagatedBuildInputs = [ notebook nbdime git ];
+
+  # all Tests on darwin fail or are skipped due to sandbox
+  doCheck = !stdenv.isDarwin;
 
   checkInputs = [ pytest ];
 
@@ -28,7 +31,7 @@ buildPythonPackage rec {
 
   pythonImportsCheck = [ "jupyterlab_git" ];
 
-  meta = with lib; {
+  meta = with stdenv.lib; {
     description = "Jupyter lab extension for version control with Git.";
     license = with licenses; [ bsd3 ];
     homepage = "https://github.com/jupyterlab/jupyterlab-git";

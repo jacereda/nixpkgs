@@ -3,21 +3,26 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "tectonic";
-  version = "0.1.16";
+  version = "0.3.0";
 
   src = fetchFromGitHub {
     owner = "tectonic-typesetting";
     repo = "tectonic";
     rev = "tectonic@${version}";
-    sha256 = "0dzqf67y4ci1vsl3zhmjkzfnf22w2bbk5w5qj2gryzrhp1q9ajyr";
+    sha256 = "yJzfymA4elyyeVR8FzTJe8wgs+vm3RWwcOh7IlmBYPE=";
   };
 
-  cargoSha256 = "1p0wzylkw1gxaff0m47il7qa0dfflxdyshvkvdirvjidg5cam9bk";
+  cargoSha256 = "7zqr54H6GemiM/xuHOH6+s669IG2orj1neoqAH+wnV4=";
 
   nativeBuildInputs = [ pkgconfig ];
 
   buildInputs = [ fontconfig harfbuzz openssl ]
     ++ stdenv.lib.optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; [ ApplicationServices Cocoa Foundation ]);
+
+  postInstall = stdenv.lib.optionalString stdenv.isLinux ''
+    install -D dist/appimage/tectonic.desktop -t $out/share/applications/
+    install -D dist/appimage/tectonic.svg -t $out/share/icons/hicolor/scalable/apps/
+  '';
 
   doCheck = true;
 
@@ -25,6 +30,6 @@ rustPlatform.buildRustPackage rec {
     description = "Modernized, complete, self-contained TeX/LaTeX engine, powered by XeTeX and TeXLive";
     homepage = "https://tectonic-typesetting.github.io/";
     license = with licenses; [ mit ];
-    maintainers = [ maintainers.lluchs ];
+    maintainers = [ maintainers.lluchs maintainers.doronbehar ];
   };
 }

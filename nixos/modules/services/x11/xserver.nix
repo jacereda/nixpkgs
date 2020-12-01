@@ -152,6 +152,9 @@ in
       ./desktop-managers/default.nix
       (mkRemovedOptionModule [ "services" "xserver" "startGnuPGAgent" ]
         "See the 16.09 release notes for more information.")
+      (mkRemovedOptionModule
+        [ "services" "xserver" "startDbusSession" ]
+        "The user D-Bus session is now always socket activated and this option can safely be removed.")
       (mkRemovedOptionModule ["services" "xserver" "useXFS" ]
         "Use services.xserver.fontPath instead of useXFS")
     ];
@@ -297,14 +300,6 @@ in
         type = types.nullOr types.int;
         default = null;
         description = "DPI resolution to use for X server.";
-      };
-
-      startDbusSession = mkOption {
-        type = types.bool;
-        default = true;
-        description = ''
-          Whether to start a new DBus session when you log in with dbus-launch.
-        '';
       };
 
       updateDbusEnvironment = mkOption {
@@ -683,14 +678,14 @@ in
 
         script = "${cfg.displayManager.job.execCmd}";
 
+        # Stop restarting if the display manager stops (crashes) 2 times
+        # in one minute. Starting X typically takes 3-4s.
+        startLimitIntervalSec = 30;
+        startLimitBurst = 3;
         serviceConfig = {
           Restart = "always";
           RestartSec = "200ms";
           SyslogIdentifier = "display-manager";
-          # Stop restarting if the display manager stops (crashes) 2 times
-          # in one minute. Starting X typically takes 3-4s.
-          StartLimitInterval = "30s";
-          StartLimitBurst = "3";
         };
       };
 
@@ -716,7 +711,7 @@ in
 
     system.extraDependencies = singleton (pkgs.runCommand "xkb-validated" {
       inherit (cfg) xkbModel layout xkbVariant xkbOptions;
-      nativeBuildInputs = [ pkgs.xkbvalidate ];
+      nativeBuildInputs = with pkgs.buildPackages; [ xkbvalidate ];
       preferLocalBuild = true;
     } ''
       xkbvalidate "$xkbModel" "$layout" "$xkbVariant" "$xkbOptions"

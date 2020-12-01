@@ -1,7 +1,7 @@
-{ mkDerivation, lib, fetchFromGitHub, cmake, pkgconfig
+{ mkDerivation, lib, fetchFromGitHub, fetchpatch, cmake, pkgconfig
 , qtbase, qtmultimedia, qtsvg, qttools, krdc
 , libvncserver, libvirt, pcre, pixman, qtermwidget, spice-gtk, spice-protocol
-, libselinux, libsepol, utillinux
+, libselinux, libsepol, util-linux
 }:
 
 mkDerivation rec {
@@ -20,10 +20,19 @@ mkDerivation rec {
     "-DQTERMWIDGET_INCLUDE_DIRS=${qtermwidget}/include/qtermwidget5"
   ];
 
+  patches = [
+    (fetchpatch {
+      # Maintainer note: Check whether this patch is still needed when a new version is released
+      name = "krdc-variable-name-changes.patch";
+      url = "https://github.com/fadenb/qt-virt-manager/commit/4640f5f64534ed7c8a1ecc6851f1c7503988de6d.patch";
+      sha256 = "1chl58nra1mj96n8jmnjbsyr6vlwkhn38afhwqsbr0bgyg23781v";
+    })
+  ];
+
   buildInputs = [
     qtbase qtmultimedia qtsvg krdc
     libvirt libvncserver pcre pixman qtermwidget spice-gtk spice-protocol
-    libselinux libsepol utillinux
+    libselinux libsepol util-linux
   ];
 
   nativeBuildInputs = [ cmake pkgconfig qttools ];

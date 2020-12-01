@@ -2,16 +2,16 @@
 
 buildGoModule rec {
   pname = "hugo";
-  version = "0.75.1";
+  version = "0.78.2";
 
   src = fetchFromGitHub {
     owner = "gohugoio";
     repo = pname;
     rev = "v${version}";
-    sha256 = "1c3l3q2xkibl1lz2mbvhgj94s6d9g5nakhpzj252s3m3cgk4w5wh";
+    sha256 = "1xjxyx520wa6sgvighjp82qqfi0ykfskp0za5j95167c56ss8lm4";
   };
 
-  vendorSha256 = "0gdd8fqd4mwg69wj8dxmm5wh1pjhdc189l2gy6njgpmwh93xbvdg";
+  vendorSha256 = "00jjcw76l12ppx3q1xhly7q10jfi2kx62a8z3r1k7m2593k8c4vq";
 
   doCheck = false;
 
@@ -22,9 +22,9 @@ buildGoModule rec {
   subPackages = [ "." ];
 
   meta = with stdenv.lib; {
-    description = "A fast and modern static website engine.";
+    description = "A fast and modern static website engine";
     homepage = "https://gohugo.io";
     license = licenses.asl20;
-    maintainers = with maintainers; [ schneefux filalex77 Frostman ];
+    maintainers = with maintainers; [ schneefux Br1ght0ne Frostman ];
   };
 }

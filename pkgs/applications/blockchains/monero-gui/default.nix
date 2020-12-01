@@ -1,5 +1,6 @@
 { stdenv, wrapQtAppsHook, makeDesktopItem
 , fetchFromGitHub
+, fetchpatch
 , cmake, qttools, pkgconfig
 , qtbase, qtdeclarative, qtgraphicaleffects
 , qtmultimedia, qtxmlpatterns
@@ -27,13 +28,13 @@ in
 
 stdenv.mkDerivation rec {
   pname = "monero-gui";
-  version = "0.17.0.1";
+  version = "0.17.1.4";
 
   src = fetchFromGitHub {
     owner  = "monero-project";
     repo   = "monero-gui";
     rev    = "v${version}";
-    sha256 = "1i9a3ampppyzsl4sllbqlr3w43sjpb3fdfxhb1j4n49p8g0jzmf3";
+    sha256 = "1ixjfdlvwr2an2s9jaql240bk7jpq5hhm5c4hww0bicyy3fp12ng";
   };
 
   nativeBuildInputs = [
@@ -58,15 +59,19 @@ stdenv.mkDerivation rec {
     chmod -R +w source/monero
   '';
 
-  patches = [ ./move-log-file.patch ];
+  patches = [
+    ./move-log-file.patch
+    # fix build failure due to invalid use of CMAKE_PREFIX_PATH
+    (fetchpatch {
+      url = "https://github.com/monero-project/monero-gui/commit/ef2be82c21b0934522ad8e110805b66f5948da1f.patch";
+      sha256 = "1rhazk2xwa5dv1cmkrkq8yr08qxslg4k929cvlliabrx20kbr5z5";
+    })
+  ];
 
   postPatch = ''
     # set monero-gui version
     substituteInPlace src/version.js.in \
        --replace '@VERSION_TAG_GUI@' '${version}'
-
-    # remove this line on the next release
-    rm cmake/Version.cmake
 
     # use monerod from the monero package
     substituteInPlace src/daemon/DaemonManager.cpp \
@@ -78,10 +83,7 @@ stdenv.mkDerivation rec {
                 'add_subdirectory(monero EXCLUDE_FROM_ALL)'
   '';
 
-  cmakeFlags = [
-    "-DCMAKE_INSTALL_PREFIX=$out/bin"
-    "-DARCH=${arch}"
-  ];
+  cmakeFlags = [ "-DARCH=${arch}" ];
 
   desktopItem = makeDesktopItem {
     name = "monero-wallet-gui";

@@ -2,7 +2,7 @@
 , unzip, wrapGAppsHook
 , x11Support ? (!stdenv.isDarwin) , libXScrnSaver, libsecret
 , gtk2, atomEnv, at-spi2-atk, autoPatchelfHook
-, systemd, fontconfig
+, systemd, fontconfig, libdbusmenu
 
 # Attributes inherit from specific versions
 , version, src, meta, sourceRoot
@@ -25,7 +25,7 @@ in
       desktopName = longName;
       comment = "Code Editing. Redefined.";
       genericName = "Text Editor";
-      exec = "${executableName} %U";
+      exec = "${executableName} %F";
       icon = "code";
       startupNotify = "true";
       categories = "Utility;TextEditor;Development;IDE;";
@@ -63,7 +63,7 @@ in
       else [ gtk2 at-spi2-atk wrapGAppsHook ] ++ atomEnv.packages)
         ++ lib.optionals x11Support [ libsecret libXScrnSaver ];
 
-    runtimeDependencies = lib.optional (stdenv.isLinux) [ (lib.getLib systemd) fontconfig.lib ];
+    runtimeDependencies = lib.optional (stdenv.isLinux) [ (lib.getLib systemd) fontconfig.lib libdbusmenu ];
 
     nativeBuildInputs = lib.optional (!stdenv.isDarwin) autoPatchelfHook;
 

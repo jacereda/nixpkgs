@@ -153,7 +153,7 @@ let
 
       ${concatStringsSep "\n" (mapAttrsToList (name: value: let
           includeName = if name == "rspamd_proxy" then "proxy" else name;
-          tryOverride = if value.extraConfig == "" then "true" else "false";
+          tryOverride = boolToString (value.extraConfig == "");
         in ''
         worker "${value.type}" {
           type = "${value.type}";
@@ -408,7 +408,7 @@ in
   };
   imports = [
     (mkRemovedOptionModule [ "services" "rspamd" "socketActivation" ]
-	     "Socket activation never worked correctly and could at this time not be fixed and so was removed")
+       "Socket activation never worked correctly and could at this time not be fixed and so was removed")
     (mkRenamedOptionModule [ "services" "rspamd" "bindSocket" ] [ "services" "rspamd" "workers" "normal" "bindSockets" ])
     (mkRenamedOptionModule [ "services" "rspamd" "bindUISocket" ] [ "services" "rspamd" "workers" "controller" "bindSockets" ])
     (mkRemovedOptionModule [ "services" "rmilter" ] "Use services.rspamd.* instead to set up milter service")

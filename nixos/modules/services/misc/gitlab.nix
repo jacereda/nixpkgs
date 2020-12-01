@@ -43,9 +43,13 @@ let
 
     [gitlab-shell]
     dir = "${cfg.packages.gitlab-shell}"
+
+    [gitlab]
     secret_file = "${cfg.statePath}/gitlab_shell_secret"
-    gitlab_url = "http+unix://${pathUrlQuote gitlabSocket}"
-    http_settings = { self_signed_cert = false }
+    url = "http+unix://${pathUrlQuote gitlabSocket}"
+
+    [gitlab.http-settings]
+    self_signed_cert = false
 
     ${concatStringsSep "\n" (attrValues (mapAttrs (k: v: ''
     [[storage]]
@@ -72,6 +76,11 @@ let
   };
 
   redisConfig.production.url = cfg.redisUrl;
+
+  pagesArgs = [
+    "-pages-domain" gitlabConfig.production.pages.host
+    "-pages-root" "${gitlabConfig.production.shared.path}/pages"
+  ] ++ cfg.pagesExtraArgs;
 
   gitlabConfig = {
     # These are the default settings from config/gitlab.example.yml
@@ -114,6 +123,7 @@ let
         receive_pack = true;
       };
       workhorse.secret_file = "${cfg.statePath}/.gitlab_workhorse_secret";
+      gitlab_kas.secret_file = "${cfg.statePath}/.gitlab_kas_secret";
       git.bin_path = "git";
       monitoring = {
         ip_whitelist = [ "127.0.0.0/8" "::1/128" ];
@@ -234,6 +244,13 @@ in {
         default = pkgs.gitaly;
         defaultText = "pkgs.gitaly";
         description = "Reference to the gitaly package";
+      };
+
+      packages.pages = mkOption {
+        type = types.package;
+        default = pkgs.gitlab-pages;
+        defaultText = "pkgs.gitlab-pages";
+        description = "Reference to the gitlab-pages package";
       };
 
       statePath = mkOption {
@@ -451,6 +468,12 @@ in {
         };
       };
 
+      pagesExtraArgs = mkOption {
+        type = types.listOf types.str;
+        default = [ "-listen-proxy" "127.0.0.1:8090" ];
+        description = "Arguments to pass to the gitlab-pages daemon";
+      };
+
       secrets.secretFile = mkOption {
         type = with types; nullOr path;
         default = null;
@@ -635,7 +658,7 @@ in {
       script = ''
         set -eu
 
-        PSQL="${pkgs.utillinux}/bin/runuser -u ${pgsql.superUser} -- psql --port=${toString pgsql.port}"
+        PSQL="${pkgs.util-linux}/bin/runuser -u ${pgsql.superUser} -- psql --port=${toString pgsql.port}"
 
         $PSQL -tAc "SELECT 1 FROM pg_database WHERE datname = '${cfg.databaseName}'" | grep -q 1 || $PSQL -tAc 'CREATE DATABASE "${cfg.databaseName}" OWNER "${cfg.databaseUsername}"'
         current_owner=$($PSQL -tAc "SELECT pg_catalog.pg_get_userbyid(datdba) FROM pg_catalog.pg_database WHERE datname = '${cfg.databaseName}'")
@@ -650,6 +673,7 @@ in {
             rm "${config.services.postgresql.dataDir}/.reassigning_${cfg.databaseName}"
         fi
         $PSQL '${cfg.databaseName}' -tAc "CREATE EXTENSION IF NOT EXISTS pg_trgm"
+        $PSQL '${cfg.databaseName}' -tAc "CREATE EXTENSION IF NOT EXISTS btree_gist;"
       '';
 
       serviceConfig = {
@@ -732,7 +756,8 @@ in {
     };
 
     systemd.services.gitaly = {
-      after = [ "network.target" ];
+      after = [ "network.target" "gitlab.service" ];
+      requires = [ "gitlab.service" ];
       wantedBy = [ "multi-user.target" ];
       path = with pkgs; [
         openssh
@@ -751,6 +776,26 @@ in {
         Restart = "on-failure";
         WorkingDirectory = gitlabEnv.HOME;
         ExecStart = "${cfg.packages.gitaly}/bin/gitaly ${gitalyToml}";
+      };
+    };
+
+    systemd.services.gitlab-pages = mkIf (gitlabConfig.production.pages.enabled or false) {
+      description = "GitLab static pages daemon";
+      after = [ "network.target" "redis.service" "gitlab.service" ]; # gitlab.service creates configs
+      wantedBy = [ "multi-user.target" ];
+
+      path = [ pkgs.unzip ];
+
+      serviceConfig = {
+        Type = "simple";
+        TimeoutSec = "infinity";
+        Restart = "on-failure";
+
+        User = cfg.user;
+        Group = cfg.group;
+
+        ExecStart = "${cfg.packages.pages}/bin/gitlab-pages ${escapeShellArgs pagesArgs}";
+        WorkingDirectory = gitlabEnv.HOME;
       };
     };
 
@@ -801,7 +846,7 @@ in {
     };
 
     systemd.services.gitlab = {
-      after = [ "gitlab-workhorse.service" "gitaly.service" "network.target" "gitlab-postgresql.service" "redis.service" ];
+      after = [ "gitlab-workhorse.service" "network.target" "gitlab-postgresql.service" "redis.service" ];
       requires = [ "gitlab-sidekiq.service" ];
       wantedBy = [ "multi-user.target" ];
       environment = gitlabEnv;

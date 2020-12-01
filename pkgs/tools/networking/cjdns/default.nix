@@ -1,19 +1,19 @@
-{ stdenv, fetchFromGitHub, nodejs, which, python27, utillinux, nixosTests }:
+{ stdenv, fetchFromGitHub, nodejs, which, python27, util-linux, nixosTests }:
 
 stdenv.mkDerivation rec {
   pname = "cjdns";
-  version = "20.7";
+  version = "21";
 
   src = fetchFromGitHub {
     owner = "cjdelisle";
     repo = "cjdns";
     rev = "cjdns-v${version}";
-    sha256 = "09gpqpzc00pp3cj7lyq9876p7is4bcndpdi5knqbv824vk4bj3k0";
+    sha256 = "1s9d8yrdrj2gviig05jhr0fnzazb88lih0amxfk0av786rvh7ymj";
   };
 
   buildInputs = [ which python27 nodejs ] ++
     # for flock
-    stdenv.lib.optional stdenv.isLinux utillinux;
+    stdenv.lib.optional stdenv.isLinux util-linux;
 
   CFLAGS = "-O2 -Wno-error=stringop-truncation";
   buildPhase =

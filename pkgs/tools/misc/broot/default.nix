@@ -5,26 +5,24 @@
 , makeWrapper
 , coreutils
 , libiconv
-, xcbuild
 , zlib
 , Security
 }:
 
 rustPlatform.buildRustPackage rec {
   pname = "broot";
-  version = "1.0.0";
+  version = "1.0.6";
 
   src = fetchCrate {
     inherit pname version;
-    sha256 = "1dc6lb6ihj4s0mcp1say16j9yr61jdbzhmayxxsm4ansngbzmw45";
+    sha256 = "1yzj1k09yd3q2dff6a6m0xv2v6z681x25g0x5ak41lm5rn3hj8vl";
   };
 
-  cargoSha256 = "0nqmincayjv1snxz94i14fypc9dv69fxfqqdz3qbcvc2cs62zayg";
+  cargoSha256 = "1axcnr7bzplchpz4cdy5872fmrnzrs1p665c0vmxzs9bgnml5sl8";
 
   nativeBuildInputs = [
     makeWrapper
     installShellFiles
-    xcbuild # The cc crate attempts to run xcbuild.
   ];
 
   buildInputs = stdenv.lib.optionals stdenv.isDarwin [

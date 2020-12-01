@@ -7,10 +7,10 @@ in
 rec {
   firefox = common rec {
     pname = "firefox";
-    ffversion = "81.0";
+    ffversion = "83.0";
     src = fetchurl {
       url = "mirror://mozilla/firefox/releases/${ffversion}/source/firefox-${ffversion}.source.tar.xz";
-      sha512 = "1dnxn754vb99mccqrj3wr3pg2scjy42rvs5xc6bw022gh6n8kgipx9pbkapwfivkglynxmmbw1k11ak34zhr1g6p31m3550ad6azq19";
+      sha512 = "3va5a9471677jfzkhqp8xkba45n0bcpphbabhqbcbnps6p85m3y98pl5jy9q7cpq3a6gxc4ax7bp90yz2nfvfq7i64iz397xpprri2a";
     };
 
     patches = [
@@ -26,7 +26,6 @@ rec {
       broken = stdenv.buildPlatform.is32bit; # since Firefox 60, build on 32-bit platforms fails with "out of memory".
                                              # not in `badPlatforms` because cross-compilation on 64-bit machine might work.
       license = lib.licenses.mpl20;
-      timeout = 28800; # eight hours
     };
     updateScript = callPackage ./update.nix {
       attrPath = "firefox-unwrapped";
@@ -36,10 +35,10 @@ rec {
 
   firefox-esr-78 = common rec {
     pname = "firefox-esr";
-    ffversion = "78.3.0esr";
+    ffversion = "78.5.0esr";
     src = fetchurl {
       url = "mirror://mozilla/firefox/releases/${ffversion}/source/firefox-${ffversion}.source.tar.xz";
-      sha512 = "3rg4rjmigir2wsvzdl5dkh74hahjv36yvd04rhq0rszw6xz9wyig64nxhkrpf416z6iy3y1qavk7x9j6j02sc2f545pd6cx8abjgqc9";
+      sha512 = "20h53cn7p4dds1yfm166iwbjdmw4fkv5pfk4z0pni6x8ddjvg19imzs6ggmpnfhaji8mnlknm7xp5j7x9vi24awvdxdds5n88rh25hd";
     };
 
     patches = [

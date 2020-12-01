@@ -2,16 +2,16 @@
 
 buildGoModule rec {
   pname = "kpt";
-  version = "0.34.0";
+  version = "0.37.0";
 
   src = fetchFromGitHub {
     owner = "GoogleContainerTools";
     repo = pname;
     rev = "v${version}";
-    sha256 = "1x4g45sq8licjcccvad6w1yb9h2z2cc2xbpp073j1pafnqwmrswq";
+    sha256 = "1b1sgwax67pazcs1lly3h3bb7ww91lcd3nr0w3r3f46d1c6iy8mn";
   };
 
-  vendorSha256 = "1vpljhqbvwv3a7k4c7p3n4ixh32f8hp9cqj8jz03mzqlmf60pyfs";
+  vendorSha256 = "0dn6nryf3vn7r0xna02va4wbgkq0z6x8sj6g2mskfywrk0mfhadv";
 
   subPackages = [ "." ];
 

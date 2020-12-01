@@ -1,5 +1,6 @@
 { stdenv
 , fetchFromGitHub
+, fetchpatch
 , nix-update-script
 , pantheon
 , substituteAll
@@ -17,7 +18,7 @@
 , json-glib
 , elementary-dock
 , bamf
-, switchboard
+, switchboard-with-plugs
 , libunity
 , libsoup
 , wingpanel
@@ -53,7 +54,7 @@ stdenv.mkDerivation rec {
     pkgconfig
     python3
     vala
-   ];
+  ];
 
   buildInputs = [
     bamf
@@ -66,16 +67,28 @@ stdenv.mkDerivation rec {
     libhandy
     libsoup
     libunity
-    switchboard
+    switchboard-with-plugs
     wingpanel
     zeitgeist
-   ];
+  ] ++
+  # applications-menu has a plugin to search switchboard plugins
+  # see https://github.com/NixOS/nixpkgs/issues/100209
+  # wingpanel's wrapper will need to pick up the fact that
+  # applications-menu needs a version of switchboard with all
+  # its plugins for search.
+  switchboard-with-plugs.buildInputs;
 
   mesonFlags = [
     "--sysconfdir=${placeholder "out"}/etc"
   ];
 
   patches = [
+    # Port to Libhandy-1
+    (fetchpatch {
+      url = "https://github.com/elementary/applications-menu/commit/8eb2430e8513e9d37f875c5c9b8b15a968c27127.patch";
+      sha256 = "8Uw9mUw7U5nrAwUDGVpAwoRqb9ah503wQCr9kPbBJIo=";
+    })
+
     (substituteAll {
       src = ./fix-paths.patch;
       bc = "${bc}/bin/bc";

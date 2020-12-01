@@ -26,6 +26,7 @@
 , libXext
 , libXfixes
 , libXi
+, libxkbcommon
 , libXrandr
 , libXrender
 , libXScrnSaver
@@ -61,6 +62,7 @@ rpath = lib.makeLibraryPath [
   libdrm
   libpulseaudio
   libX11
+  libxkbcommon
   libXScrnSaver
   libXcomposite
   libXcursor
@@ -68,6 +70,7 @@ rpath = lib.makeLibraryPath [
   libXext
   libXfixes
   libXi
+  libxkbcommon
   libXrandr
   libXrender
   libXtst
@@ -86,11 +89,11 @@ in
 
 stdenv.mkDerivation rec {
   pname = "brave";
-  version = "1.12.112";
+  version = "1.17.73";
 
   src = fetchurl {
     url = "https://github.com/brave/brave-browser/releases/download/v${version}/brave-browser_${version}_amd64.deb";
-    sha256 = "0nvxmz1wrr6cfyhbnrfjsy9szbjmvjl6080pgkp25xa8rcql5gmb";
+    sha256 = "18bd6kgzfza5r0y2ggfy82pdpnfr2hzgjcfy9vxqq658z7q3jpqy";
   };
 
   dontConfigure = true;
