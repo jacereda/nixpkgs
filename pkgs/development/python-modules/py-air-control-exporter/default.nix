@@ -3,12 +3,12 @@
 
 buildPythonPackage rec {
   pname = "py-air-control-exporter";
-  version = "0.1.4";
+  version = "0.2.0";
   disabled = isPy27;
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "1f13d3mlj6c3xvkclimahx7gpqqn8z56lh4kwy1d3gkjm7zs9zw9";
+    sha256 = "2c1bce2423b7452388e35756bef098c123b3cd4a38e8b1302f7297a08e0a9eaa";
   };
 
   nativeBuildInputs = [ setuptools_scm ];
