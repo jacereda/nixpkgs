@@ -150,6 +150,20 @@ let
     buildInputs = [ pkgs.unzip ];
   };
 
+  AlgorithmLCSS = buildPerlPackage {
+    pname = "Algorithm-LCSS";
+    version = "0.01";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/J/JF/JFREEMAN/Algorithm-LCSS-0.01.tar.gz";
+      sha256 = "0y0zc3sq283zpv67vy7a3h3dyvjn5svjxwknanmp38a2g36fyz3i";
+    };
+    propagatedBuildInputs = [ AlgorithmDiff ];
+    meta = {
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+      maintainers = [ maintainers.sgo ];
+    };
+  };
+
   AlgorithmMerge = buildPerlPackage {
     pname = "Algorithm-Merge";
     version = "0.08";
@@ -598,10 +612,10 @@ let
 
   Appcpm = buildPerlModule {
     pname = "App-cpm";
-    version = "0.995";
+    version = "0.996";
     src = fetchurl {
-      url = "mirror://cpan/authors/id/S/SK/SKAJI/App-cpm-0.995.tar.gz";
-      sha256 = "b17fb0b7f97eb86430952bf387b6f08b5252413cb97474d1bf26e3376a4cc496";
+      url = "mirror://cpan/authors/id/S/SK/SKAJI/App-cpm-0.996.tar.gz";
+      sha256 = "5684535511e5abc0aa8eb6105b13f5759b5d03b6808f30149508358b0a11f595";
     };
     buildInputs = [ ModuleBuildTiny ];
     propagatedBuildInputs = [ CPANCommonIndex CPANDistnameInfo ClassTiny CommandRunner ExtUtilsInstallPaths FileCopyRecursive Filepushd HTTPTinyish MenloLegacy ModuleCPANfile ParallelPipes locallib ];
@@ -8266,6 +8280,22 @@ let
     };
   };
 
+  FileUtilTempdir = buildPerlPackage {
+    pname = "File-Util-Tempdir";
+    version = "0.034";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/P/PE/PERLANCAR/File-Util-Tempdir-0.034.tar.gz";
+      sha256 = "076wdwbvqsg64wr5np8j6pnmmhs9li64g9mw2h33zbbgbv7f47fi";
+    };
+    buildInputs = [ Perlosnames TestException ];
+    meta = {
+      homepage = "https://metacpan.org/release/File-Util-Tempdir";
+      description = "Cross-platform way to get system-wide & user private temporary directory";
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+      maintainers = [ maintainers.sgo ];
+    };
+  };
+
   FileWhich = buildPerlPackage {
     pname = "File-Which";
     version = "1.23";
@@ -8688,8 +8718,13 @@ let
       url = "mirror://cpan/authors/id/X/XA/XAOC/Glib-Object-Introspection-0.048.tar.gz";
       sha256 = "01dx5w6r4nl3rgnz7wvgvqfaa48xmzy90p95d5k6315q44610kx6";
     };
+    checkInputs = [ pkgs.cairo ];
     propagatedBuildInputs = [ pkgs.gobject-introspection Glib ];
     meta = {
+      broken = true; # TODO: tests failing because "failed to load libregress.so"
+      # see https://github.com/NixOS/nixpkgs/pull/68115
+      # and https://github.com/NixOS/nixpkgs/issues/68116
+      # adding pkgs.gnome3.gjs does not fix it
       description = "Dynamically create Perl language bindings";
       license = stdenv.lib.licenses.lgpl2Plus;
     };
@@ -9882,6 +9917,22 @@ let
        license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
        homepage = "https://github.com/miyagawa/HTTP-Server-Simple-PSGI";
      };
+  };
+
+  HTTPTinyCache = buildPerlPackage {
+    pname = "HTTP-Tiny-Cache";
+    version = "0.002";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/P/PE/PERLANCAR/HTTP-Tiny-Cache-0.002.tar.gz";
+      sha256 = "08c6274x7fxl9r7cw1yiq21wv2mjgxw7db0wv5r80dyw377vfzbk";
+    };
+    propagatedBuildInputs = [ FileUtilTempdir Logger ];
+    meta = {
+      homepage = "https://metacpan.org/release/HTTP-Tiny-Cache";
+      description = "Cache HTTP::Tiny responses";
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+      maintainers = [ maintainers.sgo ];
+    };
   };
 
   HTTPTinyish = buildPerlPackage {
@@ -11531,6 +11582,21 @@ let
     buildInputs = [ PathTiny TestWarn ];
   };
 
+  Logger = buildPerlPackage {
+    pname = "Log-ger";
+    version = "0.037";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/P/PE/PERLANCAR/Log-ger-0.037.tar.gz";
+      sha256 = "0f5078g8lkyw09ijpz7dna5xw6yvpd0m283fdrw3s152xmr43qn2";
+    };
+    meta = {
+      homepage = "https://metacpan.org/release/Log-ger";
+      description = "A lightweight, flexible logging framework";
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+      maintainers = [ maintainers.sgo ];
+    };
+  };
+
   LogHandler = buildPerlModule {
     pname = "Log-Handler";
     version = "0.90";
@@ -12511,10 +12577,10 @@ let
 
   MetaCPANClient = buildPerlPackage {
     pname = "MetaCPAN-Client";
-    version = "2.028000";
+    version = "2.029000";
     src = fetchurl {
-      url = "mirror://cpan/authors/id/M/MI/MICKEY/MetaCPAN-Client-2.028000.tar.gz";
-      sha256 = "1fcafd1504e838ea37fa1769c751e096fe6ac7bba41c5f62959b156ea27d319a";
+      url = "mirror://cpan/authors/id/M/MI/MICKEY/MetaCPAN-Client-2.029000.tar.gz";
+      sha256 = "0z75qzrr6r9ijp469majavq8la2jbgn1dq02vdm5m6ip7f887n65";
     };
 
     # Most tests are online, so we only include offline tests
@@ -13312,10 +13378,10 @@ let
 
   Mojolicious = buildPerlPackage {
     pname = "Mojolicious";
-    version = "8.63";
+    version = "8.67";
     src = fetchurl {
-      url = "mirror://cpan/authors/id/S/SR/SRI/Mojolicious-8.63.tar.gz";
-      sha256 = "1nw500wi6kdyawc2aq37lnx6zfkpby3sczflh5pjz623i8nw4b66";
+      url = "mirror://cpan/authors/id/S/SR/SRI/Mojolicious-8.67.tar.gz";
+      sha256 = "0b1ajsfvpzcmy7qp1rjr2n1z263yk5bkzmal0kx72ajg1l1dd85v";
     };
     meta = {
       homepage = "https://mojolicious.org";
@@ -13452,6 +13518,22 @@ let
     };
   };
 
+  MojoSAML = buildPerlModule {
+    pname = "Mojo-SAML";
+    version = "0.07";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/J/JB/JBERGER/Mojo-SAML-0.07.tar.gz";
+      sha256 = "03biykpz281z9nmd846jlxwzbaqlqwvh987aw9spl7bgvfn4rhkj";
+    };
+    buildInputs = [ ModuleBuildTiny ];
+    propagatedBuildInputs = [ CryptOpenSSLRSA CryptOpenSSLX509 DataGUID Mojolicious XMLCanonicalizeXML ];
+    meta = {
+      description = "A SAML2 toolkit using the Mojo toolkit";
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+      maintainers = [ maintainers.sgo ];
+    };
+  };
+
   MojoSQLite = buildPerlModule {
     pname = "Mojo-SQLite";
     version = "3.004";
@@ -13530,6 +13612,24 @@ let
       homepage = "https://github.com/mojolicious/mojo-pg";
       description = "Mojolicious <3 PostgreSQL";
       license = stdenv.lib.licenses.artistic2;
+      maintainers = [ maintainers.sgo ];
+    };
+  };
+
+  MojoUserAgentCached = buildPerlPackage {
+    pname = "Mojo-UserAgent-Cached";
+    version = "1.12";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/N/NI/NICOMEN/Mojo-UserAgent-Cached-1.12.tar.gz";
+      sha256 = "08pa3sz63sq2y3g3lbhy2msbnx0myb2igmmc28cm3kaznryvsgwm";
+    };
+    buildInputs = [ ModuleInstall ];
+    propagatedBuildInputs = [ AlgorithmLCSS CHI DataSerializer DevelStackTrace Mojolicious Readonly StringTruncate ];
+    doCheck = !stdenv.isDarwin;
+    meta = {
+      homepage = "https://github.com/nicomen/mojo-useragent-cached";
+      description = "Caching, Non-blocking I/O HTTP, Local file and WebSocket user agent";
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
       maintainers = [ maintainers.sgo ];
     };
   };
@@ -15705,18 +15805,31 @@ let
 
   NetZooKeeper = buildPerlPackage {
     pname = "Net-ZooKeeper";
-    version = "0.41";
-    src = fetchurl {
-      url = "mirror://cpan/authors/id/M/MA/MAF/Net-ZooKeeper-0.41.tar.gz";
-      sha256 = "91c177f30f82302eaf3173356eef05c21bc82163df752acb469177bd14a72db9";
+    version = "0.42pre";
+    src = fetchFromGitHub {
+      owner = "mark-5";
+      repo = "p5-net-zookeeper";
+      rev = "66e1a360aff9c39af728c36092b540a4b6045f70";
+      sha256 = "0xl8lcv9gfv0nn8vrrxa4az359whqdhmzw4r51nn3add8pn3s9ip";
     };
     buildInputs = [ pkgs.zookeeper_mt ];
+    nativeBuildInputs = [ pkgs.gnused ];
     # fix "error: format not a string literal and no format arguments [-Werror=format-security]"
     hardeningDisable = [ "format" ];
-    NIX_CFLAGS_COMPILE = "-I${pkgs.zookeeper_mt}/include";
+    # Make the async API accessible
+    NIX_CFLAGS_COMPILE = "-DTHREADED";
     NIX_CFLAGS_LINK = "-L${pkgs.zookeeper_mt.out}/lib -lzookeeper_mt";
+    # Most tests are skipped as no server is available in the sandbox.
+    # `t/35_log.t` seems to suffer from a race condition; remove it.  See
+    # https://github.com/NixOS/nixpkgs/pull/104889#issuecomment-737144513
+    preCheck = ''
+      rm t/35_log.t
+    '' + stdenv.lib.optionalString stdenv.isDarwin ''
+      rm t/30_connect.t
+      rm t/45_class.t
+    '';
     meta = {
-      maintainers = [ maintainers.limeytexan ];
+      maintainers = with maintainers; [ limeytexan ztzg ];
       homepage = "https://github.com/mark-5/p5-net-zookeeper";
       license = stdenv.lib.licenses.asl20;
     };
@@ -22825,6 +22938,21 @@ let
     meta = {
       description = "XCB bindings for X";
       license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+    };
+  };
+
+  XMLCanonicalizeXML = buildPerlPackage {
+    pname = "XML-CanonicalizeXML";
+    version = "0.10";
+    src = fetchurl {
+      url = "mirror://cpan/authors/id/S/SJ/SJZASADA/XML-CanonicalizeXML-0.10.tar.gz";
+      sha256 = "1vl6wbqmq91mc0hkgfwlndbxcv2jm01hj7kpzprw3d6bh144ca77";
+    };
+    buildInputs = [ pkgs.libxml2 ];
+    meta = {
+      description = "Perl extension for inclusive (1.0 and 1.1) and exclusive canonicalization of XML using libxml2";
+      license = with stdenv.lib.licenses; [ artistic1 gpl1Plus ];
+      maintainers = [ maintainers.sgo ];
     };
   };
 

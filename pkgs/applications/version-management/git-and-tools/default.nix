@@ -38,6 +38,8 @@ let
 
   ghq = callPackage ./ghq { };
 
+  ghr = callPackage ./ghr { };
+
   git = appendToName "minimal" gitBase;
 
   git-absorb = callPackage ./git-absorb {
@@ -201,6 +203,7 @@ let
 
   gitui = callPackage ./gitui {
     inherit (darwin.apple_sdk.frameworks) Security AppKit;
+    inherit (pkgs) openssl perl;
   };
 
   glab = callPackage ./glab { };

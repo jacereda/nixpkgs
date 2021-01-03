@@ -7,7 +7,7 @@
 
 stdenv.mkDerivation rec {
   pname = "belcard";
-  version = "4.4.0";
+  version = "4.4.13";
 
   src = fetchFromGitLab {
     domain = "gitlab.linphone.org";
@@ -27,7 +27,7 @@ stdenv.mkDerivation rec {
   meta = with stdenv.lib; {
     description = "C++ library to manipulate VCard standard format";
     homepage = "https://gitlab.linphone.org/BC/public/belcard";
-    license = licenses.lgpl21;
+    license = licenses.gpl3Plus;
     platforms = platforms.all;
     maintainers = with maintainers; [ jluttine ];
   };

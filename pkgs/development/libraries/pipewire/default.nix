@@ -24,10 +24,10 @@
 , nixosTests
 , gstreamerSupport ? true, gst_all_1 ? null
 , ffmpegSupport ? true, ffmpeg ? null
-, bluezSupport ? true, bluez ? null, sbc ? null
+, bluezSupport ? true, bluez ? null, sbc ? null, libopenaptx ? null, ldacbt ? null
 , nativeHspSupport ? true
 , ofonoSupport ? true
-, hsphfpdSupport ? false
+, hsphfpdSupport ? true
 }:
 
 let
@@ -39,7 +39,7 @@ let
 in
 stdenv.mkDerivation rec {
   pname = "pipewire";
-  version = "0.3.16";
+  version = "0.3.18";
 
   outputs = [
     "out"
@@ -56,7 +56,7 @@ stdenv.mkDerivation rec {
     owner = "pipewire";
     repo = "pipewire";
     rev = version;
-    sha256 = "0ivfx3rbg2iwjdh412zjpk9y5mzw7zh6asv4sji8lq0dzhwbz1qc";
+    sha256 = "1yghhgs18yqrnd0b2r75l5n8yng962r1wszbsi01v6i9zib3jc9g";
   };
 
   patches = [
@@ -66,6 +66,8 @@ stdenv.mkDerivation rec {
     ./installed-tests-path.patch
     # Change the path of the pipewire-pulse binary in the service definition.
     ./pipewire-pulse-path.patch
+    # Add flag to specify configuration directory (different from the installation directory).
+    ./pipewire-config-dir.patch
   ];
 
   nativeBuildInputs = [
@@ -89,7 +91,7 @@ stdenv.mkDerivation rec {
     systemd
   ] ++ lib.optionals gstreamerSupport [ gst_all_1.gst-plugins-base gst_all_1.gstreamer ]
   ++ lib.optional ffmpegSupport ffmpeg
-  ++ lib.optionals bluezSupport [ bluez sbc ];
+  ++ lib.optionals bluezSupport [ bluez libopenaptx ldacbt sbc ];
 
   mesonFlags = [
     "-Ddocs=true"
@@ -106,6 +108,7 @@ stdenv.mkDerivation rec {
     "-Dbluez5-backend-native=${mesonBool nativeHspSupport}"
     "-Dbluez5-backend-ofono=${mesonBool ofonoSupport}"
     "-Dbluez5-backend-hsphfpd=${mesonBool hsphfpdSupport}"
+    "-Dpipewire_config_dir=/etc/pipewire"
   ];
 
   FONTCONFIG_FILE = fontsConf; # Fontconfig error: Cannot load default config file

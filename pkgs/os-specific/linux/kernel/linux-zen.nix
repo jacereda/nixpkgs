@@ -1,7 +1,7 @@
 { stdenv, fetchFromGitHub, buildLinux, ... } @ args:
 
 let
-  version = "5.9.10";
+  version = "5.10.1";
 in
 
 buildLinux (args // {
@@ -13,12 +13,13 @@ buildLinux (args // {
     owner = "zen-kernel";
     repo = "zen-kernel";
     rev = "v${version}-zen1";
-    sha256 = "0836mclwr3r4hm4pn8hp21sk14avrfwiv2s8lqx3cjasgdbyi826";
+    sha256 = "1c77x53ixyn64b4qq6br6ckicmjs316c8k08yfxibmhv72av1wcp";
   };
 
   extraMeta = {
-    branch = "5.9/master";
+    branch = "5.10/master";
     maintainers = with stdenv.lib.maintainers; [ atemu andresilva ];
+    description = "Built using the best configuration and kernel sources for desktop, multimedia, and gaming workloads.";
   };
 
 } // (args.argsOverride or {}))

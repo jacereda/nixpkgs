@@ -1,7 +1,7 @@
 { stdenv, removeReferencesTo, pkgsBuildBuild, pkgsBuildHost, pkgsBuildTarget
-, targetPackages
+, llvmShared, llvmSharedForBuild, llvmSharedForHost, llvmSharedForTarget
 , fetchurl, file, python3
-, llvm_10, darwin, cmake, rust, rustPlatform
+, darwin, cmake, rust, rustPlatform
 , pkgconfig, openssl
 , which, libffi
 , withBundledLLVM ? false
@@ -12,15 +12,8 @@
 }:
 
 let
-  inherit (stdenv.lib) optionals optional optionalString;
+  inherit (stdenv.lib) optionals optional optionalString concatStringsSep;
   inherit (darwin.apple_sdk.frameworks) Security;
-
-  llvmSharedForBuild = pkgsBuildBuild.llvm_10.override { enableSharedLibraries = true; };
-  llvmSharedForHost = pkgsBuildHost.llvm_10.override { enableSharedLibraries = true; };
-  llvmSharedForTarget = pkgsBuildTarget.llvm_10.override { enableSharedLibraries = true; };
-
-  # For use at runtime
-  llvmShared = llvm_10.override { enableSharedLibraries = true; };
 in stdenv.mkDerivation rec {
   pname = "rustc";
   inherit version;
@@ -73,7 +66,14 @@ in stdenv.mkDerivation rec {
     "--enable-vendor"
     "--build=${rust.toRustTargetSpec stdenv.buildPlatform}"
     "--host=${rust.toRustTargetSpec stdenv.hostPlatform}"
-    "--target=${rust.toRustTargetSpec stdenv.targetPlatform}"
+    # std is built for all platforms in --target. When building a cross-compiler
+    # we need to add the host platform as well so rustc can compile build.rs
+    # scripts.
+    "--target=${concatStringsSep "," ([
+      (rust.toRustTargetSpec stdenv.targetPlatform)
+    ] ++ optionals (stdenv.hostPlatform != stdenv.targetPlatform) [
+      (rust.toRustTargetSpec stdenv.hostPlatform)
+    ])}"
 
     "${setBuild}.cc=${ccForBuild}"
     "${setHost}.cc=${ccForHost}"
@@ -93,8 +93,12 @@ in stdenv.mkDerivation rec {
     "${setTarget}.llvm-config=${llvmSharedForTarget}/bin/llvm-config"
   ] ++ optionals (stdenv.isLinux && !stdenv.targetPlatform.isRedox) [
     "--enable-profiler" # build libprofiler_builtins
+  ] ++ optionals stdenv.buildPlatform.isMusl [
+    "${setBuild}.musl-root=${pkgsBuildBuild.targetPackages.stdenv.cc.libc}"
+  ] ++ optionals stdenv.hostPlatform.isMusl [
+    "${setHost}.musl-root=${pkgsBuildHost.targetPackages.stdenv.cc.libc}"
   ] ++ optionals stdenv.targetPlatform.isMusl [
-    "${setTarget}.musl-root=${targetPackages.stdenv.cc.libc}"
+    "${setTarget}.musl-root=${pkgsBuildTarget.targetPackages.stdenv.cc.libc}"
   ];
 
   # The bootstrap.py will generated a Makefile that then executes the build.
@@ -144,6 +148,11 @@ in stdenv.mkDerivation rec {
     python x.py dist rustc-dev
     tar xf build/dist/rustc-dev*tar.gz
     cp -r rustc-dev*/rustc-dev*/lib/* $out/lib/
+    rm $out/lib/rustlib/install.log
+    for m in $out/lib/rustlib/manifest-rust*
+    do
+      sort --output=$m < $m
+    done
 
   '' + ''
     # remove references to llvm-config in lib/rustlib/x86_64-unknown-linux-gnu/codegen-backends/librustc_codegen_llvm-llvm.so

@@ -14,9 +14,8 @@ stdenv.mkDerivation rec {
 
   outputs = [ "bin" "out" "dev" "doc" ];
 
-  buildInputs = lib.optionals x11Support [ xlibsWrapper libXmu libXi ];
-  propagatedBuildInputs = lib.optional x11Support libGLU # GL/glew.h includes GL/glu.h
-    ++ lib.optional stdenv.isDarwin darwin.apple_sdk.frameworks.OpenGL;
+  buildInputs = optionals (!stdenv.isDarwin) [ xlibsWrapper libXmu libXi ];
+  propagatedBuildInputs = if stdenv.isDarwin then [ OpenGL ] else [ libGLU ]; # GL/glew.h includes GL/glu.h
 
   patchPhase = ''
     sed -i 's|lib64|lib|' config/Makefile.linux

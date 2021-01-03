@@ -18,11 +18,11 @@ buildPythonPackage rec {
   # The websites youtube-dl deals with are a very moving target. That means that
   # downloads break constantly. Because of that, updates should always be backported
   # to the latest stable release.
-  version = "2020.11.29";
+  version = "2020.12.31";
 
   src = fetchurl {
     url = "https://yt-dl.org/downloads/${version}/${pname}-${version}.tar.gz";
-    sha256 = "10px5wnsjw4lzdh75810q4sjbhnd7cjxwpa3crapd3yj0f3bwa76";
+    sha256 = "0ncqkzzaasda2hd89psgc0j34r2jinn1dcsfcapzrsd902qghkh9";
   };
 
   nativeBuildInputs = [ installShellFiles makeWrapper ];
@@ -63,6 +63,6 @@ buildPythonPackage rec {
     '';
     license = licenses.publicDomain;
     platforms = with platforms; linux ++ darwin;
-    maintainers = with maintainers; [ bluescreen303 phreedom AndersonTorres fpletz enzime ma27 ];
+    maintainers = with maintainers; [ bluescreen303 phreedom AndersonTorres fpletz enzime ma27 zowoq ];
   };
 }
