@@ -1,17 +1,17 @@
-{ stdenv, buildGoModule, fetchFromGitHub, installShellFiles }:
+{ lib, buildGoModule, fetchFromGitHub, installShellFiles }:
 
 buildGoModule rec {
   pname = "fluxcd";
-  version = "0.5.0";
+  version = "0.8.0";
 
   src = fetchFromGitHub {
     owner = "fluxcd";
     repo = "flux2";
     rev = "v${version}";
-    sha256 = "125im8br7x8djd6zagvikpc02k55pxbd97rjj3g2frj9plbryh8n";
+    sha256 = "1k7zcn8l60qfgiixkjcmp94w87w88n475mmhf58vl5pfz21p9vky";
   };
 
-  vendorSha256 = "0f818a0z71nl061db93iqb87njx66vbrra1zh92warbx8djdsr7k";
+  vendorSha256 = "16yixz47zrzjkb2k4n03zfivpc2cavcrrv4fz8s5a4xzfrcp4nvx";
 
   nativeBuildInputs = [ installShellFiles ];
 
@@ -21,6 +21,11 @@ buildGoModule rec {
 
   buildFlagsArray = [ "-ldflags=-s -w -X main.VERSION=${version}" ];
 
+  doInstallCheck = true;
+  installCheckPhase = ''
+    $out/bin/flux --version | grep ${version} > /dev/null
+  '';
+
   postInstall = ''
     for shell in bash fish zsh; do
       $out/bin/flux completion $shell > flux.$shell
@@ -28,7 +33,7 @@ buildGoModule rec {
     done
   '';
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "Open and extensible continuous delivery solution for Kubernetes";
     longDescription = ''
       Flux is a tool for keeping Kubernetes clusters in sync

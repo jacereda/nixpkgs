@@ -1,14 +1,14 @@
-{ stdenv, buildPackages, fetchFromGitHub, openssl, lzo, zlib, iproute, ronn }:
+{ lib, stdenv, buildPackages, fetchFromGitHub, openssl, lzo, zlib, iproute, ronn }:
 
 stdenv.mkDerivation rec {
   pname = "zerotierone";
-  version = "1.6.2";
+  version = "1.6.3";
 
   src = fetchFromGitHub {
     owner = "zerotier";
     repo = "ZeroTierOne";
     rev = version;
-    sha256 = "0lky68fjrqjsd62g97jkn5a9hzj53g8wb6d2ncx8s21rknpncdar";
+    sha256 = "0a9sjcri96pv4pvvi94g7jyldwfhqqsi1k58maymm0jnqnj91z25";
   };
 
   preConfigure = ''
@@ -46,7 +46,7 @@ stdenv.mkDerivation rec {
 
   outputs = [ "out" "man" ];
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "Create flat virtual Ethernet networks of almost unlimited size";
     homepage = "https://www.zerotier.com";
     license = licenses.bsl11;

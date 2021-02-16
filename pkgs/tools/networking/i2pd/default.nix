@@ -1,4 +1,4 @@
-{ stdenv, fetchFromGitHub
+{ lib, stdenv, fetchFromGitHub
 , boost, zlib, openssl
 , upnpSupport ? true, miniupnpc ? null
 , aesniSupport ? stdenv.hostPlatform.aesSupport
@@ -18,8 +18,9 @@ stdenv.mkDerivation rec {
     sha256 = "0bpkgq7srwpjmadsz3nsd14jpr19b1zfrpc074lzjaq15icxxgxc";
   };
 
-  buildInputs = with stdenv.lib; [ boost zlib openssl ]
+  buildInputs = with lib; [ boost zlib openssl ]
     ++ optional upnpSupport miniupnpc;
+
   makeFlags =
     let ynf = a: b: a + "=" + (if b then "yes" else "no"); in
     [ (ynf "USE_AESNI" aesniSupport)
@@ -27,15 +28,17 @@ stdenv.mkDerivation rec {
       (ynf "USE_UPNP"  upnpSupport)
     ];
 
+  enableParallelBuilding = true;
+
   installPhase = ''
     install -D i2pd $out/bin/i2pd
   '';
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     homepage = "https://i2pd.website";
     description = "Minimal I2P router written in C++";
     license = licenses.bsd3;
     maintainers = with maintainers; [ edwtjo ];
-    platforms = platforms.linux;
+    platforms = platforms.unix;
   };
 }

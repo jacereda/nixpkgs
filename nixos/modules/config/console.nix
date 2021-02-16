@@ -83,7 +83,7 @@ in
     packages = mkOption {
       type = types.listOf types.package;
       default = with pkgs.kbdKeymaps; [ dvp neo ];
-      defaultText = ''with pkgs.kbdKeymaps; [ dvp neo ]'';
+      defaultText = "with pkgs.kbdKeymaps; [ dvp neo ]";
       description = ''
         List of additional packages that provide console fonts, keymaps and
         other resources for virtual consoles use.
@@ -145,7 +145,8 @@ in
         '';
 
         systemd.services.systemd-vconsole-setup =
-          { before = [ "display-manager.service" ];
+          {
+            before = optional config.services.xserver.enable "display-manager.service";
             after = [ "systemd-udev-settle.service" ];
             restartTriggers = [ vconsoleConf consoleEnv ];
           };

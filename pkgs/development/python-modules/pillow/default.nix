@@ -1,4 +1,4 @@
-{ stdenv, buildPythonPackage, fetchPypi, isPyPy
+{ lib, stdenv, buildPythonPackage, fetchPypi, isPyPy
 , olefile
 , freetype, libjpeg, zlib, libtiff, libwebp, tcl, lcms2, tk, libX11
 , openjpeg, libimagequant
@@ -24,7 +24,7 @@ buildPythonPackage rec {
   '';
 
   # Disable darwin tests which require executables: `iconutil` and `screencapture`
-  disabledTests = stdenv.lib.optionals stdenv.isDarwin [ "test_save" "test_grab" "test_grabclipboard" ];
+  disabledTests = lib.optionals stdenv.isDarwin [ "test_save" "test_grab" "test_grabclipboard" ];
 
   propagatedBuildInputs = [ olefile ];
 
@@ -32,7 +32,7 @@ buildPythonPackage rec {
 
   buildInputs = [
     freetype libjpeg openjpeg libimagequant zlib libtiff libwebp tcl lcms2 ]
-    ++ stdenv.lib.optionals (isPyPy) [ tk libX11 ];
+    ++ lib.optionals (isPyPy) [ tk libX11 ];
 
   # NOTE: we use LCMS_ROOT as WEBP root since there is not other setting for webp.
   # NOTE: The Pillow install script will, by default, add paths like /usr/lib
@@ -61,13 +61,13 @@ buildPythonPackage rec {
     export CFLAGS="-I${libwebp}/include"
   ''
   # Remove impurities
-  + stdenv.lib.optionalString stdenv.isDarwin ''
+  + lib.optionalString stdenv.isDarwin ''
     substituteInPlace setup.py \
       --replace '"/Library/Frameworks",' "" \
       --replace '"/System/Library/Frameworks"' ""
   '';
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     homepage = "https://python-pillow.org/";
     description = "The friendly PIL fork (Python Imaging Library)";
     longDescription = ''

@@ -1,6 +1,6 @@
 # Updating? Keep $out/etc synchronized with passthru keys
 
-{ stdenv
+{ lib, stdenv
 , fetchurl
 , fetchFromGitHub
 , substituteAll
@@ -30,6 +30,7 @@
 , docbook-xsl-nons
 , ninja
 , gcab
+, gnutls
 , python3
 , wrapGAppsHook
 , json-glib
@@ -73,6 +74,9 @@ let
   # only redfish for x86_64
   haveRedfish = stdenv.isx86_64;
 
+  # only use msr if x86 (requires cpuid)
+  haveMSR = isx86;
+
   # # Currently broken on Aarch64
   # haveFlashrom = isx86;
   # Experimental
@@ -87,7 +91,7 @@ let
 
   self = stdenv.mkDerivation rec {
     pname = "fwupd";
-    version = "1.5.3";
+    version = "1.5.5";
 
     # libfwupd goes to lib
     # daemon, plug-ins and libfwupdplugin go to out
@@ -96,7 +100,7 @@ let
 
     src = fetchurl {
       url = "https://people.freedesktop.org/~hughsient/releases/fwupd-${version}.tar.xz";
-      sha256 = "005y5wicmm6f2v8i9m3axx7ivgj3z8mbqps4v9m71bsqmq298j86";
+      sha256 = "0c2m9qz1g7zxqc6w90w9hksf8y9hvlh0vyvx06q01x893j5hzxh6";
     };
 
     patches = [
@@ -129,6 +133,7 @@ let
       shared-mime-info
       valgrind
       gcab
+      gnutls
       docbook_xml_dtd_43
       docbook-xsl-nons
       help2man
@@ -160,7 +165,7 @@ let
       pango
       tpm2-tss
       efivar
-    ] ++ stdenv.lib.optionals haveDell [
+    ] ++ lib.optionals haveDell [
       libsmbios
     ];
 
@@ -187,13 +192,15 @@ let
       # Our builder only adds $lib/lib to rpath but some things link
       # against libfwupdplugin which is in $out/lib.
       "-Dc_link_args=-Wl,-rpath,${placeholder "out"}/lib"
-    ] ++ stdenv.lib.optionals (!haveDell) [
+    ] ++ lib.optionals (!haveDell) [
       "-Dplugin_dell=false"
       "-Dplugin_synaptics=false"
-    ] ++ stdenv.lib.optionals (!haveRedfish) [
+    ] ++ lib.optionals (!haveRedfish) [
       "-Dplugin_redfish=false"
-    ] ++ stdenv.lib.optionals haveFlashrom [
+    ] ++ lib.optionals haveFlashrom [
       "-Dplugin_flashrom=true"
+    ] ++ lib.optionals (!haveMSR) [
+      "-Dplugin_msr=false"
     ];
 
     # TODO: wrapGAppsHook wraps efi capsule even though it is not ELF
@@ -250,12 +257,12 @@ let
         efibootmgr
         bubblewrap
         tpm2-tools
-      ] ++ stdenv.lib.optional haveFlashrom flashrom;
+      ] ++ lib.optional haveFlashrom flashrom;
     in ''
       gappsWrapperArgs+=(
         --prefix XDG_DATA_DIRS : "${shared-mime-info}/share"
         # See programs reached with fu_common_find_program_in_path in source
-        --prefix PATH : "${stdenv.lib.makeBinPath binPath}"
+        --prefix PATH : "${lib.makeBinPath binPath}"
       )
     '';
 
@@ -274,16 +281,14 @@ let
 
     passthru = {
       filesInstalledToEtc = [
-        "fwupd/ata.conf"
         "fwupd/daemon.conf"
-        "fwupd/redfish.conf"
         "fwupd/remotes.d/lvfs-testing.conf"
         "fwupd/remotes.d/lvfs.conf"
         "fwupd/remotes.d/vendor.conf"
         "fwupd/remotes.d/vendor-directory.conf"
         "fwupd/thunderbolt.conf"
         "fwupd/upower.conf"
-        "fwupd/uefi.conf"
+        "fwupd/uefi_capsule.conf"
         "pki/fwupd/GPG-KEY-Hughski-Limited"
         "pki/fwupd/GPG-KEY-Linux-Foundation-Firmware"
         "pki/fwupd/GPG-KEY-Linux-Vendor-Firmware-Service"
@@ -291,8 +296,10 @@ let
         "pki/fwupd-metadata/GPG-KEY-Linux-Foundation-Metadata"
         "pki/fwupd-metadata/GPG-KEY-Linux-Vendor-Firmware-Service"
         "pki/fwupd-metadata/LVFS-CA.pem"
-      ] ++ stdenv.lib.optionals haveDell [
+      ] ++ lib.optionals haveDell [
         "fwupd/remotes.d/dell-esrt.conf"
+      ] ++ lib.optionals haveRedfish [
+        "fwupd/redfish.conf"
       ];
 
       # DisabledPlugins key in fwupd/daemon.conf
@@ -302,7 +309,7 @@ let
       ];
 
       tests = let
-        listToPy = list: "[${stdenv.lib.concatMapStringsSep ", " (f: "'${f}'") list}]";
+        listToPy = list: "[${lib.concatMapStringsSep ", " (f: "'${f}'") list}]";
       in {
         installedTests = nixosTests.installed-tests.fwupd;
 
@@ -329,7 +336,7 @@ let
       };
     };
 
-    meta = with stdenv.lib; {
+    meta = with lib; {
       homepage = "https://fwupd.org/";
       maintainers = with maintainers; [ jtojnar ];
       license = licenses.lgpl21Plus;

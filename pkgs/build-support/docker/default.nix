@@ -35,7 +35,6 @@
   system,  # Note: This is the cross system we're compiling for
 }:
 
-# WARNING: this API is unstable and may be subject to backwards-incompatible changes in the future.
 let
 
   mkDbExtraCommand = contents: let
@@ -95,7 +94,7 @@ rec {
       inherit imageDigest;
       imageName = finalImageName;
       imageTag = finalImageTag;
-      impureEnvVars = stdenv.lib.fetchers.proxyImpureEnvVars;
+      impureEnvVars = lib.fetchers.proxyImpureEnvVars;
       outputHashMode = "flat";
       outputHashAlgo = "sha256";
       outputHash = sha256;
@@ -110,7 +109,7 @@ rec {
     '';
 
   # We need to sum layer.tar, not a directory, hence tarsum instead of nix-hash.
-  # And we cannot untar it, because then we cannot preserve permissions ecc.
+  # And we cannot untar it, because then we cannot preserve permissions etc.
   tarsum = runCommand "tarsum" {
     nativeBuildInputs = [ go ];
   } ''
@@ -121,7 +120,7 @@ rec {
     export GOPATH=$(pwd)
     export GOCACHE="$TMPDIR/go-cache"
     mkdir -p src/github.com/docker/docker/pkg
-    ln -sT ${docker.src}/components/engine/pkg/tarsum src/github.com/docker/docker/pkg/tarsum
+    ln -sT ${docker.moby.src}/pkg/tarsum src/github.com/docker/docker/pkg/tarsum
     go build
 
     mkdir -p $out/bin

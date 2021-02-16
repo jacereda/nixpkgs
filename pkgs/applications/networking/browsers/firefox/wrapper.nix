@@ -1,11 +1,10 @@
 { stdenv, lib, makeDesktopItem, makeWrapper, lndir, config
-, replace, fetchurl, zip, unzip, jq, xdg_utils, writeText
+, replace, fetchurl, zip, unzip, jq, xdg-utils, writeText
 
 ## various stuff that can be plugged in
-, flashplayer, hal-flash
-, ffmpeg, xorg, alsaLib, libpulseaudio, libcanberra-gtk2, libglvnd
+, ffmpeg, xorg, alsaLib, libpulseaudio, libcanberra-gtk2, libglvnd, libnotify
 , gnome3/*.gnome-shell*/
-, browserpass, chrome-gnome-shell, uget-integrator, plasma5, bukubrow
+, browserpass, chrome-gnome-shell, uget-integrator, plasma5Packages, bukubrow, pipewire
 , tridactyl-native
 , fx_cast_bridge
 , udev
@@ -47,27 +46,31 @@ let
     assert forceWayland -> (browser ? gtk3); # Can only use the wayland backend if gtk3 is being used
 
     let
-      enableAdobeFlash = cfg.enableAdobeFlash or false;
       ffmpegSupport = browser.ffmpegSupport or false;
       gssSupport = browser.gssSupport or false;
       alsaSupport = browser.alsaSupport or false;
+      pipewireSupport = browser.pipewireSupport or false;
 
+      # FIXME: This should probably be an assertion now?
       plugins =
         let
           removed = lib.filter (a: builtins.hasAttr a cfg) [
-            "enableVLC"
-            "enableDjvu"
-            "enableMPlayer"
-            "jre"
-            "icedtea"
-            "enableGoogleTalkPlugin"
-            "enableFriBIDPlugin"
-            "enableBluejeans"
+            "enableAdobeFlash"
             "enableAdobeReader"
+            "enableBluejeans"
+            "enableDjvu"
+            "enableFriBIDPlugin"
+            "enableGoogleTalkPlugin"
+            "enableMPlayer"
+            "enableVLC"
+            "icedtea"
+            "jre"
           ];
-        in if removed != []
-           then throw "Your configuration mentions ${lib.concatMapStringsSep ", " (p: browserName + "." + p) removed}. All plugin related options, except for the adobe flash player, have been removed, since Firefox from version 52 onwards no longer supports npapi plugins (see https://support.mozilla.org/en-US/kb/npapi-plugins)."
-           else lib.optional enableAdobeFlash flashplayer;
+        in if removed != [] then
+          throw "Your configuration mentions ${lib.concatMapStringsSep ", " (p: browserName + "." + p) removed}. All plugin related options have been removed, since Firefox from version 52 onwards no longer supports npapi plugins (see https://support.mozilla.org/en-US/kb/npapi-plugins)."
+        else
+          []
+        ;
 
       nativeMessagingHosts =
         ([ ]
@@ -76,17 +79,17 @@ let
           ++ lib.optional (cfg.enableTridactylNative or false) tridactyl-native
           ++ lib.optional (cfg.enableGnomeExtensions or false) chrome-gnome-shell
           ++ lib.optional (cfg.enableUgetIntegrator or false) uget-integrator
-          ++ lib.optional (cfg.enablePlasmaBrowserIntegration or false) plasma5.plasma-browser-integration
+          ++ lib.optional (cfg.enablePlasmaBrowserIntegration or false) plasma5Packages.plasma-browser-integration
           ++ lib.optional (cfg.enableFXCastBridge or false) fx_cast_bridge
           ++ extraNativeMessagingHosts
         );
-      libs =   lib.optionals stdenv.isLinux [ udev libva mesa ]
+      libs =   lib.optionals stdenv.isLinux [ udev libva mesa libnotify xorg.libXScrnSaver ]
+            ++ lib.optional (pipewireSupport && lib.versionAtLeast version "83") pipewire
             ++ lib.optional ffmpegSupport ffmpeg
             ++ lib.optional gssSupport kerberos
             ++ lib.optional useGlvnd libglvnd
             ++ lib.optionals (cfg.enableQuakeLive or false)
             (with xorg; [ stdenv.cc libX11 libXxf86dga libXxf86vm libXext libXt alsaLib zlib ])
-            ++ lib.optional (enableAdobeFlash && (cfg.enableAdobeFlashDRM or false)) hal-flash
             ++ lib.optional (config.pulseaudio or true) libpulseaudio
             ++ lib.optional alsaSupport alsaLib
             ++ pkcs11Modules;
@@ -172,7 +175,7 @@ let
         desktopName = "${desktopName}${nameSuffix}${lib.optionalString forceWayland " (Wayland)"}";
         genericName = "Web Browser";
         categories = "Network;WebBrowser;";
-        mimeType = stdenv.lib.concatStringsSep ";" [
+        mimeType = lib.concatStringsSep ";" [
           "text/html"
           "text/xml"
           "application/xhtml+xml"
@@ -263,7 +266,7 @@ let
             --suffix LD_LIBRARY_PATH ':' "$libs" \
             --suffix-each GTK_PATH ':' "$gtk_modules" \
             --suffix-each LD_PRELOAD ':' "$(cat $(filterExisting $(addSuffix /extra-ld-preload $plugins)))" \
-            --prefix PATH ':' "${xdg_utils}/bin" \
+            --prefix PATH ':' "${xdg-utils}/bin" \
             --prefix-contents PATH ':' "$(filterExisting $(addSuffix /extra-bin-path $plugins))" \
             --suffix PATH ':' "$out${browser.execdir or "/bin"}" \
             --set MOZ_APP_LAUNCHER "${browserName}${nameSuffix}" \

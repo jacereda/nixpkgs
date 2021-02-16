@@ -1,4 +1,4 @@
-{ stdenv, lib, fetchurl, pkgconfig, fetchpatch
+{ stdenv, lib, fetchurl, pkg-config
 , bzip2, curl, expat, libarchive, xz, zlib, libuv, rhash
 , buildPackages
 # darwin attributes
@@ -20,12 +20,12 @@ stdenv.mkDerivation rec {
           + lib.optionalString useNcurses "-cursesUI"
           + lib.optionalString withQt5 "-qt5UI"
           + lib.optionalString useQt4 "-qt4UI";
-  version = "3.19.1";
+  version = "3.19.3";
 
   src = fetchurl {
     url = "${meta.homepage}files/v${lib.versions.majorMinor version}/cmake-${version}.tar.gz";
     # compare with https://cmake.org/files/v${lib.versions.majorMinor version}/cmake-${version}-SHA-256.txt
-    sha256 = "1fisi9rlijw9wd0yjzk1c6j7ljnb2yiq5iqnrz6m1xkflyinw9hx";
+    sha256 = "sha256-P6ynwTFJSh401m6fiXL/U2nkjUGeqM6qPcFbTBE2dzI=";
   };
 
   patches = [
@@ -47,7 +47,7 @@ stdenv.mkDerivation rec {
 
   depsBuildBuild = [ buildPackages.stdenv.cc ];
 
-  nativeBuildInputs = [ setupHook pkgconfig ];
+  nativeBuildInputs = [ setupHook pkg-config ];
 
   buildInputs = []
     ++ lib.optionals useSharedLibraries [ bzip2 curl expat libarchive xz zlib libuv rhash ]
