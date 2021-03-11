@@ -1,6 +1,6 @@
 { lib, stdenv, fetchFromGitHub
 , autoreconfHook269, util-linux, nukeReferences, coreutils
-, perl, buildPackages, nixosTests
+, perl, nixosTests
 , configFile ? "all"
 
 # Userspace dependencies
@@ -9,7 +9,7 @@
 , nfs-utils
 , gawk, gnugrep, gnused, systemd
 , smartmontools, enableMail ? false
-, sysstat, sudo, pkg-config
+, sysstat, pkg-config
 
 # Kernel dependencies
 , kernel ? null
@@ -197,21 +197,23 @@ in {
   # to be adapted
   zfsStable = common {
     # check the release notes for compatible kernels
-    kernelCompatible = kernel.kernelAtLeast "3.10" && kernel.kernelOlder "5.11";
+    kernelCompatible = kernel.kernelAtLeast "3.10" && kernel.kernelOlder "5.12";
 
     # this package should point to the latest release.
-    version = "2.0.3";
+    version = "2.0.4";
 
-    sha256 = "sha256-bai7SwJNOsrACcrUxZ4339REhbBPOWyYikHzgHfbONs=";
+    sha256 = "sha256-ySTt0K3Lc0Le35XTwjiM5l+nIf9co7wBn+Oma1r8YHo=";
   };
 
   zfsUnstable = common {
     # check the release notes for compatible kernels
-    kernelCompatible = kernel.kernelAtLeast "3.10" && kernel.kernelOlder "5.11";
+    kernelCompatible = kernel.kernelAtLeast "3.10" && kernel.kernelOlder "5.12";
 
     # this package should point to a version / git revision compatible with the latest kernel release
-    version = "2.0.3";
+    version = "2.0.4";
 
-    sha256 = "sha256-bai7SwJNOsrACcrUxZ4339REhbBPOWyYikHzgHfbONs=";
+    sha256 = "sha256-ySTt0K3Lc0Le35XTwjiM5l+nIf9co7wBn+Oma1r8YHo=";
+
+    isUnstable = true;
   };
 }

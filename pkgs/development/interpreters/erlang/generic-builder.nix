@@ -19,6 +19,7 @@
 , javacSupport ? false, javacPackages ? [ openjdk11 ]
 , odbcSupport ? false, odbcPackages ? [ unixODBC ]
 , withSystemd ? stdenv.isLinux # systemd support in epmd
+, opensslPackage ? openssl
 , wxPackages ? [ libGL libGLU wxGTK xorg.libX11 ]
 , preUnpack ? "", postUnpack ? ""
 , patches ? [], patchPhase ? "", prePatch ? "", postPatch ? ""
@@ -51,24 +52,17 @@ in stdenv.mkDerivation ({
 
   nativeBuildInputs = [ autoconf makeWrapper perl gnum4 libxslt libxml2 ];
 
-  buildInputs = [ ncurses openssl ]
+  buildInputs = [ ncurses opensslPackage ]
     ++ optionals wxSupport wxPackages2
     ++ optionals odbcSupport odbcPackages
     ++ optionals javacSupport javacPackages
     ++ optional withSystemd systemd
-    ++ optionals stdenv.isDarwin (with pkgs.darwin.apple_sdk.frameworks; [ Carbon Cocoa ]);
+    ++ optionals stdenv.isDarwin (with pkgs.darwin.apple_sdk.frameworks; [ AGL Carbon Cocoa WebKit ]);
 
   debugInfo = enableDebugInfo;
 
   # On some machines, parallel build reliably crashes on `GEN    asn1ct_eval_ext.erl` step
   enableParallelBuilding = parallelBuild;
-
-  # Clang 4 (rightfully) thinks signed comparisons of pointers with NULL are nonsense
-  prePatch = ''
-    substituteInPlace lib/wx/c_src/wxe_impl.cpp --replace 'temp > NULL' 'temp != NULL'
-
-    ${prePatch}
-  '';
 
   postPatch = ''
     patchShebangs make
@@ -80,7 +74,7 @@ in stdenv.mkDerivation ({
     ./otp_build autoconf
   '';
 
-  configureFlags = [ "--with-ssl=${openssl.dev}" ]
+  configureFlags = [ "--with-ssl=${lib.getDev opensslPackage}" ]
     ++ optional enableThreads "--enable-threads"
     ++ optional enableSmpSupport "--enable-smp-support"
     ++ optional enableKernelPoll "--enable-kernel-poll"
@@ -131,6 +125,7 @@ in stdenv.mkDerivation ({
 // optionalAttrs (preUnpack != "")      { inherit preUnpack; }
 // optionalAttrs (postUnpack != "")     { inherit postUnpack; }
 // optionalAttrs (patches != [])        { inherit patches; }
+// optionalAttrs (prePatch != "")       { inherit prePatch; }
 // optionalAttrs (patchPhase != "")     { inherit patchPhase; }
 // optionalAttrs (configurePhase != "") { inherit configurePhase; }
 // optionalAttrs (preConfigure != "")   { inherit preConfigure; }

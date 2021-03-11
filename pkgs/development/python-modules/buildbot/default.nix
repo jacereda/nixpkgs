@@ -1,5 +1,5 @@
 { stdenv, lib, buildPythonPackage, fetchPypi, makeWrapper, isPy3k,
-  python, twisted, jinja2, zope_interface, future, sqlalchemy,
+  python, twisted, jinja2, zope_interface, sqlalchemy,
   sqlalchemy_migrate, dateutil, txaio, autobahn, pyjwt, pyyaml, treq,
   txrequests, pypugjs, boto3, moto, mock, python-lz4, setuptoolsTrial,
   isort, pylint, flake8, buildbot-worker, buildbot-pkg, buildbot-plugins,
@@ -9,7 +9,7 @@ let
   withPlugins = plugins: buildPythonPackage {
     name = "${package.name}-with-plugins";
     phases = [ "installPhase" "fixupPhase" ];
-    buildInputs = [ makeWrapper ];
+    nativeBuildInputs = [ makeWrapper ];
     propagatedBuildInputs = plugins ++ package.propagatedBuildInputs;
 
     installPhase = ''
@@ -25,11 +25,11 @@ let
 
   package = buildPythonPackage rec {
     pname = "buildbot";
-    version = "2.10.1";
+    version = "3.0.0";
 
     src = fetchPypi {
       inherit pname version;
-      sha256 = "0jmgpvgn36kfc1sa27a1l1g26dawhl99a1wl8gn4ajbcbcvc2pkh";
+      sha256 = "0li47fpm398dk69q6g2zjaxx46w00g3n0jszz88kf57sakri553y";
     };
 
     propagatedBuildInputs = [

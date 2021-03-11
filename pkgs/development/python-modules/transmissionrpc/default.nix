@@ -17,10 +17,12 @@ buildPythonPackage rec {
 
   # no tests
   doCheck = false;
+  pythonImportsCheck = [ "transmissionrpc" ];
 
   meta = with lib; {
     description = "Python implementation of the Transmission bittorent client RPC protocol";
     homepage = "https://pypi.python.org/pypi/transmissionrpc/";
-    license = licenses.mit;
+    license = with licenses; [ mit ];
+    maintainers = with maintainers; [ fab ];
   };
 }
