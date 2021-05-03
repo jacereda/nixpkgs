@@ -10,13 +10,13 @@ let
 
 common =
   { lib, stdenv, perl, curl, bzip2, sqlite, openssl ? null, xz
-  , bash, coreutils, gzip, gnutar
-  , pkg-config, boehmgc, perlPackages, libsodium, brotli, boost, editline, nlohmann_json
+  , bash, coreutils, util-linuxMinimal, gzip, gnutar
+  , pkg-config, boehmgc, libsodium, brotli, boost, editline, nlohmann_json
   , autoreconfHook, autoconf-archive, bison, flex
   , jq, libarchive, libcpuid
   , lowdown, mdbook
   # Used by tests
-  , gmock
+  , gtest
   , busybox-sandbox-shell
   , storeDir
   , stateDir
@@ -24,14 +24,13 @@ common =
   , withLibseccomp ? lib.any (lib.meta.platformMatch stdenv.hostPlatform) libseccomp.meta.platforms, libseccomp
   , withAWS ? !enableStatic && (stdenv.isLinux || stdenv.isDarwin), aws-sdk-cpp
   , enableStatic ? stdenv.hostPlatform.isStatic
-  , name, suffix ? "", src
+  , pname, version, suffix ? "", src
   , patches ? [ ]
   }:
   let
      sh = busybox-sandbox-shell;
      nix = stdenv.mkDerivation rec {
-      inherit name src patches;
-      version = lib.getVersion name;
+      inherit pname version src patches;
 
       is24 = lib.versionAtLeast version "2.4pre";
 
@@ -41,6 +40,7 @@ common =
 
       nativeBuildInputs =
         [ pkg-config ]
+        ++ lib.optionals stdenv.isLinux [ util-linuxMinimal ]
         ++ lib.optionals is24
           [ autoreconfHook
             autoconf-archive
@@ -55,7 +55,8 @@ common =
         ]
         ++ lib.optionals stdenv.isDarwin [ Security ]
         ++ lib.optional (stdenv.isLinux || stdenv.isDarwin) libsodium
-        ++ lib.optionals is24 [ libarchive gmock lowdown libcpuid ]
+        ++ lib.optionals is24 [ libarchive gtest lowdown ]
+        ++ lib.optional (is24 && stdenv.isx86_64) libcpuid
         ++ lib.optional withLibseccomp libseccomp
         ++ lib.optional withAWS
             ((aws-sdk-cpp.override {
@@ -138,7 +139,7 @@ common =
       doInstallCheck = true; # not cross
 
       # socket path becomes too long otherwise
-      preInstallCheck = lib.optional stdenv.isDarwin ''
+      preInstallCheck = lib.optionalString stdenv.isDarwin ''
         export TMPDIR=$NIX_BUILD_TOP
       '';
 
@@ -163,7 +164,7 @@ common =
       };
 
       passthru = {
-        perl-bindings = stdenv.mkDerivation {
+        perl-bindings = perl.pkgs.toPerlModule (stdenv.mkDerivation {
           pname = "nix-perl";
           inherit version;
 
@@ -177,14 +178,14 @@ common =
             [ perl pkg-config curl nix libsodium boost autoreconfHook autoconf-archive nlohmann_json ];
 
           configureFlags =
-            [ "--with-dbi=${perlPackages.DBI}/${perl.libPrefix}"
-              "--with-dbd-sqlite=${perlPackages.DBDSQLite}/${perl.libPrefix}"
+            [ "--with-dbi=${perl.pkgs.DBI}/${perl.libPrefix}"
+              "--with-dbd-sqlite=${perl.pkgs.DBDSQLite}/${perl.libPrefix}"
             ];
 
           preConfigure = "export NIX_STATE_DIR=$TMPDIR";
 
           preBuild = "unset NIX_INDENT_MAKE";
-        };
+        });
       };
     };
   in nix;
@@ -194,9 +195,10 @@ in rec {
   nix = nixStable;
 
   nixStable = callPackage common (rec {
-    name = "nix-2.3.10";
+    pname = "nix";
+    version = "2.3.10";
     src = fetchurl {
-      url = "https://nixos.org/releases/nix/${name}/${name}.tar.xz";
+      url = "https://nixos.org/releases/nix/${pname}-${version}/${pname}-${version}.tar.xz";
       sha256 = "a8a85e55de43d017abbf13036edfb58674ca136691582f17080c1cd12787b7ab";
     };
 
@@ -211,14 +213,15 @@ in rec {
   });
 
   nixUnstable = lib.lowPrio (callPackage common rec {
-    name = "nix-2.4${suffix}";
-    suffix = "pre20210308_1c0e3e4";
+    pname = "nix";
+    version = "2.4${suffix}";
+    suffix = "pre20210503_6d2553a";
 
     src = fetchFromGitHub {
       owner = "NixOS";
       repo = "nix";
-      rev = "1c0e3e453d41b869e4ac7e25dc1c00c349a7c411";
-      sha256 = "17killwp42d25f17yq2jida64j7d0ipz6zish78iqi450yrd9wrd";
+      rev = "6d2553ae1496288554e871c530836428f405fd67";
+      sha256 = "sha256-YeSeyOKhBAXHlkzo4mwYr8QIjIP9AgdpJ7YdhqOO2CA=";
     };
 
     inherit storeDir stateDir confDir boehmgc;

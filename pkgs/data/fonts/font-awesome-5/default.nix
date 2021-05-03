@@ -39,7 +39,7 @@ in {
     sha256 = "1j8i32dq6rrlv3kf2hnq81iqks06kczaxjks7nw3zyq1231winm9";
   };
   v5 = font-awesome {
-    version = "5.13.0";
-    sha256 = "1bh20al3dgr4dp2c01baxw4rpjxjqisrd42s9gxh0j9m72mr6vdq";
+    version = "5.15.3";
+    sha256 = "sha256-EDxk/yO3nMmtM/ytrAEgPYSBbep3rA3NrKkiqf3OsU0=";
   };
 }

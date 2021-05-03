@@ -25,12 +25,15 @@ let
     "artifactory"
     "bind"
     "bird"
+    "bitcoin"
     "blackbox"
     "collectd"
     "dnsmasq"
+    "domain"
     "dovecot"
     "fritzbox"
     "json"
+    "jitsi"
     "keylight"
     "knot"
     "lnd"
@@ -42,6 +45,7 @@ let
     "nginx"
     "nginxlog"
     "node"
+    "openldap"
     "openvpn"
     "postfix"
     "postgres"
@@ -55,6 +59,7 @@ let
     "surfboard"
     "systemd"
     "tor"
+    "unbound"
     "unifi"
     "unifi-poller"
     "varnish"
@@ -130,7 +135,7 @@ let
           inherit name port;
         } // extraOpts);
       } ({ config, ... }: mkIf config.openFirewall {
-        firewallFilter = mkOptionDefault "-p tcp -m tcp --dport ${toString config.port}";
+        firewallFilter = mkDefault "-p tcp -m tcp --dport ${toString config.port}";
       })];
       internal = true;
       default = {};
