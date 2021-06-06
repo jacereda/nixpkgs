@@ -18,6 +18,10 @@ buildPythonPackage rec {
     sha256 = "sha256-cWQdrGKJyGieBow3TiMj/uB2crIF32Kvl5tVUKg/z+E=";
   };
 
+  postPatch = lib.optionalString stdenv.isDarwin ''
+    substituteInPlace vex/Makefile-gcc --replace '/usr/bin/ar' 'ar'
+  '';
+
   propagatedBuildInputs = [
     archinfo
     bitstring
@@ -28,6 +32,7 @@ buildPythonPackage rec {
 
   preBuild = ''
     export CC=${stdenv.cc.targetPrefix}cc
+    substituteInPlace pyvex_c/Makefile --replace 'AR=ar' 'AR=${stdenv.cc.targetPrefix}ar'
   '';
 
   # No tests are available on PyPI, GitHub release has tests

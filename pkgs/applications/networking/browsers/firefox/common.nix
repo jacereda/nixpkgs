@@ -16,6 +16,10 @@
 
 ### optionals
 
+## backported libraries
+
+, rust-cbindgen_latest
+
 ## optional libraries
 
 , alsaSupport ? stdenv.isLinux, alsaLib
@@ -90,6 +94,8 @@ let
             then "/Applications/${binaryNameCapitalized}.app/Contents/MacOS"
             else "/bin";
 
+  rust-cbindgen_pkg = if lib.versionAtLeast ffversion "89" then rust-cbindgen_latest else rust-cbindgen;
+
   # 78 ESR won't build with rustc 1.47
   inherit (if lib.versionAtLeast ffversion "82" then rustPackages else rustPackages_1_45)
     rustc cargo;
@@ -98,16 +104,22 @@ let
   # clang LTO on Darwin is broken so the stdenv is not being changed.
   # Target the LLVM version that rustc -Vv reports it is built with for LTO.
   # rustPackages_1_45 -> LLVM 10, rustPackages -> LLVM 11
-  llvmPackages = if stdenv.isDarwin
-                 then buildPackages.llvmPackages
-                 else if lib.versionAtLeast rustc.llvm.version "11"
-                      then buildPackages.llvmPackages_11
-                      else buildPackages.llvmPackages_10;
+  llvmPackages0 =
+    /**/ if stdenv.isDarwin
+      then buildPackages.llvmPackages
+    else if lib.versionAtLeast rustc.llvm.version "11"
+      then buildPackages.llvmPackages_11
+    else buildPackages.llvmPackages_10;
+  # Force the use of lld and other llvm tools for LTO
+  llvmPackages = llvmPackages0.override {
+    bootBintoolsNoLibc = null;
+    bootBintools = null;
+  };
 
   # When LTO for Darwin is fixed, the following will need updating as lld
   # doesn't work on it. For now it is fine since ltoSupport implies no Darwin.
   buildStdenv = if ltoSupport
-                then overrideCC stdenv llvmPackages.lldClang
+                then overrideCC stdenv llvmPackages.clangUseLLVM
                 else stdenv;
 
   nss_pkg = if lib.versionOlder ffversion "83" then nss_3_53 else nss;
@@ -220,7 +232,7 @@ buildStdenv.mkDerivation ({
       perl
       pkg-config
       python3
-      rust-cbindgen
+      rust-cbindgen_pkg
       rustc
       which
       unzip
@@ -248,8 +260,8 @@ buildStdenv.mkDerivation ({
       $(< ${buildStdenv.cc}/nix-support/libc-cflags) \
       $(< ${buildStdenv.cc}/nix-support/cc-cflags) \
       $(< ${buildStdenv.cc}/nix-support/libcxx-cxxflags) \
-      ${lib.optionalString buildStdenv.cc.isClang "-idirafter ${buildStdenv.cc.cc}/lib/clang/${lib.getVersion buildStdenv.cc.cc}/include"} \
-      ${lib.optionalString buildStdenv.cc.isGNU "-isystem ${buildStdenv.cc.cc}/include/c++/${lib.getVersion buildStdenv.cc.cc} -isystem ${buildStdenv.cc.cc}/include/c++/${lib.getVersion buildStdenv.cc.cc}/${buildStdenv.hostPlatform.config}"} \
+      ${lib.optionalString buildStdenv.cc.isClang "-idirafter ${buildStdenv.cc.cc.lib}/lib/clang/${lib.getVersion buildStdenv.cc.cc}/include"} \
+      ${lib.optionalString buildStdenv.cc.isGNU "-isystem ${lib.getDev buildStdenv.cc.cc}/include/c++/${lib.getVersion buildStdenv.cc.cc} -isystem ${buildStdenv.cc.cc}/include/c++/${lib.getVersion buildStdenv.cc.cc}/${buildStdenv.hostPlatform.config}"} \
       $NIX_CFLAGS_COMPILE"
 
     echo "ac_add_options BINDGEN_CFLAGS='$BINDGEN_CFLAGS'" >> $MOZCONFIG
@@ -282,7 +294,7 @@ buildStdenv.mkDerivation ({
     "--disable-updater"
     "--enable-jemalloc"
     "--enable-default-toolkit=${default-toolkit}"
-    "--with-libclang-path=${llvmPackages.libclang}/lib"
+    "--with-libclang-path=${llvmPackages.libclang.lib}/lib"
     "--with-system-nspr"
     "--with-system-nss"
   ]
@@ -321,11 +333,11 @@ buildStdenv.mkDerivation ({
     "BUILD_OFFICIAL=1"
   ]
   ++ lib.optionals ltoSupport [
-    "AR=${llvmPackages.bintools}/bin/llvm-ar"
-    "LLVM_OBJDUMP=${llvmPackages.bintools}/bin/llvm-objdump"
-    "NM=${llvmPackages.bintools}/bin/llvm-nm"
-    "RANLIB=${llvmPackages.bintools}/bin/llvm-ranlib"
-    "STRIP=${llvmPackages.bintools}/bin/llvm-strip"
+    "AR=${buildStdenv.cc.bintools.bintools}/bin/llvm-ar"
+    "LLVM_OBJDUMP=${buildStdenv.cc.bintools.bintools}/bin/llvm-objdump"
+    "NM=${buildStdenv.cc.bintools.bintools}/bin/llvm-nm"
+    "RANLIB=${buildStdenv.cc.bintools.bintools}/bin/llvm-ranlib"
+    "STRIP=${buildStdenv.cc.bintools.bintools}/bin/llvm-strip"
   ]
   ++ extraMakeFlags;
 

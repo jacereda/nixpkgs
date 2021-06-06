@@ -21,7 +21,7 @@ common =
   , storeDir
   , stateDir
   , confDir
-  , withLibseccomp ? lib.any (lib.meta.platformMatch stdenv.hostPlatform) libseccomp.meta.platforms, libseccomp
+  , withLibseccomp ? lib.meta.availableOn stdenv.hostPlatform libseccomp, libseccomp
   , withAWS ? !enableStatic && (stdenv.isLinux || stdenv.isDarwin), aws-sdk-cpp
   , enableStatic ? stdenv.hostPlatform.isStatic
   , pname, version, suffix ? "", src
@@ -119,8 +119,11 @@ common =
         [ "--with-store-dir=${storeDir}"
           "--localstatedir=${stateDir}"
           "--sysconfdir=${confDir}"
-          "--disable-init-state"
           "--enable-gc"
+        ]
+        ++ lib.optionals (!is24) [
+          # option was removed in 2.4
+          "--disable-init-state"
         ]
         ++ lib.optionals stdenv.isLinux [
           "--with-sandbox-shell=${sh}/bin/busybox"
@@ -196,18 +199,11 @@ in rec {
 
   nixStable = callPackage common (rec {
     pname = "nix";
-    version = "2.3.10";
+    version = "2.3.12";
     src = fetchurl {
       url = "https://nixos.org/releases/nix/${pname}-${version}/${pname}-${version}.tar.xz";
-      sha256 = "a8a85e55de43d017abbf13036edfb58674ca136691582f17080c1cd12787b7ab";
+      sha256 = "sha256-ITp9ScRhB5syNh5NAI0kjX9o400syTR/Oo/5Ap+a+10=";
     };
-
-    patches = [(
-      fetchpatch {
-        url = "https://github.com/NixOS/nix/pull/4316.patch";
-        sha256 = "0bqlm4n9sac9prgr9xlfng92arisp1hiqvc9pfh4fibsppkgdfc5";
-      }
-    )];
 
     inherit storeDir stateDir confDir boehmgc;
   });
@@ -215,18 +211,17 @@ in rec {
   nixUnstable = lib.lowPrio (callPackage common rec {
     pname = "nix";
     version = "2.4${suffix}";
-    suffix = "pre20210503_6d2553a";
+    suffix = "pre20210601_5985b8b";
 
     src = fetchFromGitHub {
       owner = "NixOS";
       repo = "nix";
-      rev = "6d2553ae1496288554e871c530836428f405fd67";
-      sha256 = "sha256-YeSeyOKhBAXHlkzo4mwYr8QIjIP9AgdpJ7YdhqOO2CA=";
+      rev = "5985b8b5275605ddd5e92e2f0a7a9f494ac6e35d";
+      sha256 = "sha256-2So7ZsD8QJlOXCYqdoj8naNgBw6O4Vw1MM2ORsaqlXc=";
     };
 
     inherit storeDir stateDir confDir boehmgc;
-  });
 
-  nixFlakes = nixUnstable;
+  });
 
 }

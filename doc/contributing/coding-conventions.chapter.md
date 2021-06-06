@@ -169,6 +169,18 @@
   })
   ```
 
+- Unnecessary string conversions should be avoided. Do
+
+  ```nix
+  rev = version;
+  ```
+
+  instead of
+
+  ```nix
+  rev = "${version}";
+  ```
+
 - Arguments should be listed in the order they are used, with the exception of `lib`, which always goes first.
 
 - The top-level `lib` must be used in the master and 21.05 branch over its alias `stdenv.lib` as it now causes evaluation errors when aliases are disabled which is the case for ofborg.
@@ -513,6 +525,16 @@ If you do need to do create this sort of patch file, one way to do so is with gi
     ```ShellSession
     $ git diff > nixpkgs/pkgs/the/package/0001-changes.patch
     ```
+
+If a patch is available online but does not cleanly apply, it can be modified in some fixed ways by using additional optional arguments for `fetchpatch`:
+
+- `stripLen`: Remove the first `stripLen` components of pathnames in the patch.
+- `extraPrefix`: Prefix pathnames by this string.
+- `excludes`: Exclude files matching this pattern.
+- `includes`: Include only files matching this pattern.
+- `revert`: Revert the patch.
+
+Note that because the checksum is computed after applying these effects, using or modifying these arguments will have no effect unless the `sha256` argument is changed as well.
 
 ## Package tests {#sec-package-tests}
 

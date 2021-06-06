@@ -32,7 +32,7 @@
 , python3Minimal
 }:
 
-{ name
+{ pname
 , withLinuxHeaders ? false
 , profilingLibraries ? false
 , withGd ? false
@@ -42,7 +42,7 @@
 
 let
   version = "2.32";
-  patchSuffix = "-40";
+  patchSuffix = "-46";
   sha256 = "0di848ibffrnwq7g2dvgqrnn4xqhj3h96csn69q4da51ymafl9qn";
 in
 
@@ -50,7 +50,7 @@ assert withLinuxHeaders -> linuxHeaders != null;
 assert withGd -> gd != null && libpng != null;
 
 stdenv.mkDerivation ({
-  inherit version;
+  version = version + patchSuffix;
   linuxHeaders = if withLinuxHeaders then linuxHeaders else null;
 
   inherit (stdenv) is64bit;
@@ -61,7 +61,7 @@ stdenv.mkDerivation ({
     [
       /* No tarballs for stable upstream branch, only https://sourceware.org/git/glibc.git and using git would complicate bootstrapping.
           $ git fetch --all -p && git checkout origin/release/2.32/master && git describe
-          glibc-2.32-40-g778b8d3786
+          glibc-2.32-46-g1799ac8eab
           $ git show --minimal --reverse glibc-2.32.. | gzip -9n --rsyncable - > 2.32-master.patch.gz
 
          To compare the archive contents zdiff can be used.
@@ -187,14 +187,13 @@ stdenv.mkDerivation ({
   # bootstrap.
   BASH_SHELL = "/bin/sh";
 
+  # Used by libgcc, elf-header, and others to determine ABI
   passthru = { inherit version; };
 }
 
 // (removeAttrs args [ "withLinuxHeaders" "withGd" ]) //
 
 {
-  name = name + "-${version}${patchSuffix}";
-
   src = fetchurl {
     url = "mirror://gnu/glibc/glibc-${version}.tar.xz";
     inherit sha256;

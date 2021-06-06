@@ -20,7 +20,7 @@
 , dasht
 , direnv
 , fzf
-, gnome3
+, gnome
 , khard
 , languagetool
 , llvmPackages
@@ -97,7 +97,7 @@ self: super: {
     # https://gist.github.com/Mic92/135e83803ed29162817fce4098dec144
     preFixup = ''
       substituteInPlace "$out"/share/vim-plugins/clang_complete/plugin/clang_complete.vim \
-        --replace "let g:clang_library_path = '' + "''" + ''" "let g:clang_library_path='${llvmPackages.clang.cc.lib}/lib/libclang.so'"
+        --replace "let g:clang_library_path = '' + "''" + ''" "let g:clang_library_path='${llvmPackages.libclang.lib}/lib/libclang.so'"
 
       substituteInPlace "$out"/share/vim-plugins/clang_complete/plugin/libclang.py \
         --replace "/usr/lib/clang" "${llvmPackages.clang.cc}/lib/clang"
@@ -515,7 +515,7 @@ self: super: {
 
   vCoolor-vim = super.vCoolor-vim.overrideAttrs (old: {
     # on linux can use either Zenity or Yad.
-    propagatedBuildInputs = [ gnome3.zenity ];
+    propagatedBuildInputs = [ gnome.zenity ];
     meta = {
       description = "Simple color selector/picker plugin";
       license = lib.licenses.publicDomain;
@@ -605,7 +605,7 @@ self: super: {
             libiconv
           ];
 
-          cargoSha256 = "1c8bwvwd23d7c3bk1ky1i8xgfz10dr8nqqcvp20g8rldjl8p2r08";
+          cargoSha256 = "16fhiv6qmf7dv968jyybkgs1wkphy383s78g8w5wnz4i0czld8dq";
         };
       in
       ''
@@ -613,16 +613,6 @@ self: super: {
       '';
 
     meta.platforms = lib.platforms.all;
-  });
-
-  vim-closer = super.vim-closer.overrideAttrs (old: {
-    patches = [
-      # Fix duplicate tag in doc
-      (fetchpatch {
-        url = "https://github.com/rstacruz/vim-closer/commit/a504be8c7050e41b7dfc50c2362948e2cf7c5422.patch";
-        sha256 = "065q30d913fm3pc7r5y53wmnb7q7bhv21qxavm65bkb91242d409";
-      })
-    ];
   });
 
   vim-codefmt = super.vim-codefmt.overrideAttrs (old: {
@@ -730,7 +720,7 @@ self: super: {
       vim-markdown-composer-bin = rustPlatform.buildRustPackage rec {
         pname = "vim-markdown-composer-bin";
         inherit (super.vim-markdown-composer) src version;
-        cargoSha256 = "iuhq2Zhdkib8hw4uvXBjwE5ZiN1kzairlzufaGuVkWc=";
+        cargoSha256 = "1cvnjsw5dd02wrm1q5xi8b033rsn44f7fkmw5j7lhskv5j286zrh";
       };
     in
     super.vim-markdown-composer.overrideAttrs (oldAttrs: rec {

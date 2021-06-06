@@ -18,11 +18,12 @@ let
       inherit callPackage erlang;
       beamPackages = self;
 
+      inherit (callPackage ../tools/build-managers/rebar3 { }) rebar3 rebar3WithPlugins;
       rebar = callPackage ../tools/build-managers/rebar { };
-      rebar3 = callPackage ../tools/build-managers/rebar3 { };
 
       # rebar3 port compiler plugin is required by buildRebar3
       pc = callPackage ./pc { };
+      rebar3-nix = callPackage ./rebar3-nix { };
 
       fetchHex = callPackage ./fetch-hex.nix { };
 
@@ -32,8 +33,11 @@ let
       buildRebar3 = callPackage ./build-rebar3.nix { };
       buildHex = callPackage ./build-hex.nix { };
       buildErlangMk = callPackage ./build-erlang-mk.nix { };
+      buildMix = callPackage ./build-mix.nix { };
       fetchMixDeps = callPackage ./fetch-mix-deps.nix { };
       mixRelease = callPackage ./mix-release.nix { };
+
+      erlang-ls = callPackage ./erlang-ls { };
 
       # BEAM-based languages.
       elixir = elixir_1_11;
@@ -69,7 +73,6 @@ let
       # https://hexdocs.pm/elixir/compatibility-and-deprecations.html
 
       lfe = lfe_1_3;
-      lfe_1_2 = lib'.callLFE ../interpreters/lfe/1.2.nix { inherit erlang buildRebar3 buildHex; };
       lfe_1_3 = lib'.callLFE ../interpreters/lfe/1.3.nix { inherit erlang buildRebar3 buildHex; };
 
       # Non hex packages. Examples how to build Rebar/Mix packages with and
@@ -77,9 +80,6 @@ let
       hex = callPackage ./hex { };
       webdriver = callPackage ./webdriver { };
       relxExe = callPackage ../tools/erlang/relx-exe { };
-
-      # An example of Erlang/C++ package.
-      cuter = callPackage ../tools/erlang/cuter { };
     };
 in
 makeExtensible packages

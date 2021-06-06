@@ -11,6 +11,10 @@ self: super: {
 
   ldgallery-compiler = self.callPackage ../../tools/graphics/ldgallery/compiler { };
 
+  # Used by maintainers/scripts/regenerate-hackage-packages.sh, and generated
+  # from the latest master instead of the current version on Hackage.
+  cabal2nix-unstable = self.callPackage ./cabal2nix-unstable.nix { };
+
   # https://github.com/channable/vaultenv/issues/1
   vaultenv = self.callPackage ../tools/haskell/vaultenv { };
 
@@ -32,4 +36,16 @@ self: super: {
   # Unofficial fork until PRs are merged https://github.com/pcapriotti/optparse-applicative/pulls/roberth
   # cabal2nix --maintainer roberth https://github.com/hercules-ci/optparse-applicative.git > pkgs/development/misc/haskell/hercules-ci-optparse-applicative.nix
   hercules-ci-optparse-applicative = self.callPackage ../misc/haskell/hercules-ci-optparse-applicative.nix {};
+
+  #
+  # Backports
+  #
+
+  # This file overrides packages in `hackage-packages.nix`.
+
+  # Backport arion, to support Podman instead of Docker, for those who need NixOS-based containers.
+  # Generated with:
+  # nix-shell -I nixpkgs=$PWD -p cabal-install -p cabal2nix --run 'cabal update; cabal2nix cabal://arion-compose > pkgs/applications/virtualization/arion/arion-compose.nix'
+  arion-compose = self.callPackage ../../applications/virtualization/arion/arion-compose.nix {};
+
 }

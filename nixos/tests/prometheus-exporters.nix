@@ -302,7 +302,7 @@ let
         url = "http://localhost";
         configFile = pkgs.writeText "json-exporter-conf.json" (builtins.toJSON {
           metrics = [
-            { name = "json_test_metric"; path = "$.test"; }
+            { name = "json_test_metric"; path = "{ .test }"; }
           ];
         });
       };
@@ -326,6 +326,57 @@ let
       '';
     };
 
+    kea = {
+      exporterConfig = {
+        enable = true;
+        controlSocketPaths = [
+          "/run/kea/kea-dhcp6.sock"
+        ];
+      };
+      metricProvider = {
+        users.users.kea = {
+          isSystemUser = true;
+        };
+        users.groups.kea = {};
+
+        systemd.services.prometheus-kea-exporter.after = [ "kea-dhcp6.service" ];
+
+        systemd.services.kea-dhcp6 = let
+          configFile = pkgs.writeText "kea-dhcp6.conf" (builtins.toJSON {
+            Dhcp6 = {
+              "control-socket" = {
+                "socket-type" = "unix";
+                "socket-name" = "/run/kea/kea-dhcp6.sock";
+              };
+            };
+          });
+        in
+        {
+          after = [ "network.target" ];
+          wantedBy = [ "multi-user.target" ];
+
+          serviceConfig = {
+            DynamicUser = false;
+            User = "kea";
+            Group = "kea";
+            ExecStart = "${pkgs.kea}/bin/kea-dhcp6 -c ${configFile}";
+            StateDirectory = "kea";
+            RuntimeDirectory = "kea";
+            UMask = "0007";
+          };
+        };
+      };
+      exporterTest = ''
+        wait_for_unit("kea-dhcp6.service")
+        wait_for_file("/run/kea/kea-dhcp6.sock")
+        wait_for_unit("prometheus-kea-exporter.service")
+        wait_for_open_port(9547)
+        succeed(
+            "curl --fail localhost:9547/metrics | grep 'packets_received_total'"
+        )
+      '';
+    };
+
     knot = {
       exporterConfig = {
         enable = true;
@@ -334,13 +385,48 @@ let
         services.knot = {
           enable = true;
           extraArgs = [ "-v" ];
+          extraConfig = ''
+            server:
+              listen: 127.0.0.1@53
+
+            template:
+              - id: default
+                global-module: mod-stats
+                dnssec-signing: off
+                zonefile-sync: -1
+                journal-db: /var/lib/knot/journal
+                kasp-db: /var/lib/knot/kasp
+                timer-db: /var/lib/knot/timer
+                zonefile-load: difference
+                storage: ${pkgs.buildEnv {
+                  name = "foo";
+                  paths = [
+                    (pkgs.writeTextDir "test.zone" ''
+                      @ SOA ns.example.com. noc.example.com. 2019031301 86400 7200 3600000 172800
+                      @       NS      ns1
+                      @       NS      ns2
+                      ns1     A       192.168.0.1
+                    '')
+                  ];
+                }}
+
+            mod-stats:
+              - id: custom
+                edns-presence: on
+                query-type: on
+
+            zone:
+              - domain: test
+                file: test.zone
+                module: mod-stats/custom
+          '';
         };
       };
       exporterTest = ''
         wait_for_unit("knot.service")
         wait_for_unit("prometheus-knot-exporter.service")
         wait_for_open_port(9433)
-        succeed("curl -sSf 'localhost:9433' | grep -q 'knot_server_zone_count 0.0'")
+        succeed("curl -sSf 'localhost:9433' | grep -q 'knot_server_zone_count 1.0'")
       '';
     };
 
@@ -371,8 +457,8 @@ let
       };
       metricProvider = {
         systemd.services.prometheus-lnd-exporter.serviceConfig.DynamicUser = false;
-        services.bitcoind.enable = true;
-        services.bitcoind.extraConfig = ''
+        services.bitcoind.main.enable = true;
+        services.bitcoind.main.extraConfig = ''
           rpcauth=bitcoinrpc:e8fe33f797e698ac258c16c8d7aadfbe$872bdb8f4d787367c26bcfd75e6c23c4f19d44a69f5d1ad329e5adf3f82710f7
           bitcoind.zmqpubrawblock=tcp://127.0.0.1:28332
           bitcoind.zmqpubrawtx=tcp://127.0.0.1:28333
@@ -986,7 +1072,7 @@ let
         # Note: this does not connect the test environment to the Tor network.
         # Client, relay, bridge or exit connectivity are disabled by default.
         services.tor.enable = true;
-        services.tor.controlPort = 9051;
+        services.tor.settings.ControlPort = 9051;
       };
       exporterTest = ''
         wait_for_unit("tor.service")
