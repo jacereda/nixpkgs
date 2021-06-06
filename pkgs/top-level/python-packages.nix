@@ -267,6 +267,8 @@ in {
     pytestCheckHook = self.pytestCheckHook_6_1;
   };
 
+  aiohttp-apispec  = callPackage ../development/python-modules/aiohttp-apispec { };
+
   aiohttp-cors = callPackage ../development/python-modules/aiohttp-cors { };
 
   aiohttp-jinja2 = callPackage ../development/python-modules/aiohttp-jinja2 { };
@@ -438,6 +440,8 @@ in {
   apipkg = callPackage ../development/python-modules/apipkg { };
 
   apispec = callPackage ../development/python-modules/apispec { };
+
+  apispec_3 = callPackage ../development/python-modules/apispec/3.nix {};
 
   aplpy = callPackage ../development/python-modules/aplpy { };
 
@@ -3821,6 +3825,8 @@ in {
   libtmux = callPackage ../development/python-modules/libtmux { };
 
   libtorrent-rasterbar = (toPythonModule (pkgs.libtorrent-rasterbar.override { inherit python; })).python;
+
+  libtorrent-rasterbar-1_2_x = (toPythonModule (pkgs.libtorrent-rasterbar-1_2_x.override { inherit python; })).python;
 
   libusb1 = callPackage ../development/python-modules/libusb1 {
     inherit (pkgs) libusb1;
@@ -8540,6 +8546,8 @@ in {
   weasyprint = callPackage ../development/python-modules/weasyprint { };
 
   webapp2 = callPackage ../development/python-modules/webapp2 { };
+
+  webargs = callPackage ../development/python-modules/webargs { };
 
   webassets = callPackage ../development/python-modules/webassets { };
 
