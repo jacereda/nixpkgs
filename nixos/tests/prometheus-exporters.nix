@@ -75,6 +75,21 @@ let
       '';
     };
 
+    artifactory = {
+      exporterConfig = {
+        enable = true;
+        artiUsername = "artifactory-username";
+        artiPassword = "artifactory-password";
+      };
+      exporterTest = ''
+        wait_for_unit("prometheus-artifactory-exporter.service")
+        wait_for_open_port(9531)
+        succeed(
+            "curl -sSf http://localhost:9531/metrics | grep -q 'artifactory_up'"
+        )
+      '';
+    };
+
     bind = {
       exporterConfig = {
         enable = true;
@@ -218,14 +233,38 @@ let
       '';
     };
 
+    jitsi = {
+      exporterConfig = {
+        enable = true;
+      };
+      metricProvider = {
+        systemd.services.prometheus-jitsi-exporter.after = [ "jitsi-videobridge2.service" ];
+        services.jitsi-videobridge = {
+          enable = true;
+          apis = [ "colibri" "rest" ];
+        };
+      };
+      exporterTest = ''
+        wait_for_unit("jitsi-videobridge2.service")
+        wait_for_open_port(8080)
+        wait_for_unit("prometheus-jitsi-exporter.service")
+        wait_for_open_port(9700)
+        wait_until_succeeds(
+            'journalctl -eu prometheus-jitsi-exporter.service -o cat | grep -q "key=participants"'
+        )
+        succeed("curl -sSf 'localhost:9700/metrics' | grep -q 'jitsi_participants 0'")
+      '';
+    };
+
     json = {
       exporterConfig = {
         enable = true;
         url = "http://localhost";
-        configFile = pkgs.writeText "json-exporter-conf.json" (builtins.toJSON [{
-          name = "json_test_metric";
-          path = "$.test";
-        }]);
+        configFile = pkgs.writeText "json-exporter-conf.json" (builtins.toJSON {
+          metrics = [
+            { name = "json_test_metric"; path = "$.test"; }
+          ];
+        });
       };
       metricProvider = {
         systemd.services.prometheus-json-exporter.after = [ "nginx.service" ];
@@ -241,7 +280,27 @@ let
         wait_for_open_port(80)
         wait_for_unit("prometheus-json-exporter.service")
         wait_for_open_port(7979)
-        succeed("curl -sSf localhost:7979/metrics | grep -q 'json_test_metric 1'")
+        succeed(
+            "curl -sSf 'localhost:7979/probe?target=http://localhost' | grep -q 'json_test_metric 1'"
+        )
+      '';
+    };
+
+    knot = {
+      exporterConfig = {
+        enable = true;
+      };
+      metricProvider = {
+        services.knot = {
+          enable = true;
+          extraArgs = [ "-v" ];
+        };
+      };
+      exporterTest = ''
+        wait_for_unit("knot.service")
+        wait_for_unit("prometheus-knot-exporter.service")
+        wait_for_open_port(9433)
+        succeed("curl -sSf 'localhost:9433' | grep -q 'knot_server_zone_count 0.0'")
       '';
     };
 
@@ -420,7 +479,7 @@ let
       exporterConfig = {
         enable = true;
         passwordFile = "/var/nextcloud-pwfile";
-        url = "http://localhost/negative-space.xml";
+        url = "http://localhost";
       };
       metricProvider = {
         systemd.services.nc-pwfile = let
@@ -438,6 +497,7 @@ let
             basicAuth.nextcloud-exporter = "snakeoilpw";
             locations."/" = {
               root = "${pkgs.prometheus-nextcloud-exporter.src}/serverinfo/testdata";
+              tryFiles = "/negative-space.xml =404";
             };
           };
         };
@@ -659,7 +719,7 @@ let
         wait_for_open_port(11334)
         wait_for_open_port(7980)
         wait_until_succeeds(
-            "curl -sSf localhost:7980/metrics | grep -q 'rspamd_scanned{host=\"rspamd\"} 0'"
+            "curl -sSf 'localhost:7980/probe?target=http://localhost:11334/stat' | grep -q 'rspamd_scanned{host=\"rspamd\"} 0'"
         )
       '';
     };
@@ -795,6 +855,22 @@ let
         wait_for_unit("prometheus-surfboard-exporter.service")
         wait_for_open_port(9239)
         succeed("curl -sSf localhost:9239/metrics | grep -q 'surfboard_up 1'")
+      '';
+    };
+
+    systemd = {
+      exporterConfig = {
+        enable = true;
+      };
+      metricProvider = { };
+      exporterTest = ''
+        wait_for_unit("prometheus-systemd-exporter.service")
+        wait_for_open_port(9558)
+        succeed(
+            "curl -sSf localhost:9558/metrics | grep -q '{}'".format(
+                'systemd_unit_state{name="basic.target",state="active",type="target"} 1'
+            )
+        )
       '';
     };
 

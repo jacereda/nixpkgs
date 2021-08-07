@@ -1,18 +1,19 @@
-{ lib, fetchurl, fetchFromGitHub, callPackage
+{ lib, fetchurl, fetchFromGitHub, fetchpatch, callPackage
 , storeDir ? "/nix/store"
 , stateDir ? "/nix/var"
 , confDir ? "/etc"
 , boehmgc
+, Security
 }:
 
 let
 
 common =
-  { lib, stdenv, fetchpatch, perl, curl, bzip2, sqlite, openssl ? null, xz
-  , bash, coreutils, gzip, gnutar
-  , pkgconfig, boehmgc, perlPackages, libsodium, brotli, boost, editline, nlohmann_json
+  { lib, stdenv, perl, curl, bzip2, sqlite, openssl ? null, xz
+  , bash, coreutils, util-linuxMinimal, gzip, gnutar
+  , pkg-config, boehmgc, perlPackages, libsodium, brotli, boost, editline, nlohmann_json
   , autoreconfHook, autoconf-archive, bison, flex
-  , jq, libarchive
+  , jq, libarchive, libcpuid
   , lowdown, mdbook
   # Used by tests
   , gmock
@@ -22,14 +23,14 @@ common =
   , confDir
   , withLibseccomp ? lib.any (lib.meta.platformMatch stdenv.hostPlatform) libseccomp.meta.platforms, libseccomp
   , withAWS ? !enableStatic && (stdenv.isLinux || stdenv.isDarwin), aws-sdk-cpp
-  , enableStatic ? false
+  , enableStatic ? stdenv.hostPlatform.isStatic
   , name, suffix ? "", src
-
+  , patches ? [ ]
   }:
   let
      sh = busybox-sandbox-shell;
      nix = stdenv.mkDerivation rec {
-      inherit name src;
+      inherit name src patches;
       version = lib.getVersion name;
 
       is24 = lib.versionAtLeast version "2.4pre";
@@ -39,12 +40,13 @@ common =
       outputs = [ "out" "dev" "man" "doc" ];
 
       nativeBuildInputs =
-        [ pkgconfig ]
+        [ pkg-config ]
+        ++ lib.optionals (is24 && stdenv.isLinux) [ util-linuxMinimal ]
         ++ lib.optionals is24
           [ autoreconfHook
             autoconf-archive
             bison flex
-            lowdown mdbook
+            (lib.getBin lowdown) mdbook
             jq
            ];
 
@@ -52,18 +54,19 @@ common =
         [ curl openssl sqlite xz bzip2 nlohmann_json
           brotli boost editline
         ]
+        ++ lib.optionals stdenv.isDarwin [ Security ]
         ++ lib.optional (stdenv.isLinux || stdenv.isDarwin) libsodium
-        ++ lib.optionals is24 [ libarchive gmock ]
+        ++ lib.optionals is24 [ libarchive gmock lowdown ]
+        ++ lib.optional (is24 && stdenv.isx86_64) libcpuid
         ++ lib.optional withLibseccomp libseccomp
         ++ lib.optional withAWS
             ((aws-sdk-cpp.override {
               apis = ["s3" "transfer"];
               customMemoryManagement = false;
             }).overrideDerivation (args: {
-              patches = args.patches or [] ++ [(fetchpatch {
-                url = "https://github.com/edolstra/aws-sdk-cpp/commit/7d58e303159b2fb343af9a1ec4512238efa147c7.patch";
-                sha256 = "103phn6kyvs1yc7fibyin3lgxz699qakhw671kl207484im55id1";
-              })];
+              patches = args.patches or [] ++ [
+                ./aws-sdk-cpp-TransferManager-ContentEncoding.patch
+              ];
             }));
 
       propagatedBuildInputs = [ boehmgc ];
@@ -98,7 +101,7 @@ common =
         # when cross-compiling.
         lib.optionalString (
           stdenv.buildPlatform != stdenv.hostPlatform &&
-          (lib.versionOlder "2.3.8" (lib.traceVal version) && !is24)
+          (lib.versionOlder "2.3.8" version && !is24)
           # The additional is24 condition is required as versionOlder doesn't understand nixUnstable version strings
         ) ''
           mkdir tmp/
@@ -125,7 +128,7 @@ common =
         ]
         ++ lib.optional (
             stdenv.hostPlatform != stdenv.buildPlatform && stdenv.hostPlatform ? nix && stdenv.hostPlatform.nix ? system
-        ) ''--with-system=${stdenv.hostPlatform.nix.system}''
+        ) "--with-system=${stdenv.hostPlatform.nix.system}"
            # RISC-V support in progress https://github.com/seccomp/libseccomp/pull/50
         ++ lib.optional (!withLibseccomp) "--disable-seccomp-sandboxing";
 
@@ -135,6 +138,17 @@ common =
       installFlags = [ "sysconfdir=$(out)/etc" ];
 
       doInstallCheck = true; # not cross
+
+
+      # socket path becomes too long otherwise
+      preInstallCheck = lib.optionalString stdenv.isDarwin ''
+        export TMPDIR=$NIX_BUILD_TOP
+      '' +
+      # tests/ca/substitute.sh is flakey for some reason, so we skip it
+      # for now. https://github.com/NixOS/nix/issues/4667
+      lib.optionalString is24 ''
+        echo "exit 99" > tests/ca/substitute.sh
+      '';
 
       separateDebugInfo = stdenv.isLinux;
 
@@ -150,9 +164,9 @@ common =
           environments.
         '';
         homepage = "https://nixos.org/";
-        license = stdenv.lib.licenses.lgpl2Plus;
-        maintainers = [ stdenv.lib.maintainers.eelco ];
-        platforms = stdenv.lib.platforms.unix;
+        license = lib.licenses.lgpl2Plus;
+        maintainers = [ lib.maintainers.eelco ];
+        platforms = lib.platforms.unix;
         outputsToInstall = [ "out" "man" ];
       };
 
@@ -168,7 +182,7 @@ common =
           # This is not cross-compile safe, don't have time to fix right now
           # but noting for future travellers.
           nativeBuildInputs =
-            [ perl pkgconfig curl nix libsodium boost autoreconfHook autoconf-archive nlohmann_json ];
+            [ perl pkg-config curl nix libsodium boost autoreconfHook autoconf-archive nlohmann_json ];
 
           configureFlags =
             [ "--with-dbi=${perlPackages.DBI}/${perl.libPrefix}"
@@ -194,18 +208,25 @@ in rec {
       sha256 = "a8a85e55de43d017abbf13036edfb58674ca136691582f17080c1cd12787b7ab";
     };
 
+    patches = [(
+      fetchpatch {
+        url = "https://github.com/NixOS/nix/pull/4316.patch";
+        sha256 = "0bqlm4n9sac9prgr9xlfng92arisp1hiqvc9pfh4fibsppkgdfc5";
+      }
+    )];
+
     inherit storeDir stateDir confDir boehmgc;
   });
 
   nixUnstable = lib.lowPrio (callPackage common rec {
     name = "nix-2.4${suffix}";
-    suffix = "pre20201201_5a6ddb3";
+    suffix = "pre20210317_8a5203d";
 
     src = fetchFromGitHub {
       owner = "NixOS";
       repo = "nix";
-      rev = "5a6ddb3de14a1684af6c793d663764d093fa7846";
-      sha256 = "0qhd3nxvqzszzsfvh89xhd239ycqb0kq2n0bzh9br78pcb60vj3g";
+      rev = "8a5203d3b836497c2c5f157f85008aa8bcb6a1d2";
+      sha256 = "IMzdmoWAX6Lerhslsf7h2814xjJolPnl2bICDixRgdk=";
     };
 
     inherit storeDir stateDir confDir boehmgc;

@@ -1,5 +1,5 @@
-{ stdenv, lib, fetchurl, pkgconfig, fetchpatch
-, bzip2, curl, expat, libarchive, xz, zlib, libuv, rhash
+{ stdenv, lib, fetchurl, pkg-config
+, bzip2, curlMinimal, expat, libarchive, xz, zlib, libuv, rhash
 , buildPackages
 # darwin attributes
 , ps
@@ -14,18 +14,18 @@
 assert withQt5 -> useQt4 == false;
 assert useQt4 -> withQt5 == false;
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (rec {
   pname = "cmake"
           + lib.optionalString isBootstrap "-boot"
           + lib.optionalString useNcurses "-cursesUI"
           + lib.optionalString withQt5 "-qt5UI"
           + lib.optionalString useQt4 "-qt4UI";
-  version = "3.19.1";
+  version = "3.19.6";
 
   src = fetchurl {
     url = "${meta.homepage}files/v${lib.versions.majorMinor version}/cmake-${version}.tar.gz";
     # compare with https://cmake.org/files/v${lib.versions.majorMinor version}/cmake-${version}-SHA-256.txt
-    sha256 = "1fisi9rlijw9wd0yjzk1c6j7ljnb2yiq5iqnrz6m1xkflyinw9hx";
+    sha256 = "sha256-7IerZ8RfR8QoXyBCgMXN5I4ckgz8/tFVWyf7OxodILo=";
   };
 
   patches = [
@@ -38,12 +38,6 @@ stdenv.mkDerivation rec {
     # Derived from https://github.com/libuv/libuv/commit/1a5d4f08238dd532c3718e210078de1186a5920d
     ./libuv-application-services.patch
 
-    # Fix namelink failures, can be removed in 3.19.2+
-    (fetchpatch {
-      url = "https://gitlab.kitware.com/cmake/cmake/-/commit/38bcb5c0a3accd2dd29fb7632c6b3bf31b990d82.patch";
-      sha256 = "17yr66wrayhmavsz46b37zfwp2jcwab1zig2xqps39ysndf74qjc";
-    })
-
   ] ++ lib.optional stdenv.isCygwin ./3.2.2-cygwin.patch;
 
   outputs = [ "out" ];
@@ -53,10 +47,10 @@ stdenv.mkDerivation rec {
 
   depsBuildBuild = [ buildPackages.stdenv.cc ];
 
-  nativeBuildInputs = [ setupHook pkgconfig ];
+  nativeBuildInputs = [ setupHook pkg-config ];
 
   buildInputs = []
-    ++ lib.optionals useSharedLibraries [ bzip2 curl expat libarchive xz zlib libuv rhash ]
+    ++ lib.optionals useSharedLibraries [ bzip2 curlMinimal expat libarchive xz zlib libuv rhash ]
     ++ lib.optional useOpenSSL openssl
     ++ lib.optional useNcurses ncurses
     ++ lib.optional useQt4 qt4
@@ -70,8 +64,6 @@ stdenv.mkDerivation rec {
       --subst-var-by libc_bin ${lib.getBin stdenv.cc.libc} \
       --subst-var-by libc_dev ${lib.getDev stdenv.cc.libc} \
       --subst-var-by libc_lib ${lib.getLib stdenv.cc.libc}
-    substituteInPlace Modules/FindCxxTest.cmake \
-      --replace "$""{PYTHON_EXECUTABLE}" ${stdenv.shell}
   ''
   # CC_FOR_BUILD and CXX_FOR_BUILD are used to bootstrap cmake
   + ''
@@ -136,4 +128,5 @@ stdenv.mkDerivation rec {
     maintainers = with maintainers; [ ttuegel lnl7 ];
     license = licenses.bsd3;
   };
-}
+} // (if withQt5 then { dontWrapQtApps = true; } else {})
+)

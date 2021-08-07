@@ -1,8 +1,9 @@
-{ stdenv, fetchurl, lib, darwin
+{ lib, stdenv, fetchurl, lib, darwin
 , x11Support? (!stdenv.isDarwin), libGLU, xlibsWrapper, libXmu, libXi
+, OpenGL
 }:
 
-with stdenv.lib;
+with lib;
 
 stdenv.mkDerivation rec {
   name = "glew-2.2.0";
@@ -48,7 +49,7 @@ stdenv.mkDerivation rec {
 
   enableParallelBuilding = true;
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "An OpenGL extension loading library for C(++)";
     homepage = "http://glew.sourceforge.net/";
     license = licenses.free; # different files under different licenses

@@ -99,14 +99,6 @@ stdenv.mkDerivation ((lib.optionalAttrs (buildScript != null) {
   # elements specified above.
   dontPatchELF = true;
 
-  # Disable stripping to avoid breaking placeholder DLLs/EXEs.
-  # Symptoms of broken placeholders are: when the wineprefix is created
-  # drive_c/windows/system32 will only contain a few files instead of
-  # hundreds, there will be an error about winemenubuilder and MountMgr
-  # on startup of Wine, and the Drives tab in winecfg will show an error.
-  # TODO: binutils 2.34 contains a fix for this bug, re-enable stripping once available.
-  dontStrip = true;
-
   ## FIXME
   # Add capability to ignore known failing tests
   # and enable doCheck
@@ -156,8 +148,8 @@ stdenv.mkDerivation ((lib.optionalAttrs (buildScript != null) {
   meta = {
     inherit version platforms;
     homepage = "https://www.winehq.org/";
-    license = with stdenv.lib.licenses; [ lgpl21Plus ];
+    license = with lib.licenses; [ lgpl21Plus ];
     description = "An Open Source implementation of the Windows API on top of X, OpenGL, and Unix";
-    maintainers = with stdenv.lib.maintainers; [ avnik raskin bendlas ];
+    maintainers = with lib.maintainers; [ avnik raskin bendlas ];
   };
 })

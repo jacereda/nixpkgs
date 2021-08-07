@@ -1,4 +1,4 @@
-{ stdenv, lib, fetchFromGitHub, scons, pkgconfig
+{ stdenv, lib, fetchFromGitHub, scons, pkg-config
 , useX11? !stdenv.isDarwin, libX11, libXcursor , libXinerama, libXrandr, libXrender, libXi, libXext, libXfixes, libGLU
 , libpulseaudio
 , freetype, openssl
@@ -22,7 +22,7 @@ in stdenv.mkDerivation rec {
     sha256 = "19vrp5lhyvxbm6wjxzn28sn3i0s8j08ca7nani8l1nrhvlc8wi0v";
   };
 
-  nativeBuildInputs = [ pkgconfig ];
+  nativeBuildInputs = [ pkg-config ];
   buildInputs = [
     scons freetype openssl libpulseaudio zlib yasm
   ] ++ stdenv.lib.optionals useX11 [
@@ -69,8 +69,8 @@ in stdenv.mkDerivation rec {
   meta = {
     homepage    = "https://godotengine.org";
     description = "Free and Open Source 2D and 3D game engine";
-    license     = stdenv.lib.licenses.mit;
+    license     = lib.licenses.mit;
     platforms   = [ "i686-linux" "x86_64-linux" "x86_64-darwin"];
-    maintainers = [ stdenv.lib.maintainers.twey ];
+    maintainers = [ lib.maintainers.twey ];
   };
 }
