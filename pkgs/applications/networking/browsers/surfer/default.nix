@@ -1,4 +1,4 @@
-{ stdenv, fetchFromGitHub
+{ stdenv, lib, fetchFromGitHub
 , pkgconfig, wrapGAppsHook
 , gtk3
 , webkitgtk
@@ -38,7 +38,7 @@ stdenv.mkDerivation rec {
 
   inherit patches;
 
-  meta = with stdenv.lib; {
+  meta = with lib; {
     description = "Simple keyboard based webkit2gtk browser";
     longDescription = ''
     Simple keyboard based web browser. No tabs.

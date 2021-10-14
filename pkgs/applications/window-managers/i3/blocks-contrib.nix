@@ -1,4 +1,4 @@
-{ fetchFromGitHub, stdenv
+{ fetchFromGitHub, stdenv, lib
 , bc
 , envsubst
 , libnotify
@@ -8,8 +8,6 @@
 , sysstat
 , yad
 }:
-
-with stdenv.lib;
 
 stdenv.mkDerivation {
   pname = "i3blocks-contrib";
@@ -42,7 +40,7 @@ stdenv.mkDerivation {
   meta = {
     description = "Community-contributed blocklets for i3blocks";
     Homepage = https://github.com/vivien/i3blocks-contrib;
-    license = licenses.gpl3;
-    platforms = with platforms; linux;
+    license = lib.licenses.gpl3;
+    platforms = lib.platforms.linux;
   };
 }
