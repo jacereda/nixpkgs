@@ -9646,8 +9646,6 @@ in {
 
   webapp2 = callPackage ../development/python-modules/webapp2 { };
 
-  webargs = callPackage ../development/python-modules/webargs { };
-
   webassets = callPackage ../development/python-modules/webassets { };
 
   web = callPackage ../development/python-modules/web { };
