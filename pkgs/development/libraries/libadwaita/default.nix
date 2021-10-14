@@ -2,35 +2,40 @@
 , stdenv
 , fetchFromGitLab
 , docbook-xsl-nons
+, gi-docgen
 , gtk-doc
+, libxml2
 , meson
 , ninja
 , pkg-config
 , sassc
 , vala
 , gobject-introspection
+, fribidi
 , gtk4
-, xvfb_run
+, xvfb-run
 }:
 
 stdenv.mkDerivation rec {
   pname = "libadwaita";
-  version = "unstable-2021-05-01";
+  version = "1.0.0-alpha.2";
 
   outputs = [ "out" "dev" "devdoc" ];
-  outputBin = "dev";
+  outputBin = "devdoc"; # demo app
 
   src = fetchFromGitLab {
     domain = "gitlab.gnome.org";
     owner = "GNOME";
     repo = "libadwaita";
-    rev = "8d66b987a19979d9d7b85dacc6bad5ce0c8743fe";
-    sha256 = "0i3wav6jsyi4w4i2r1rad769m5y5s9djj4zqb7dfyh0bad24ba3q";
+    rev = version;
+    sha256 = "1yvjdzs5ipmr4gi0l4k6dkqhl9b090kpjc3ll8bv1a6i7yfaf53s";
   };
 
   nativeBuildInputs = [
     docbook-xsl-nons
+    gi-docgen
     gtk-doc
+    libxml2 # for xmllint
     meson
     ninja
     pkg-config
@@ -43,18 +48,23 @@ stdenv.mkDerivation rec {
   ];
 
   buildInputs = [
+    fribidi
     gobject-introspection
     gtk4
   ];
 
   checkInputs = [
-    xvfb_run
+    xvfb-run
   ];
 
   doCheck = true;
 
   checkPhase = ''
     xvfb-run meson test
+  '';
+
+  postInstall = ''
+    mv $out/share/{doc,gtk-doc}
   '';
 
   meta = with lib; {

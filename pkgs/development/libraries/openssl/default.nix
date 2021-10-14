@@ -54,7 +54,10 @@ let
 
     outputs = [ "bin" "dev" "out" "man" ] ++ optional withDocs "doc";
     setOutputFlags = false;
-    separateDebugInfo = !(stdenv.hostPlatform.useLLVM or false) && stdenv.cc.isGNU;
+    separateDebugInfo =
+      !stdenv.hostPlatform.isDarwin &&
+      !(stdenv.hostPlatform.useLLVM or false) &&
+      stdenv.cc.isGNU;
 
     nativeBuildInputs = [ perl ];
     buildInputs = lib.optional withCryptodev cryptodev
@@ -69,6 +72,7 @@ let
         armv6l-linux = "./Configure linux-armv4 -march=armv6";
         armv7l-linux = "./Configure linux-armv4 -march=armv7-a";
         x86_64-darwin  = "./Configure darwin64-x86_64-cc";
+        aarch64-darwin = "./Configure darwin64-arm64-cc";
         x86_64-linux = "./Configure linux-x86_64";
         x86_64-solaris = "./Configure solaris64-x86_64-gcc";
       }.${stdenv.hostPlatform.system} or (
@@ -92,6 +96,8 @@ let
           throw "Not sure what configuration to use for ${stdenv.hostPlatform.config}"
       );
 
+    # OpenSSL doesn't like the `--enable-static` / `--disable-shared` flags.
+    dontAddStaticConfigureFlags = true;
     configureFlags = [
       "shared" # "shared" builds both shared and static libraries
       "--libdir=lib"
@@ -125,8 +131,6 @@ let
       if [ -n "$(echo $out/lib/*.so $out/lib/*.dylib $out/lib/*.dll)" ]; then
           rm "$out/lib/"*.a
       fi
-
-      mkdir -p $bin
     '' + lib.optionalString (!stdenv.hostPlatform.isWindows)
       # Fix bin/c_rehash's perl interpreter line
       #
@@ -140,9 +144,9 @@ let
       # "#!/usr/bin/env perl"
     ''
       substituteInPlace $out/bin/c_rehash --replace ${buildPackages.perl}/bin/perl "/usr/bin/env perl"
-    '' +
-    ''
-      mv $out/bin $bin/
+    '' + ''
+      mkdir -p $bin
+      mv $out/bin $bin/bin
 
       mkdir $dev
       mv $out/include $dev/
@@ -181,19 +185,23 @@ in {
       (if stdenv.hostPlatform.isDarwin
        then ./1.0.2/use-etc-ssl-certs-darwin.patch
        else ./1.0.2/use-etc-ssl-certs.patch)
+    ] ++ lib.optionals (stdenv.hostPlatform.system == "aarch64-darwin") [
+      ./1.0.2/darwin64-arm64.patch
     ];
     extraMeta.knownVulnerabilities = [ "Support for OpenSSL 1.0.2 ended with 2019." ];
   };
 
   openssl_1_1 = common {
-    version = "1.1.1k";
-    sha256 = "1rdfzcrxy9y38wqdw5942vmdax9hjhgrprzxm42csal7p5shhal9";
+    version = "1.1.1l";
+    sha256 = "sha256-C3o+XlnDSCf+DDp0t+yLrvMCuY+oAIjX+RU6oW+na9E=";
     patches = [
       ./1.1/nix-ssl-cert-file.patch
 
       (if stdenv.hostPlatform.isDarwin
        then ./1.1/use-etc-ssl-certs-darwin.patch
        else ./1.1/use-etc-ssl-certs.patch)
+    ] ++ lib.optionals (stdenv.isDarwin) [
+      ./1.1/macos-yosemite-compat.patch
     ];
     withDocs = true;
   };

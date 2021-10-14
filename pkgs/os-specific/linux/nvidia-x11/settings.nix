@@ -27,7 +27,7 @@ let
       cd src/libXNVCtrl
     '';
 
-    makeFlags = [
+    makeFlags = nvidia_x11.makeFlags ++ [
       "OUTPUTDIR=." # src/libXNVCtrl
     ];
 
@@ -54,7 +54,7 @@ stdenv.mkDerivation {
              ++ lib.optionals withGtk3 [ gtk3 librsvg wrapGAppsHook ];
 
   enableParallelBuilding = true;
-  makeFlags = [ "NV_USE_BUNDLED_LIBJANSSON=0" ];
+  makeFlags = nvidia_x11.makeFlags ++ [ "NV_USE_BUNDLED_LIBJANSSON=0" ];
   installFlags = [ "PREFIX=$(out)" ];
 
   postPatch = lib.optionalString nvidia_x11.useProfiles ''
@@ -64,7 +64,7 @@ stdenv.mkDerivation {
   preBuild = ''
     if [ -e src/libXNVCtrl/libXNVCtrl.a ]; then
       ( cd src/libXNVCtrl
-        make
+        make $makeFlags
       )
     fi
   '';

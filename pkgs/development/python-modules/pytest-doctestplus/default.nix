@@ -1,37 +1,49 @@
 { lib
 , buildPythonPackage
 , fetchPypi
-, isPy27
-, six
+, pythonOlder
+, packaging
 , pytest
-, numpy
+, pytestCheckHook
+, setuptools-scm
 }:
 
 buildPythonPackage rec {
   pname = "pytest-doctestplus";
-  version = "0.9.0";
-  disabled = isPy27; # abandoned upstream
+  version = "0.10.1";
+  disabled = pythonOlder "3.7";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "6fe747418461d7b202824a3486ba8f4fa17a9bd0b1eddc743ba1d6d87f03391a";
+    sha256 = "7e9e0912c206c53cd6ee996265aa99d5c99c9334e37d025ce6114bc0416ffc14";
   };
 
-  buildInputs = [ pytest ];
-
-  propagatedBuildInputs = [
-    six
-    numpy
+  nativeBuildInputs = [
+    setuptools-scm
   ];
 
-  checkInputs = [
+  buildInputs = [
     pytest
   ];
 
-  # check_distribution incorrectly pulls pytest version
-  checkPhase = ''
-    pytest -k 'not check_distribution'
-  '';
+  propagatedBuildInputs = [
+    packaging
+  ];
+
+  checkInputs = [
+    pytestCheckHook
+  ];
+
+  disabledTests = [
+    # ERROR: usage: __main__.py [options] [file_or_dir] [file_or_dir] [...]
+    # __main__.py: error: unrecognized arguments: --remote-data
+    "test_remote_data_url"
+    "test_remote_data_float_cmp"
+    "test_remote_data_ignore_whitespace"
+    "test_remote_data_ellipsis"
+    "test_remote_data_requires"
+    "test_remote_data_ignore_warnings"
+  ];
 
   meta = with lib; {
     description = "Pytest plugin with advanced doctest features";

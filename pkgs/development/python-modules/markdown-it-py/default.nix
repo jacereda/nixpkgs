@@ -1,41 +1,40 @@
-{ lib, buildPythonPackage, fetchFromGitHub, pytestCheckHook, pythonOlder
+{ lib
+, buildPythonPackage
+, fetchFromGitHub
+, pytestCheckHook
+, pythonOlder
 , attrs
-, coverage
+, linkify-it-py
 , psutil
 , pytest-benchmark
+, pytest-regressions
+, typing-extensions
 }:
 
 buildPythonPackage rec {
   pname = "markdown-it-py";
-  version = "0.6.2";
+  version = "1.1.0";
+  format = "pyproject";
 
-  disabled = pythonOlder "3.7";
+  disabled = pythonOlder "3.6";
 
   src = fetchFromGitHub {
     owner = "executablebooks";
-    repo = "markdown-it-py";
+    repo = pname;
     rev = "v${version}";
-    sha256 = "1g9p8pdnvjya436lii63r5gjajhmbhmyh9ngbjqf9dqny05nagz1";
+    sha256 = "0h7rn3rcqfwmnqs97qczwkw9w5g4df8bgn6sw7k149svfqgrkf56";
   };
 
-  propagatedBuildInputs = [ attrs ];
+  propagatedBuildInputs = [ attrs linkify-it-py ]
+    ++ lib.optional (pythonOlder "3.8") typing-extensions;
 
   checkInputs = [
-    coverage
-    pytest-benchmark
     psutil
+    pytest-benchmark
+    pytest-regressions
     pytestCheckHook
   ];
-
-  disabledTests = [
-    # Requires the unpackaged pytest-regressions fixture plugin
-    "test_amsmath"
-    "test_container"
-    "test_deflist"
-    "test_dollarmath"
-    "test_spec"
-    "test_texmath"
-  ];
+  pythonImportsCheck = [ "markdown_it" ];
 
   meta = with lib; {
     description = "Markdown parser done right";

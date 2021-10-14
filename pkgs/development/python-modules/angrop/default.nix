@@ -4,23 +4,25 @@
 , fetchFromGitHub
 , progressbar
 , pythonOlder
+, tqdm
 }:
 
 buildPythonPackage rec {
   pname = "angrop";
-  version = "9.0.6885";
+  version = "9.0.10159";
   disabled = pythonOlder "3.6";
 
   src = fetchFromGitHub {
     owner = "angr";
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-B/1BO0MnqklMbyXqdBPA2Dfhr4pMjIIrzXmTzr81OdY=";
+    sha256 = "sha256-gVYriEt0/DPB0lDK9hGSnipGLCZtSOf27gtF8KwCMDA=";
   };
 
   propagatedBuildInputs = [
     angr
     progressbar
+    tqdm
   ];
 
   # Tests have additional requirements, e.g., angr binaries

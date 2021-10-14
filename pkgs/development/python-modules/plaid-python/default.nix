@@ -1,12 +1,12 @@
 { lib, buildPythonPackage, fetchPypi, requests, pytest }:
 
 buildPythonPackage rec {
-  version = "7.2.1";
+  version = "8.1.0";
   pname = "plaid-python";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "af2ad326e8377c8c86d97184f60c0be41cd71f5075201dfdb3331cc85d4de513";
+    sha256 = "b1f7b5b58ba3c171bb795352119d54797c8c50877bc376d26cd756de2453e9fd";
   };
 
   checkInputs = [ pytest ];

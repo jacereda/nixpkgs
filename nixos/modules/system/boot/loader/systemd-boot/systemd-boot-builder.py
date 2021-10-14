@@ -61,7 +61,7 @@ def write_loader_conf(profile: Optional[str], generation: int) -> None:
 
 
 def profile_path(profile: Optional[str], generation: int, name: str) -> str:
-    return os.readlink("%s/%s" % (system_dir(profile, generation), name))
+    return os.path.realpath("%s/%s" % (system_dir(profile, generation), name))
 
 
 def copy_from_profile(profile: Optional[str], generation: int, name: str, dry_run: bool = False) -> str:
@@ -208,10 +208,15 @@ def main() -> None:
         if os.path.exists("@efiSysMountPoint@/loader/loader.conf"):
             os.unlink("@efiSysMountPoint@/loader/loader.conf")
 
-        if "@canTouchEfiVariables@" == "1":
-            subprocess.check_call(["@systemd@/bin/bootctl", "--path=@efiSysMountPoint@", "install"])
-        else:
-            subprocess.check_call(["@systemd@/bin/bootctl", "--path=@efiSysMountPoint@", "--no-variables", "install"])
+        flags = []
+
+        if "@canTouchEfiVariables@" != "1":
+            flags.append("--no-variables")
+
+        if "@graceful@" == "1":
+            flags.append("--graceful")
+
+        subprocess.check_call(["@systemd@/bin/bootctl", "--path=@efiSysMountPoint@"] + flags + ["install"])
     else:
         # Update bootloader to latest if needed
         systemd_version = subprocess.check_output(["@systemd@/bin/bootctl", "--version"], universal_newlines=True).split()[1]

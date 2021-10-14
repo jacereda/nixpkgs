@@ -46,12 +46,15 @@ stdenv.mkDerivation rec {
     xorgproto
   ]);
 
-  postPatch = "sed -e '/curl\/types\.h/d' -i src/xitk/download.c";
-
   configureFlags = [ "--with-readline=${readline.dev}" ];
 
   LIRC_CFLAGS="-I${lirc}/include";
   LIRC_LIBS="-L ${lirc}/lib -llirc_client";
+
+  postInstall = ''
+    substituteInPlace $out/share/applications/xine.desktop \
+      --replace "MimeType=;" "MimeType="
+  '';
 
   meta = with lib; {
     homepage = "http://xinehq.de/";

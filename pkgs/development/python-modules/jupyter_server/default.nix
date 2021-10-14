@@ -1,4 +1,5 @@
 { lib
+, stdenv
 , buildPythonPackage
 , fetchPypi
 , pythonOlder
@@ -16,25 +17,22 @@
 , nbconvert
 , send2trash
 , terminado
-, prometheus_client
+, prometheus-client
 , anyio
+, websocket-client
 , requests
+, requests-unixsocket
 }:
 
 buildPythonPackage rec {
   pname = "jupyter_server";
-  version = "1.5.0";
+  version = "1.11.1";
   disabled = pythonOlder "3.6";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "ff127713a57ab7aa7b23f7df9b082951cc4b05d8d64cc0949d01ea02ac24c70c";
+    sha256 = "ab7ab1cc38512f15026cbcbb96300fb46ec8b24aa162263d9edd00e0a749b1e8";
   };
-
-  postPatch = ''
-    substituteInPlace setup.py \
-      --replace "anyio>=2.0.2" "anyio"
-  '';
 
   propagatedBuildInputs = [
     argon2_cffi
@@ -49,8 +47,10 @@ buildPythonPackage rec {
     nbconvert
     send2trash
     terminado
-    prometheus_client
+    prometheus-client
     anyio
+    websocket-client
+    requests-unixsocket
   ];
 
   checkInputs = [
@@ -61,9 +61,10 @@ buildPythonPackage rec {
 
   preCheck = ''
     export HOME=$(mktemp -d)
+    export PATH=$out/bin:$PATH
   '';
 
-  pytestFlagsArray = [ "jupyter_server/tests/" ];
+  pytestFlagsArray = [ "jupyter_server" ];
 
   # disabled failing tests
   disabledTests = [
@@ -71,10 +72,15 @@ buildPythonPackage rec {
     "test_list_formats"
     "test_base_url"
     "test_culling"
+  ] ++ lib.optionals stdenv.isDarwin [
+    # attempts to use trashcan, build env doesn't allow this
+    "test_delete"
   ];
 
+  __darwinAllowLocalNetworking = true;
+
   meta = with lib; {
-    description = "The backend—i.e. core services, APIs, and REST endpoints—to Jupyter web applications.";
+    description = "The backend—i.e. core services, APIs, and REST endpoints—to Jupyter web applications";
     homepage = "https://github.com/jupyter-server/jupyter_server";
     license = licenses.bsdOriginal;
     maintainers = [ maintainers.elohmeier ];

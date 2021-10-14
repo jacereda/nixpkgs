@@ -1,19 +1,21 @@
-{ lib, buildPythonPackage, fetchPypi, pythonOlder, google-api-core, proto-plus }:
+{ lib, buildPythonPackage, fetchPypi, pytestCheckHook, pythonOlder, google-api-core, mock, proto-plus, protobuf, pytest-asyncio }:
 
 buildPythonPackage rec {
   pname = "google-cloud-org-policy";
-  version = "0.2.0";
+  version = "1.0.2";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "b463704affab327c1d3fa4af280a858635b5f59a88456b2a08db62a336a352aa";
+    sha256 = "e5489dffc6b6558125e548bc8c5be78f13d11bb9916470992816e6ed66a9d7fb";
   };
 
   propagatedBuildInputs = [ google-api-core proto-plus ];
 
-  # No tests in repo
-  doCheck = false;
-
+  # prevent google directory from shadowing google imports
+  preCheck = ''
+    rm -r google
+  '';
+  checkInputs = [ mock protobuf pytest-asyncio pytestCheckHook ];
   pythonImportsCheck = [ "google.cloud.orgpolicy" ];
 
   meta = with lib; {

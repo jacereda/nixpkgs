@@ -1,6 +1,9 @@
-{ buildPythonPackage
-, appdirs
-, contextlib2
+{ stdenv
+, lib
+, buildPythonPackage
+, pythonOlder
+, isPy27
+, backports-entry-points-selectable
 , cython
 , distlib
 , fetchPypi
@@ -8,40 +11,36 @@
 , flaky
 , importlib-metadata
 , importlib-resources
-, isPy27
-, lib
 , pathlib2
+, platformdirs
 , pytest-freezegun
 , pytest-mock
 , pytest-timeout
 , pytestCheckHook
-, pythonOlder
-, setuptools_scm
+, setuptools-scm
 , six
-, stdenv
 }:
 
 buildPythonPackage rec {
   pname = "virtualenv";
-  version = "20.4.3";
+  version = "20.7.2";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "49ec4eb4c224c6f7dd81bb6d0a28a09ecae5894f4e593c89b0db0885f565a107";
+    sha256 = "9ef4e8ee4710826e98ff3075c9a4739e2cb1040de6a2a8d35db0055840dc96a0";
   };
 
   nativeBuildInputs = [
-    setuptools_scm
+    setuptools-scm
   ];
 
   propagatedBuildInputs = [
-    appdirs
+    backports-entry-points-selectable
     distlib
     filelock
+    platformdirs
     six
-  ] ++ lib.optionals isPy27 [
-    contextlib2
-  ] ++ lib.optionals (isPy27 && !stdenv.hostPlatform.isWindows) [
+  ] ++ lib.optionals (pythonOlder "3.4" && !stdenv.hostPlatform.isWindows) [
     pathlib2
   ] ++ lib.optionals (pythonOlder "3.7") [
     importlib-resources

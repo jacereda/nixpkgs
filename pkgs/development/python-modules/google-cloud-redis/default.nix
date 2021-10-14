@@ -11,11 +11,11 @@
 
 buildPythonPackage rec {
   pname = "google-cloud-redis";
-  version = "2.1.0";
+  version = "2.2.3";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "957f436986275dcc82483906b424dcabe8d1f8c08ae5c9677bf7547a314b0a59";
+    sha256 = "2a95ad2d99cfc480513bfaf6b301829446a0f50503d07f54524873d723e585b7";
   };
 
   propagatedBuildInputs = [ google-api-core libcst proto-plus ];

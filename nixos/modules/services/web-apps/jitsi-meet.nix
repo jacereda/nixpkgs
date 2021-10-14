@@ -37,6 +37,7 @@ let
       focus = "focus.${cfg.hostName}";
     };
     bosh = "//${cfg.hostName}/http-bind";
+    websocket = "wss://${cfg.hostName}/xmpp-websocket";
   };
 in
 {
@@ -54,7 +55,7 @@ in
     config = mkOption {
       type = attrs;
       default = { };
-      example = literalExample ''
+      example = literalExpression ''
         {
           enableWelcomePage = false;
           defaultLang = "fi";
@@ -81,7 +82,7 @@ in
     interfaceConfig = mkOption {
       type = attrs;
       default = { };
-      example = literalExample ''
+      example = literalExpression ''
         {
           SHOW_JITSI_WATERMARK = false;
           SHOW_WATERMARK_FOR_GUESTS = false;
@@ -163,7 +164,9 @@ in
         ping = mkDefault true;
         roster = mkDefault true;
         saslauth = mkDefault true;
+        smacks = mkDefault true;
         tls = mkDefault true;
+        websocket = mkDefault true;
       };
       muc = [
         {
@@ -185,11 +188,17 @@ in
           #-- muc_room_cache_size = 1000
         }
       ];
-      extraModules = [ "pubsub" ];
-      extraConfig = mkAfter ''
-        Component "focus.${cfg.hostName}"
-          component_secret = os.getenv("JICOFO_COMPONENT_SECRET")
-      '';
+      extraModules = [ "pubsub" "smacks" ];
+      extraPluginPaths = [ "${pkgs.jitsi-meet-prosody}/share/prosody-plugins" ];
+      extraConfig = lib.mkMerge [ (mkAfter ''
+        Component "focus.${cfg.hostName}" "client_proxy"
+          target_address = "focus@auth.${cfg.hostName}"
+        '')
+        (mkBefore ''
+          cross_domain_websocket = true;
+          consider_websocket_secure = true;
+        '')
+      ];
       virtualHosts.${cfg.hostName} = {
         enabled = true;
         domain = cfg.hostName;
@@ -197,6 +206,10 @@ in
           authentication = "anonymous"
           c2s_require_encryption = false
           admins = { "focus@auth.${cfg.hostName}" }
+          smacks_max_unacked_stanzas = 5
+          smacks_hibernation_time = 60
+          smacks_max_hibernated_sessions = 1
+          smacks_max_old_sessions = 1
         '';
         ssl = {
           cert = "/var/lib/jitsi-meet/jitsi-meet.crt";
@@ -254,6 +267,7 @@ in
       + optionalString cfg.prosody.enable ''
         ${config.services.prosody.package}/bin/prosodyctl register focus auth.${cfg.hostName} "$(cat /var/lib/jitsi-meet/jicofo-user-secret)"
         ${config.services.prosody.package}/bin/prosodyctl register jvb auth.${cfg.hostName} "$(cat ${videobridgeSecret})"
+        ${config.services.prosody.package}/bin/prosodyctl mod_roster_command subscribe focus.${cfg.hostName} focus@auth.${cfg.hostName}
 
         # generate self-signed certificates
         if [ ! -f /var/lib/jitsi-meet.crt ]; then
@@ -284,6 +298,11 @@ in
           rewrite ^/(.*)$ / break;
         '';
         locations."~ ^/([^/\\?&:'\"]+)$".tryFiles = "$uri @root_path";
+        locations."^~ /xmpp-websocket" = {
+          priority = 100;
+          proxyPass = "http://localhost:5280/xmpp-websocket";
+          proxyWebsockets = true;
+        };
         locations."=/http-bind" = {
           proxyPass = "http://localhost:5280/http-bind";
           extraConfig = ''

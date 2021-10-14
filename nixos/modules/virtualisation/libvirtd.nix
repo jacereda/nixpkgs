@@ -11,9 +11,10 @@ let
     auth_unix_rw = "polkit"
     ${cfg.extraConfig}
   '';
+  ovmfFilePrefix = if pkgs.stdenv.isAarch64 then "AAVMF" else "OVMF";
   qemuConfigFile = pkgs.writeText "qemu.conf" ''
     ${optionalString cfg.qemuOvmf ''
-      nvram = ["/run/libvirt/nix-ovmf/OVMF_CODE.fd:/run/libvirt/nix-ovmf/OVMF_VARS.fd"]
+      nvram = [ "/run/libvirt/nix-ovmf/${ovmfFilePrefix}_CODE.fd:/run/libvirt/nix-ovmf/${ovmfFilePrefix}_VARS.fd" ]
     ''}
     ${optionalString (!cfg.qemuRunAsRoot) ''
       user = "qemu-libvirtd"
@@ -49,7 +50,7 @@ in {
     package = mkOption {
       type = types.package;
       default = pkgs.libvirt;
-      defaultText = "pkgs.libvirt";
+      defaultText = literalExpression "pkgs.libvirt";
       description = ''
         libvirt package to use.
       '';
@@ -58,6 +59,7 @@ in {
     qemuPackage = mkOption {
       type = types.package;
       default = pkgs.qemu;
+      defaultText = literalExpression "pkgs.qemu";
       description = ''
         Qemu package to use with libvirt.
         `pkgs.qemu` can emulate alien architectures (e.g. aarch64 on x86)
@@ -154,12 +156,19 @@ in {
 
   config = mkIf cfg.enable {
 
+    assertions = [
+      {
+        assertion = config.security.polkit.enable;
+        message = "The libvirtd module currently requires Polkit to be enabled ('security.polkit.enable = true').";
+      }
+    ];
+
     environment = {
       # this file is expected in /etc/qemu and not sysconfdir (/var/lib)
       etc."qemu/bridge.conf".text = lib.concatMapStringsSep "\n" (e:
         "allow ${e}") cfg.allowedBridges;
       systemPackages = with pkgs; [ libressl.nc iptables cfg.package cfg.qemuPackage ];
-      etc.ethertypes.source = "${pkgs.iptables}/etc/ethertypes";
+      etc.ethertypes.source = "${pkgs.ebtables}/etc/ethertypes";
     };
 
     boot.kernelModules = [ "tun" ];
@@ -175,6 +184,9 @@ in {
     };
 
     security.wrappers.qemu-bridge-helper = {
+      setuid = true;
+      owner = "root";
+      group = "root";
       source = "/run/${dirName}/nix-helpers/qemu-bridge-helper";
     };
 
@@ -206,8 +218,8 @@ in {
         done
 
         ${optionalString cfg.qemuOvmf ''
-          ln -s --force ${pkgs.OVMF.fd}/FV/OVMF_CODE.fd /run/${dirName}/nix-ovmf/
-          ln -s --force ${pkgs.OVMF.fd}/FV/OVMF_VARS.fd /run/${dirName}/nix-ovmf/
+          ln -s --force ${pkgs.OVMF.fd}/FV/${ovmfFilePrefix}_CODE.fd /run/${dirName}/nix-ovmf/
+          ln -s --force ${pkgs.OVMF.fd}/FV/${ovmfFilePrefix}_VARS.fd /run/${dirName}/nix-ovmf/
         ''}
       '';
 

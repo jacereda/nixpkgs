@@ -4,7 +4,7 @@
 , fetchpatch
 , mirage-stack
 , mirage-time
-, httpaf
+, h2
 , tls-mirage
 , mimic
 , cohttp-lwt
@@ -27,15 +27,16 @@
 , ptime
 , uri
 , alcotest-lwt
+, cstruct
 }:
 
 buildDunePackage rec {
   pname = "paf";
-  version = "0.0.1";
+  version = "0.0.5";
 
   src = fetchurl {
     url = "https://github.com/dinosaure/paf-le-chien/releases/download/${version}/paf-${version}.tbz";
-    sha256 = "7a794c21ce458bda302553b0f5ac128c067579fbb3b7b8fba9b410446c43e790";
+    sha256 = "e85a018046eb062d2399fdbe8d9d3400a4d5cd51bb62840446503f557c3eeff1";
   };
 
   useDune2 = true;
@@ -44,7 +45,7 @@ buildDunePackage rec {
   propagatedBuildInputs = [
     mirage-stack
     mirage-time
-    httpaf
+    h2
     tls-mirage
     mimic
     cohttp-lwt
@@ -58,6 +59,7 @@ buildDunePackage rec {
     faraday
     tls
     x509
+    cstruct
   ];
 
   doCheck = true;

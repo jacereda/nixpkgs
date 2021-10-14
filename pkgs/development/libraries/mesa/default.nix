@@ -1,19 +1,20 @@
 { stdenv, lib, fetchurl, fetchpatch, buildPackages
 , meson, pkg-config, ninja
-, intltool, bison, flex, file, python3Packages
+, intltool, bison, flex, file, python3Packages, wayland-scanner
 , expat, libdrm, xorg, wayland, wayland-protocols, openssl
 , llvmPackages, libffi, libomxil-bellagio, libva-minimal
 , libelf, libvdpau
-, libglvnd
-, enableRadv ? true
+, libglvnd, libunwind
 , galliumDrivers ? ["auto"]
 , driDrivers ? ["auto"]
 , vulkanDrivers ? ["auto"]
 , eglPlatforms ? [ "x11" ] ++ lib.optionals stdenv.isLinux [ "wayland" ]
 , OpenGL, Xplugin
-, withValgrind ? stdenv.hostPlatform.isLinux && !stdenv.hostPlatform.isAarch32, valgrind-light
+, withValgrind ? !stdenv.isDarwin && lib.meta.availableOn stdenv.hostPlatform valgrind-light, valgrind-light
 , enableGalliumNine ? stdenv.isLinux
 , enableOSMesa ? stdenv.isLinux
+, enableOpenCL ? stdenv.isLinux && stdenv.isx86_64
+, libclc
 }:
 
 /** Packaging design:
@@ -32,7 +33,7 @@ with lib;
 let
   # Release calendar: https://www.mesa3d.org/release-calendar.html
   # Release frequency: https://www.mesa3d.org/releasing.html#schedule
-  version = "21.0.1";
+  version = "21.2.3";
   branch  = versions.major version;
 
 self = stdenv.mkDerivation {
@@ -46,17 +47,15 @@ self = stdenv.mkDerivation {
       "ftp://ftp.freedesktop.org/pub/mesa/${version}/mesa-${version}.tar.xz"
       "ftp://ftp.freedesktop.org/pub/mesa/older-versions/${branch}.x/${version}/mesa-${version}.tar.xz"
     ];
-    sha256 = "1fqj2xhhd1ary0pfg31jq6fqcnd6qgyrw1445nmz554k8n2ck7rp";
+    sha256 = "0x3ivd34j938js2iffzlvnlj4hwywxrscd8q1rvq894x2m52hibj";
   };
-
-  prePatch = "patchShebangs .";
 
   # TODO:
   #  revive ./dricore-gallium.patch when it gets ported (from Ubuntu), as it saved
   #  ~35 MB in $drivers; watch https://launchpad.net/ubuntu/+source/mesa/+changelog
   patches = [
     ./missing-includes.patch # dev_t needs sys/stat.h, time_t needs time.h, etc.-- fixes build w/musl
-    ./opencl-install-dir.patch
+    ./opencl.patch
     ./disk_cache-include-dri-driver-path-in-cache-key.patch
     # Fix `-Werror=int-conversion` pthread warnings on musl.
     # TODO: Remove when https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/6121 is merged and available
@@ -72,15 +71,17 @@ self = stdenv.mkDerivation {
   ];
 
   postPatch = ''
+    patchShebangs .
+
     substituteInPlace meson.build --replace \
       "find_program('pkg-config')" \
       "find_program('${buildPackages.pkg-config.targetPrefix}pkg-config')"
 
     # The drirc.d directory cannot be installed to $drivers as that would cause a cyclic dependency:
     substituteInPlace src/util/xmlconfig.c --replace \
-      'DATADIR "/drirc.d"' '"${placeholder "out"}/drirc.d"'
+      'DATADIR "/drirc.d"' '"${placeholder "out"}/share/drirc.d"'
     substituteInPlace src/util/meson.build --replace \
-      "get_option('datadir')" "'${placeholder "out"}'"
+      "get_option('datadir')" "'${placeholder "out"}/share'"
   '' + lib.optionalString (stdenv.hostPlatform != stdenv.buildPlatform) ''
     substituteInPlace meson.build --replace \
       "find_program('nm')" \
@@ -89,7 +90,8 @@ self = stdenv.mkDerivation {
 
   outputs = [ "out" "dev" "drivers" ]
     ++ lib.optional enableOSMesa "osmesa"
-    ++ lib.optional stdenv.isLinux "driversdev";
+    ++ lib.optional stdenv.isLinux "driversdev"
+    ++ lib.optional enableOpenCL "opencl";
 
   # TODO: Figure out how to enable opencl without having a runtime dependency on clang
   mesonFlags = [
@@ -119,15 +121,20 @@ self = stdenv.mkDerivation {
     "-Dmicrosoft-clc=disabled" # Only relevant on Windows (OpenCL 1.2 API on top of D3D12)
   ] ++ optionals stdenv.isLinux [
     "-Dglvnd=true"
+  ] ++ optionals enableOpenCL [
+    "-Dgallium-opencl=icd" # Enable the gallium OpenCL frontend
+    "-Dclang-libdir=${llvmPackages.clang-unwrapped.lib}/lib"
   ];
 
   buildInputs = with xorg; [
-    expat llvmPackages.llvm libglvnd xorgproto
+    expat llvmPackages.libllvm libglvnd xorgproto
     libX11 libXext libxcb libXt libXfixes libxshmfence libXrandr
     libffi libvdpau libelf libXvMC
     libpthreadstubs openssl /*or another sha1 provider*/
   ] ++ lib.optionals (elem "wayland" eglPlatforms) [ wayland wayland-protocols ]
     ++ lib.optionals stdenv.isLinux [ libomxil-bellagio libva-minimal ]
+    ++ lib.optionals stdenv.isDarwin [ libunwind ]
+    ++ lib.optionals enableOpenCL [ libclc llvmPackages.clang llvmPackages.clang-unwrapped ]
     ++ lib.optional withValgrind valgrind-light;
 
   depsBuildBuild = [ pkg-config ];
@@ -137,7 +144,7 @@ self = stdenv.mkDerivation {
     intltool bison flex file
     python3Packages.python python3Packages.Mako
   ] ++ lib.optionals (elem "wayland" eglPlatforms) [
-    wayland # For wayland-scanner during the build
+    wayland-scanner
   ];
 
   propagatedBuildInputs = with xorg; [
@@ -145,7 +152,6 @@ self = stdenv.mkDerivation {
   ] ++ optional stdenv.isLinux libdrm
     ++ optionals stdenv.isDarwin [ OpenGL Xplugin ];
 
-  enableParallelBuilding = true;
   doCheck = false;
 
   postInstall = ''
@@ -163,7 +169,7 @@ self = stdenv.mkDerivation {
 
     if [ -n "$(shopt -s nullglob; echo "$out"/lib/lib*_mesa*)" ]; then
       # Move other drivers to a separate output
-      mv $out/lib/lib*_mesa* $drivers/lib
+      mv -t $drivers/lib $out/lib/lib*_mesa*
     fi
 
     # Update search path used by glvnd
@@ -176,6 +182,17 @@ self = stdenv.mkDerivation {
     for js in $drivers/share/vulkan/icd.d/*.json; do
       substituteInPlace "$js" --replace "$out" "$drivers"
     done
+  '' + optionalString enableOpenCL ''
+    # Move OpenCL stuff
+    mkdir -p $opencl/lib
+    mv -t "$opencl/lib/"     \
+      $out/lib/gallium-pipe   \
+      $out/lib/libMesaOpenCL*
+
+    # We construct our own .icd file that contains an absolute path.
+    rm -r $out/etc/OpenCL
+    mkdir -p $opencl/etc/OpenCL/vendors/
+    echo $opencl/lib/libMesaOpenCL.so > $opencl/etc/OpenCL/vendors/mesa.icd
   '' + lib.optionalString enableOSMesa ''
     # move libOSMesa to $osmesa, as it's relatively big
     mkdir -p $osmesa/lib
@@ -210,11 +227,15 @@ self = stdenv.mkDerivation {
     done
   '';
 
-  NIX_CFLAGS_COMPILE = lib.optionalString stdenv.isDarwin "-fno-common";
+  NIX_CFLAGS_COMPILE = optionals stdenv.isDarwin [ "-fno-common" ] ++ lib.optionals enableOpenCL [
+    "-UPIPE_SEARCH_DIR"
+    "-DPIPE_SEARCH_DIR=\"${placeholder "opencl"}/lib/gallium-pipe\""
+  ];
 
   passthru = {
     inherit libdrm;
     inherit (libglvnd) driverLink;
+    inherit llvmPackages;
 
     tests.devDoesNotDependOnLLVM = stdenv.mkDerivation {
       name = "mesa-dev-does-not-depend-on-llvm";

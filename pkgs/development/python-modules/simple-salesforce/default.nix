@@ -1,10 +1,8 @@
 { lib
 , fetchFromGitHub
 , buildPythonPackage
+, authlib
 , requests
-, pyopenssl
-, cryptography
-, idna
 , mock
 , isPy27
 , nose
@@ -14,31 +12,30 @@
 
 buildPythonPackage rec {
   pname = "simple-salesforce";
-  version = "1.11.0";
+  version = "1.11.4";
 
   src = fetchFromGitHub {
     owner = pname;
     repo = pname;
     rev = "v${version}";
-    sha256 = "16c34xnqa1xkdfjbxx0q584zb6aqci2z6j4211hmzjqs74ddvysm";
+    sha256 = "17d6g7zfhlgd2n4mimjarl2x4hl7ww2lb4izidlns1hzqm8igg4y";
   };
 
   propagatedBuildInputs = [
+    authlib
     requests
-    pyopenssl
-    cryptography
-    idna
   ];
 
   checkInputs = [
     nose
     pytz
     responses
-  ] ++ lib.optionals isPy27 [ mock ];
+  ];
 
-  postPatch = ''
-    substituteInPlace setup.py \
-      --replace "mock==1.0.1" "mock"
+  checkPhase = ''
+    runHook preCheck
+    nosetests -v
+    runHook postCheck
   '';
 
   meta = with lib; {
