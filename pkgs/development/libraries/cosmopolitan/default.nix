@@ -2,13 +2,13 @@
 
 gccStdenv.mkDerivation rec {
   pname = "cosmopolitan";
-  version = "67b5200";
+  version = "e5d1536";
 
   src = fetchFromGitHub {
     owner = "jart";
     repo = "cosmopolitan";
     rev = version;
-    sha256 = "05kb5y7c73g7k37dz087xhng1npi0x6mdamlvxb77ijz9qigqwwg";
+    sha256 = "0hywamcnf7wzvm3nw025vvg0kig2v4k9far7lwd6ycalsdrxwg97";
   };
 
   postPatch = ''
