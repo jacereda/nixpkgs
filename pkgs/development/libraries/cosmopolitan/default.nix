@@ -1,4 +1,6 @@
-{ lib, gccStdenv, fetchFromGitHub, runCommand, cosmopolitan }:
+{ lib, gccStdenv, fetchFromGitHub, runCommand, cosmopolitan
+, mode? ""
+}:
 
 gccStdenv.mkDerivation rec {
   pname = "cosmopolitan";
@@ -16,12 +18,11 @@ gccStdenv.mkDerivation rec {
     # rm -r third_party/gcc
     rm test/tool/build/lib/bsu_test.c # https://twitter.com/JustineTunney/status/1355321045037662212
     rm third_party/python/Lib/test/test_ioctl.py
-    # rm third_party/python/Lib/test/test_select.py
     substituteInPlace third_party/python/python.mk --replace third_party/python/Lib/test/test_ioctl.py ""
-    substituteInPlace libc/rand/randtest.c --replace 'mcount' 'mcnt'
+    substituteInPlace libc/rand/randtest.c --replace mcount mcnt
     substituteInPlace third_party/python/Lib/test/test_fileio.py --replace testUnclosedFDOnException xtestUnclosedFDOnException
     substituteInPlace third_party/python/Python/random.c --replace '#if 1' '#if 0'
-    echo 'o/$(MODE)/third_party/python/pythontester.com.dbg: QUOTA += -M512m' >> third_party/python/python.mk
+  	echo "o/${mode}/third_party/python/pythontester.com.dbg: QUOTA += -M512m" >> third_party/python/python.mk
   '';
 
   dontConfigure = true;
@@ -39,22 +40,31 @@ gccStdenv.mkDerivation rec {
       OBJCOPY=${gccStdenv.cc.targetPrefix}objcopy
       "MKDIR=mkdir -p"
       OVERRIDE_CCFLAGS=-Wno-error=old-style-definition
-      # MODE=rel
+      MODE=${mode}
       )
   '';
 
   installPhase = ''
     runHook preInstall
-    mkdir -p $out/{bin,lib/include}
-    install o/cosmopolitan.h $out/lib/include
+    mkdir -p $out/{bin,lib,include}
+    install o/cosmopolitan.h $out/include
     install o/cosmopolitan.a o/libc/crt/crt.o o/ape/ape.{o,lds} $out/lib
+    for h in `find libc -name \*.h`
+    do
+        install -D $h $out/include/$h
+    done
+    for b in `find o/ -name \*.com.dbg`
+    do
+        cp $b $out/bin/`basename $b|head -c -5`
+    done
     cat > $out/bin/cosmoc <<EOF
     #!${gccStdenv.shell}
     exec ${gccStdenv.cc}/bin/${gccStdenv.cc.targetPrefix}gcc \
       -Os -static -nostdlib -nostdinc -fno-pie -no-pie -mno-red-zone \
       -fno-omit-frame-pointer -pg -mnop-mcount \
       -fno-stack-protector \
-      -include $out/lib/include/cosmopolitan.h \
+      -I $out/include \
+      -include $out/include/cosmopolitan.h \
       "\$@" \
       -Wl,--gc-sections -Wl,-z,max-page-size=0x1000 \
       -fuse-ld=bfd -Wl,-T,$out/lib/ape.lds \
@@ -69,7 +79,9 @@ gccStdenv.mkDerivation rec {
       printf 'main() { printf("hello world\\n"); }\n' >hello.c
       ${gccStdenv.cc}/bin/${gccStdenv.cc.targetPrefix}gcc -g -O -static -nostdlib -nostdinc -fno-pie -no-pie -mno-red-zone -o hello.com.dbg hello.c \
         -fuse-ld=bfd -Wl,-T,${cosmopolitan}/lib/ape.lds \
-        -include ${cosmopolitan}/lib/{include/cosmopolitan.h,crt.o,ape.o,cosmopolitan.a}
+        -I ${cosmopolitan}/include \
+        -include ${cosmopolitan}/include/cosmopolitan.h \
+        ${cosmopolitan}/lib/{crt.o,ape.o,cosmopolitan.a}
       ${gccStdenv.cc.bintools.bintools_bin}/bin/objcopy -S -O binary hello.com.dbg hello.com
       ./hello.com
       printf "test successful" > $out
