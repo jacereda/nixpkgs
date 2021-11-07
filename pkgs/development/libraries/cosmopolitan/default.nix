@@ -60,14 +60,20 @@ gccStdenv.mkDerivation rec {
     cat > $out/bin/cosmoc <<EOF
     #!${gccStdenv.shell}
     exec ${gccStdenv.cc}/bin/${gccStdenv.cc.targetPrefix}gcc \
-      -Os -static -nostdlib -nostdinc -fno-pie -no-pie -mno-red-zone \
-      -fno-omit-frame-pointer -pg -mnop-mcount \
-      -fno-stack-protector \
+      -Os \
+      -static \
+      -nostdlib \
+      -nostdinc \
+      -fno-pie \
+      -no-pie \
+      -mno-red-zone \
+      -fno-omit-frame-pointer \
+      -pg \
+      -mnop-mcount \
       -I $out/include \
-      -include $out/include/cosmopolitan.h \
       "\$@" \
-      -Wl,--gc-sections -Wl,-z,max-page-size=0x1000 \
-      -fuse-ld=bfd -Wl,-T,$out/lib/ape.lds \
+      -fuse-ld=bfd \
+      -Wl,-T,$out/lib/ape.lds \
       $out/lib/{crt.o,ape.o,cosmopolitan.a}
     EOF
     chmod +x $out/bin/cosmoc
