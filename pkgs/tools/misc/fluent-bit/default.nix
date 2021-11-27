@@ -2,22 +2,25 @@
 
 stdenv.mkDerivation rec {
   pname = "fluent-bit";
-  version = "1.8.6";
+  version = "1.8.9";
 
   src = fetchFromGitHub {
     owner = "fluent";
     repo = "fluent-bit";
     rev = "v${version}";
-    sha256 = "sha256-JYE4ReFiYSDx/0dlA8OkQw3rEpUEQDguTWoHC1r1fUc=";
+    sha256 = "sha256-b+MZuZQB/sl0HcioU1KCxH3TNiXYSPBfC9dBKqCVeXk=";
   };
+
+  patches = lib.optionals stdenv.isDarwin [
+    ./fix-cmetrics-darwin.patch
+    ./fix-luajit-darwin.patch
+  ];
 
   nativeBuildInputs = [ cmake flex bison ];
 
   buildInputs = lib.optionals stdenv.isLinux [ systemd ];
 
   cmakeFlags = [ "-DFLB_METRICS=ON" "-DFLB_HTTP_SERVER=ON" ];
-
-  patches = lib.optionals stdenv.isDarwin [ ./fix-luajit-darwin.patch ];
 
   # _FORTIFY_SOURCE requires compiling with optimization (-O)
   NIX_CFLAGS_COMPILE = lib.optionalString stdenv.cc.isGNU "-O";

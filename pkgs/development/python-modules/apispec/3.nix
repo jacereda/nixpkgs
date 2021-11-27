@@ -15,22 +15,33 @@ buildPythonPackage rec {
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "1bdi81mq7z0s7qz86ln5aa2fzmg6nl8dn69an0qy0hg5f5dvsgnj";
+    sha256 = "d23ebd5b71e541e031b02a19db10b5e6d5ef8452c552833e3e1afc836b40b1ad";
   };
 
-  checkInputs = [
+  propagatedBuildInputs = [
     pyyaml
     prance
+  ];
+
+  postPatch = ''
+    rm tests/test_ext_marshmallow.py
+  '';
+
+  checkInputs = [
     openapi-spec-validator
     marshmallow
     mock
     pytestCheckHook
   ];
 
+  pythonImportsCheck = [
+    "apispec"
+  ];
+
   meta = with lib; {
     description = "A pluggable API specification generator. Currently supports the OpenAPI Specification (f.k.a. the Swagger specification";
     homepage = "https://github.com/marshmallow-code/apispec";
     license = licenses.mit;
-    maintainers = [ maintainers.costrouc ];
+    maintainers = [ maintainers.viric ];
   };
 }

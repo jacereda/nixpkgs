@@ -77,7 +77,7 @@ in buildFHSUserEnv {
     nasm sndio
 
     # Snes9x
-    epoxy minizip
+    libepoxy minizip
 
     # Vice
     bison flex
@@ -121,4 +121,16 @@ in buildFHSUserEnv {
     ln -sf ${lutris-unwrapped}/share/applications $out/share
     ln -sf ${lutris-unwrapped}/share/icons $out/share
   '';
+
+  meta = {
+    inherit (lutris-unwrapped.meta)
+      homepage
+      description
+      platforms
+      license
+      maintainers
+      broken;
+
+    mainProgram = "lutris";
+  };
 }

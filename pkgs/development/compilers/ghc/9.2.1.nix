@@ -2,7 +2,8 @@
 
 # build-tools
 , bootPkgs
-, autoconf, automake, coreutils, fetchurl, fetchpatch, perl, python3, m4, sphinx, xattr
+, autoconf, automake, coreutils, fetchpatch, fetchurl, perl, python3, m4, sphinx
+, xattr, autoSignDarwinBinariesHook
 , bash
 
 , libiconv ? null, ncurses
@@ -15,7 +16,7 @@
 , # LLVM is conceptually a run-time-only depedendency, but for
   # non-x86, we need LLVM to bootstrap later stages, so it becomes a
   # build-time dependency too.
-  buildLlvmPackages, llvmPackages
+  buildTargetLlvmPackages, llvmPackages
 
 , # If enabled, GHC will be built with the GPL-free but slower integer-simple
   # library instead of the faster but GPLed integer-gmp library.
@@ -43,7 +44,7 @@
   enableDocs ? (
     # Docs disabled for musl and cross because it's a large task to keep
     # all `sphinx` dependencies building in those environments.
-    # `sphinx` pullls in among others:
+    # `sphinx` pulls in among others:
     # Ruby, Python, Perl, Rust, OpenGL, Xorg, gtk, LLVM.
     (stdenv.targetPlatform == stdenv.hostPlatform)
     && !stdenv.hostPlatform.isMusl
@@ -116,7 +117,7 @@ let
 
   toolsForTarget = [
     pkgsBuildTarget.targetPackages.stdenv.cc
-  ] ++ lib.optional useLLVM buildLlvmPackages.llvm;
+  ] ++ lib.optional useLLVM buildTargetLlvmPackages.llvm;
 
   targetCC = builtins.head toolsForTarget;
 
@@ -142,23 +143,13 @@ let
 
 in
 stdenv.mkDerivation (rec {
-  version = "9.2.0.20210821";
+  version = "9.2.1";
   pname = "${targetPrefix}ghc${variantSuffix}";
 
   src = fetchurl {
-    url = "https://downloads.haskell.org/ghc/9.2.1-rc1/ghc-${version}-src.tar.xz";
-    sha256 = "1q2pppxv2avhykyxvyq72r5p97rkkiqp19b77yhp85ralbcp4ivw";
+    url = "https://downloads.haskell.org/ghc/${version}/ghc-${version}-src.tar.xz";
+    sha256 = "f444012f97a136d9940f77cdff03fda48f9475e2ed0fec966c4d35c4df55f746";
   };
-
-  patches = [
-    # picked from release branch, remove with the next release candidate,
-    # see https://gitlab.haskell.org/ghc/ghc/-/issues/19950#note_373726
-    (fetchpatch {
-      name = "fix-darwin-link-failure.patch";
-      url = "https://gitlab.haskell.org/ghc/ghc/-/commit/77456387025ca74299ecc70621cbdb62b1b6ffc9.patch";
-      sha256 = "1g8smrn7hj8cbp9fhrylvmrb15s0xd8lhdgxqnx0asnd4az82gj8";
-    })
-  ];
 
   enableParallelBuilding = true;
 
@@ -252,10 +243,12 @@ stdenv.mkDerivation (rec {
   nativeBuildInputs = [
     perl autoconf automake m4 python3
     ghc bootPkgs.alex bootPkgs.happy bootPkgs.hscolour
+  ] ++ lib.optionals (stdenv.isDarwin && stdenv.isAarch64) [
+    autoSignDarwinBinariesHook
   ] ++ lib.optionals enableDocs [
     sphinx
   ] ++ lib.optionals stdenv.isDarwin [
-    # TODO(@sternenseemann): use XATTR env var after backport of
+    # TODO(@sternenseemann): backport addition of XATTR env var like
     # https://gitlab.haskell.org/ghc/ghc/-/merge_requests/6447
     xattr
   ];

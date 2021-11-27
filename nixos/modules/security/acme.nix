@@ -192,6 +192,14 @@ let
       ++ data.extraLegoRenewFlags
     );
 
+    # We need to collect all the ACME webroots to grant them write
+    # access in the systemd service.
+    webroots =
+      lib.remove null
+        (lib.unique
+            (builtins.map
+            (certAttrs: certAttrs.webroot)
+            (lib.attrValues config.security.acme.certs)));
   in {
     inherit accountHash cert selfsignedDeps;
 
@@ -288,6 +296,8 @@ let
           "acme/.lego/accounts/${accountHash}"
         ];
 
+        ReadWritePaths = commonServiceConfig.ReadWritePaths ++ webroots;
+
         # Needs to be space separated, but can't use a multiline string because that'll include newlines
         BindPaths = [
           "${accountDir}:/tmp/accounts"
@@ -304,6 +314,9 @@ let
           if [ -e renewed ]; then
             rm renewed
             ${data.postRun}
+            ${optionalString (data.reloadServices != [])
+                "systemctl --no-block try-reload-or-restart ${escapeShellArgs data.reloadServices}"
+            }
           fi
         '');
       };
@@ -462,6 +475,15 @@ let
         type = types.str;
         default = "acme";
         description = "Group running the ACME client.";
+      };
+
+      reloadServices = mkOption {
+        type = types.listOf types.str;
+        default = [];
+        description = ''
+          The list of systemd services to call <code>systemctl try-reload-or-restart</code>
+          on.
+        '';
       };
 
       postRun = mkOption {

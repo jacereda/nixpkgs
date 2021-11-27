@@ -889,14 +889,14 @@ in
         RestrictAddressFamilies = [ "AF_UNIX" "AF_INET" "AF_INET6" ];
         RestrictNamespaces = true;
         LockPersonality = true;
-        MemoryDenyWriteExecute = !(builtins.any (mod: (mod.allowMemoryWriteExecute or false)) cfg.package.modules);
+        MemoryDenyWriteExecute = !((builtins.any (mod: (mod.allowMemoryWriteExecute or false)) cfg.package.modules) || (cfg.package == pkgs.openresty));
         RestrictRealtime = true;
         RestrictSUIDSGID = true;
         RemoveIPC = true;
         PrivateMounts = true;
         # System Call Filtering
         SystemCallArchitectures = "native";
-        SystemCallFilter = "~@cpu-emulation @debug @keyring @ipc @mount @obsolete @privileged @setuid";
+        SystemCallFilter = "~@cpu-emulation @debug @keyring @ipc @mount @obsolete @privileged @setuid @mincore";
       };
     };
 

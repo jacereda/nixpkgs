@@ -11,11 +11,11 @@
 
 stdenv.mkDerivation rec {
   pname = "drawio";
-  version = "14.5.1";
+  version = "15.8.4";
 
   src = fetchurl {
     url = "https://github.com/jgraph/drawio-desktop/releases/download/v${version}/drawio-x86_64-${version}.rpm";
-    hash = "sha256-ZrEoeeEhHQOLm/L3KA43Ru5fruIPK35CCUsllwpPB58=";
+    sha256 = "4708c727b51c85a6b77a1b72a4075a1b24628aae42302203e66f704203692616";
   };
 
   nativeBuildInputs = [
@@ -91,7 +91,7 @@ stdenv.mkDerivation rec {
     homepage = "https://about.draw.io/";
     license = licenses.asl20;
     changelog = "https://github.com/jgraph/drawio-desktop/releases/tag/v${version}";
-    maintainers = with maintainers; [ ];
+    maintainers = with maintainers; [ darkonion0 ];
     platforms = [ "x86_64-linux" ];
   };
 }

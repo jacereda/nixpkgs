@@ -83,7 +83,10 @@ in
     };
 
     boot.kernelParams = mkOption {
-      type = types.listOf types.str;
+      type = types.listOf (types.strMatching ''([^"[:space:]]|"[^"]*")+'' // {
+        name = "kernelParam";
+        description = "string, with spaces inside double quotes";
+      });
       default = [ ];
       description = "Parameters added to the kernel command line.";
     };
@@ -240,7 +243,7 @@ in
             "hid_generic" "hid_lenovo" "hid_apple" "hid_roccat"
             "hid_logitech_hidpp" "hid_logitech_dj" "hid_microsoft"
 
-          ] ++ optionals (pkgs.stdenv.isi686 || pkgs.stdenv.isx86_64) [
+          ] ++ optionals pkgs.stdenv.hostPlatform.isx86 [
             # Misc. x86 keyboard stuff.
             "pcips2" "atkbd" "i8042"
 

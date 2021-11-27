@@ -1,7 +1,7 @@
-{ lib, stdenv
+{ lib
+, stdenv
 , fetchFromGitHub
 , nix-update-script
-, pantheon
 , pkg-config
 , meson
 , ninja
@@ -32,7 +32,7 @@
 
 stdenv.mkDerivation rec {
   pname = "elementary-files";
-  version = "6.0.3";
+  version = "6.0.4";
 
   repoName = "files";
 
@@ -42,7 +42,7 @@ stdenv.mkDerivation rec {
     owner = "elementary";
     repo = repoName;
     rev = version;
-    sha256 = "10hgj5rrqxzk4q8jlhkwwrs4hgyavlhz3z1pqf36y663bq3h0izv";
+    sha256 = "sha256-FH6EYtgKADp8jjBoCwsdRdknlKS9v3iOtPiT3CyEc/8=";
   };
 
   passthru = {
@@ -100,5 +100,6 @@ stdenv.mkDerivation rec {
     license = licenses.gpl3Plus;
     platforms = platforms.linux;
     maintainers = teams.pantheon.members;
+    mainProgram = "io.elementary.files";
   };
 }

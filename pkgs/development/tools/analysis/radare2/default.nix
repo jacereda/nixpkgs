@@ -31,24 +31,30 @@ let
   arm64 = fetchFromGitHub {
     owner = "radareorg";
     repo = "vector35-arch-arm64";
-    rev = "5837915960c2ce862a77c99a374abfb7d18a8534";
-    sha256 = "sha256-bs8wjOX+txB193oqIIZ7yx9pwpVhR3HAaWuDLPLG7m4=";
+    rev = "3c5eaba46dab72ecb7d5f5b865a13fdeee95b464";
+    sha256 = "sha256-alcGEi+D8CptXzfznnuxQKCvU2mbzn2sQge5jSqLVpg=";
   };
 in
 stdenv.mkDerivation rec {
   pname = "radare2";
-  version = "5.4.0";
+  version = "5.4.2";
 
   src = fetchFromGitHub {
     owner = "radare";
     repo = "radare2";
     rev = version;
-    sha256 = "sha256-KRHMJ0lW0OF8ejcrigp4caPsuR3iaGcglCYxJSUhGJw=";
+    sha256 = "sha256-5GvJ7J+pAL8GIZ4Tv09wdGyihfMm1bUABhmf7ozQoxc=";
   };
 
   preBuild = ''
     cp -r ${arm64} libr/asm/arch/arm/v35arm64/arch-arm64
     chmod -R +w libr/asm/arch/arm/v35arm64/arch-arm64
+  '';
+
+  postFixup = lib.optionalString stdenv.isDarwin ''
+    for file in $out/bin/rasm2 $out/bin/ragg2 $out/bin/rabin2 $out/lib/libr_asm.${version}.dylib; do
+      install_name_tool -change libcapstone.4.dylib ${capstone}/lib/libcapstone.4.dylib $file
+    done
   '';
 
   postInstall = ''
@@ -59,7 +65,10 @@ stdenv.mkDerivation rec {
   makeFlags = [
     "GITTAP=${version}"
     "RANLIB=${stdenv.cc.bintools.bintools}/bin/${stdenv.cc.bintools.targetPrefix}ranlib"
+    "CC=${stdenv.cc.targetPrefix}cc"
+    "HOST_CC=${stdenv.cc.targetPrefix}cc"
   ];
+
   configureFlags = [
     "--with-sysmagic"
     "--with-syszip"
@@ -94,11 +103,11 @@ stdenv.mkDerivation rec {
     xxHash
   ];
 
-  meta = {
+  meta = with lib; {
     description = "unix-like reverse engineering framework and commandline tools";
-    homepage = "http://radare.org/";
-    license = lib.licenses.gpl2Plus;
-    maintainers = with lib.maintainers; [ raskin makefu mic92 ];
-    platforms = with lib.platforms; linux;
+    homepage = "https://radare.org/";
+    license = licenses.gpl2Plus;
+    maintainers = with maintainers; [ raskin makefu mic92 arkivm ];
+    platforms = platforms.unix;
   };
 }

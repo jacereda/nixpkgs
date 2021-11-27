@@ -131,6 +131,7 @@ let
           "fou"
           "xfrm"
           "ifb"
+          "batadv"
         ])
         (assertByteFormat "MTUBytes")
         (assertMacAddress "MACAddress")
@@ -248,6 +249,16 @@ let
         (assertValueOneOf "SerializeTunneledPackets" boolValues)
         (assertInt "ERSPANIndex")
         (assertRange "ERSPANIndex" 1 1048575)
+      ];
+
+      sectionFooOverUDP = checkUnitConfig "FooOverUDP" [
+        (assertOnlyFields [
+          "Port"
+          "Encapsulation"
+          "Protocol"
+        ])
+        (assertPort "Port")
+        (assertValueOneOf "Encapsulation" ["FooOverUDP" "GenericUDPEncapsulation"])
       ];
 
       sectionPeer = checkUnitConfig "Peer" [
@@ -371,6 +382,29 @@ let
         (assertInt "Table")
         (assertMinimum "Table" 0)
       ];
+
+      sectionBatmanAdvanced = checkUnitConfig "BatmanAdvanced" [
+        (assertOnlyFields [
+          "GatewayMode"
+          "Aggregation"
+          "BridgeLoopAvoidance"
+          "DistributedArpTable"
+          "Fragmentation"
+          "HopPenalty"
+          "OriginatorIntervalSec"
+          "GatewayBandwithDown"
+          "GatewayBandwithUp"
+          "RoutingAlgorithm"
+        ])
+        (assertValueOneOf "GatewayMode" ["off" "client" "server"])
+        (assertValueOneOf "Aggregation" boolValues)
+        (assertValueOneOf "BridgeLoopAvoidance" boolValues)
+        (assertValueOneOf "DistributedArpTable" boolValues)
+        (assertValueOneOf "Fragmentation" boolValues)
+        (assertInt "HopPenalty")
+        (assertRange "HopPenalty" 0 255)
+        (assertValueOneOf "RoutingAlgorithm" ["batman-v" "batman-iv"])
+      ];
     };
 
     network = {
@@ -463,6 +497,7 @@ let
           "IgnoreCarrierLoss"
           "Xfrm"
           "KeepConfiguration"
+          "BatmanAdvanced"
         ])
         # Note: For DHCP the values both, none, v4, v6 are deprecated
         (assertValueOneOf "DHCP" ["yes" "no" "ipv4" "ipv6"])
@@ -919,6 +954,18 @@ let
       '';
     };
 
+    fooOverUDPConfig = mkOption {
+      default = { };
+      example = { Port = 9001; };
+      type = types.addCheck (types.attrsOf unitOption) check.netdev.sectionFooOverUDP;
+      description = ''
+        Each attribute in this set specifies an option in the
+        <literal>[FooOverUDP]</literal> section of the unit.  See
+        <citerefentry><refentrytitle>systemd.netdev</refentrytitle>
+        <manvolnum>5</manvolnum></citerefentry> for details.
+      '';
+    };
+
     peerConfig = mkOption {
       default = {};
       example = { Name = "veth2"; };
@@ -1031,6 +1078,21 @@ let
         A detailed explanation about how VRFs work can be found in the
         <link xlink:href="https://www.kernel.org/doc/Documentation/networking/vrf.txt">kernel
         docs</link>.
+      '';
+    };
+
+    batmanAdvancedConfig = mkOption {
+      default = {};
+      example = {
+        GatewayMode = "server";
+        RoutingAlgorithm = "batman-v";
+      };
+      type = types.addCheck (types.attrsOf unitOption) check.netdev.sectionBatmanAdvanced;
+      description = ''
+        Each attribute in this set specifies an option in the
+        <literal>[BatmanAdvanced]</literal> section of the unit. See
+        <citerefentry><refentrytitle>systemd.netdev</refentrytitle>
+        <manvolnum>5</manvolnum></citerefentry> for details.
       '';
     };
 
@@ -1449,6 +1511,10 @@ let
           [Tunnel]
           ${attrsToSection def.tunnelConfig}
         ''
+        + optionalString (def.fooOverUDPConfig != { }) ''
+          [FooOverUDP]
+          ${attrsToSection def.fooOverUDPConfig}
+        ''
         + optionalString (def.peerConfig != { }) ''
           [Peer]
           ${attrsToSection def.peerConfig}
@@ -1480,6 +1546,10 @@ let
         + optionalString (def.vrfConfig != { }) ''
           [VRF]
           ${attrsToSection def.vrfConfig}
+        ''
+        + optionalString (def.batmanAdvancedConfig != { }) ''
+          [BatmanAdvanced]
+          ${attrsToSection def.batmanAdvancedConfig}
         ''
         + def.extraConfig;
     };
