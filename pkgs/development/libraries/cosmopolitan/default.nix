@@ -4,25 +4,30 @@
 
 gccStdenv.mkDerivation rec {
   pname = "cosmopolitan";
-  version = "c226e32";
+  version = "d6a0398";
 
   src = fetchFromGitHub {
-    owner = "jacereda";
+    owner = "jart";
     repo = "cosmopolitan";
     rev = version;
-    sha256 = "0ncqvfwwsdzjbazlb0nxxmbl8phnb7xrs9klw7h4sl69jqzgc3js";
+    sha256 = "0ls13m52v5mrd9d4c3rcf9kgjxlpx8dr8aphplgq2brllp90f26r";
   };
 
   postPatch = ''
     patchShebangs build/
-    # rm -r third_party/gcc
+    rm -r third_party/gcc
+    rm -r third_party/make
     rm test/tool/build/lib/bsu_test.c # https://twitter.com/JustineTunney/status/1355321045037662212
+    rm test/tool/net/redbean_test.c # network access
+    rm test/libc/log/backtrace_test.c # fails in mode=rel
     rm third_party/python/Lib/test/test_ioctl.py
-    substituteInPlace third_party/python/python.mk --replace third_party/python/Lib/test/test_ioctl.py ""
     substituteInPlace libc/rand/randtest.c --replace mcount mcnt
+    substituteInPlace third_party/python/python.mk --replace third_party/python/Lib/test/test_ioctl.py ""
+    substituteInPlace third_party/python/Python/frozen.c --replace 'o//third_party' "o/${mode}/third_party"
     substituteInPlace third_party/python/Lib/test/test_fileio.py --replace testUnclosedFDOnException xtestUnclosedFDOnException
     substituteInPlace third_party/python/Python/random.c --replace '#if 1' '#if 0'
-  	echo "o/${mode}/third_party/python/pythontester.com.dbg: QUOTA += -M512m" >> third_party/python/python.mk
+    substituteInPlace libc/integral/c.inc --replace '#pragma GCC diagnostic error "-Walloca-larger-than=1024"' "" # fails in mode=rel
+    substituteInPlace libc/integral/c.inc --replace '#pragma GCC diagnostic error "-Wframe-larger-than=4096"' "" # fails in mode=rel
   '';
 
   dontConfigure = true;
@@ -47,8 +52,8 @@ gccStdenv.mkDerivation rec {
   installPhase = ''
     runHook preInstall
     mkdir -p $out/{bin,lib,include}
-    install o/cosmopolitan.h $out/include
-    install o/cosmopolitan.a o/libc/crt/crt.o o/ape/ape.{o,lds} $out/lib
+    install o/${mode}/cosmopolitan.h $out/include
+    install o/${mode}/cosmopolitan.a o/${mode}/libc/crt/crt.o o/${mode}/ape/ape.{o,lds} $out/lib
     for h in `find libc -name \*.h`
     do
         install -D $h $out/include/$h
