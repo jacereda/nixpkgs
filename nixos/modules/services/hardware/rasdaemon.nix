@@ -21,7 +21,7 @@ in
     mainboard = mkOption {
       type = types.lines;
       default = "";
-      description = "Custom mainboard description, see <citerefentry><refentrytitle>ras-mc-ctl</refentrytitle><manvolnum>8</manvolnum></citerefentry> for more details.";
+      description = "Custom mainboard description, see {manpage}`ras-mc-ctl(8)` for more details.";
       example = ''
         vendor = ASRock
         model = B450M Pro4
@@ -137,7 +137,6 @@ in
         description = "the RAS logging daemon";
         documentation = [ "man:rasdaemon(1)" ];
         wantedBy = [ "multi-user.target" ];
-        after = [ "syslog.target" ];
 
         serviceConfig = {
           StateDirectory = optionalString (cfg.record) "rasdaemon";

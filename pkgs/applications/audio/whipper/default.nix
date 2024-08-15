@@ -2,12 +2,18 @@
 , python3
 , fetchFromGitHub
 , fetchpatch
+, installShellFiles
+, wrapGAppsNoGuiHook
+, gobject-introspection
 , libcdio-paranoia
 , cdrdao
 , libsndfile
+, glib
 , flac
 , sox
 , util-linux
+, testers
+, whipper
 }:
 
 let
@@ -15,6 +21,7 @@ let
 in python3.pkgs.buildPythonApplication rec {
   pname = "whipper";
   version = "0.10.0";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "whipper-team";
@@ -32,9 +39,15 @@ in python3.pkgs.buildPythonApplication rec {
     })
   ];
 
-  nativeBuildInputs = with python3.pkgs; [
-    setuptools-scm
+  nativeBuildInputs = [
+    installShellFiles
+    wrapGAppsNoGuiHook
+    gobject-introspection
+  ];
+
+  build-system = with python3.pkgs; [
     docutils
+    setuptools-scm
   ];
 
   propagatedBuildInputs = with python3.pkgs; [
@@ -45,37 +58,50 @@ in python3.pkgs.buildPythonApplication rec {
     ruamel-yaml
     discid
     pillow
+    setuptools
   ];
 
-  buildInputs = [ libsndfile ];
+  buildInputs = [ libsndfile glib ];
 
-  checkInputs = with python3.pkgs; [
+  nativeCheckInputs = with python3.pkgs; [
     twisted
+    pytestCheckHook
   ] ++ bins;
 
   makeWrapperArgs = [
     "--prefix" "PATH" ":" (lib.makeBinPath bins)
+    "\${gappsWrapperArgs[@]}"
   ];
 
-  preBuild = ''
-    export SETUPTOOLS_SCM_PRETEND_VERSION="${version}"
+  dontWrapGApps = true;
+
+  outputs = [ "out" "man" ];
+  postBuild = ''
+    make -C man
   '';
 
-  checkPhase = ''
-    runHook preCheck
+  preCheck = ''
     # disable tests that require internet access
     # https://github.com/JoeLametta/whipper/issues/291
     substituteInPlace whipper/test/test_common_accurip.py \
       --replace "test_AccurateRipResponse" "dont_test_AccurateRipResponse"
-    HOME=$TMPDIR ${python3.interpreter} -m unittest discover
-    runHook postCheck
+    export HOME=$TMPDIR
   '';
+
+  postInstall = ''
+    installManPage man/*.1
+  '';
+
+  passthru.tests.version = testers.testVersion {
+    package = whipper;
+    command = "HOME=$TMPDIR whipper --version";
+  };
 
   meta = with lib; {
     homepage = "https://github.com/whipper-team/whipper";
-    description = "A CD ripper aiming for accuracy over speed";
+    description = "CD ripper aiming for accuracy over speed";
     maintainers = with maintainers; [ emily ];
     license = licenses.gpl3Plus;
-    platforms = platforms.linux;
+    platforms = platforms.unix;
   };
 }

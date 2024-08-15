@@ -2,11 +2,11 @@
 
 stdenv.mkDerivation rec {
   pname = "hyx";
-  version = "2020-06-09";
+  version = "2024.02.29";
 
   src = fetchurl {
     url = "https://yx7.cc/code/hyx/hyx-${lib.replaceStrings [ "-" ] [ "." ] version}.tar.xz";
-    sha256 = "1x8dmll93hrnj24kn5knpwj36y6r1v2ygwynpjwrg2hwd4c1a8hi";
+    sha256 = "sha256-dufx3zsabeet7Rp0d60MIuNqisIQd6UgE7WDZYNHl3E=";
   };
 
   postPatch = lib.optionalString stdenv.isDarwin ''
@@ -22,6 +22,7 @@ stdenv.mkDerivation rec {
 
   meta = with lib; {
     description = "minimalistic but powerful Linux console hex editor";
+    mainProgram = "hyx";
     homepage = "https://yx7.cc/code/";
     license = licenses.mit;
     maintainers = with maintainers; [ fpletz ];

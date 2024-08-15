@@ -1,72 +1,58 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, nix-update-script
-, pkg-config
-, meson
-, ninja
-, vala
-, python3
-, desktop-file-utils
-, gtk3
-, granite
-, libgee
-, libhandy
-, clutter-gst
-, clutter-gtk
-, gst_all_1
-, elementary-icon-theme
-, wrapGAppsHook
+{
+  stdenv,
+  lib,
+  fetchFromGitHub,
+  nix-update-script,
+  meson,
+  ninja,
+  pkg-config,
+  vala,
+  wrapGAppsHook4,
+  gdk-pixbuf,
+  granite7,
+  gst_all_1,
+  gtk4,
+  libadwaita,
+  libgee,
 }:
 
 stdenv.mkDerivation rec {
   pname = "elementary-videos";
-  version = "2.8.0";
-
-  repoName = "videos";
+  version = "8.0.1";
 
   src = fetchFromGitHub {
     owner = "elementary";
-    repo = repoName;
+    repo = "videos";
     rev = version;
-    sha256 = "sha256-FFCtQ42LygfjowehwZcISWTfv8PBZTH0X8mPrpiG8Ug=";
+    hash = "sha256-3TpPgMd4dABhvnnmHHQCHDvuSdC5rWxGvaXPg20/Mrs=";
   };
 
   nativeBuildInputs = [
-    desktop-file-utils
     meson
     ninja
     pkg-config
-    python3
     vala
-    wrapGAppsHook
+    wrapGAppsHook4
   ];
 
-  buildInputs = with gst_all_1; [
-    clutter-gst
-    clutter-gtk
-    elementary-icon-theme
-    granite
-    gst-libav
-    gst-plugins-bad
-    gst-plugins-base
-    gst-plugins-good
-    gst-plugins-ugly
-    gstreamer
-    gtk3
+  buildInputs = [
+    gdk-pixbuf
+    granite7
+    gst_all_1.gst-libav
+    gst_all_1.gst-plugins-bad
+    gst_all_1.gst-plugins-base
+    # https://github.com/elementary/videos/issues/356
+    (gst_all_1.gst-plugins-good.override { gtkSupport = true; })
+    gst_all_1.gst-plugins-rs # GTK 4 Sink
+    gst_all_1.gst-plugins-ugly
+    gst_all_1.gstreamer
+    gtk4
+    libadwaita
     libgee
-    libhandy
   ];
-
-  postPatch = ''
-    chmod +x meson/post_install.py
-    patchShebangs meson/post_install.py
-  '';
 
   passthru = {
-    updateScript = nix-update-script {
-      attrPath = "pantheon.${pname}";
-    };
+    updateScript = nix-update-script { };
   };
 
   meta = with lib; {

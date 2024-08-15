@@ -10,6 +10,7 @@
 , freetype
 , pkg-config
 , which
+, nixosTests
 }:
 
 stdenv.mkDerivation rec {
@@ -21,7 +22,8 @@ stdenv.mkDerivation rec {
     sha256 = "1mqhmnlz32lvld9rc6c1hyz7gjw4anwf39yhbsjkikcgj1das0zl";
   };
 
-  buildInputs = [ libX11 libXft libXi xorgproto libSM libICE freetype pkg-config which ];
+  nativeBuildInputs = [ pkg-config ];
+  buildInputs = [ libX11 libXft libXi xorgproto libSM libICE freetype which ];
 
   configureFlags = [
     "--with-x"
@@ -38,6 +40,8 @@ stdenv.mkDerivation rec {
     NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -I${freetype.dev}/include/freetype2";
   '';
 
+  passthru.tests.test = nixosTests.terminal-emulators.mrxvt;
+
   meta = with lib; {
     description = "Lightweight multitabbed feature-rich X11 terminal emulator";
     longDescription = "
@@ -47,7 +51,7 @@ stdenv.mkDerivation rec {
     homepage = "https://sourceforge.net/projects/materm";
     license = licenses.gpl2;
     platforms = platforms.linux;
-    maintainers = with maintainers; [ ];
+    maintainers = [ ];
     knownVulnerabilities = [
       "Usage of ANSI escape sequences causes unexpected newline-termination, leading to unexpected command execution (https://www.openwall.com/lists/oss-security/2021/05/17/1)"
     ];

@@ -1,17 +1,17 @@
-{ stdenv, fetchFromGitHub, fzf, lib, makeWrapper, rustPlatform, wget, libiconv }:
+{ stdenv, fetchFromGitHub, lib, makeWrapper, rustPlatform, wget, libiconv, withFzf ? true, fzf }:
 
 rustPlatform.buildRustPackage rec {
   pname = "navi";
-  version = "2.17.0";
+  version = "2.23.0";
 
   src = fetchFromGitHub {
     owner = "denisidoro";
     repo = "navi";
     rev = "v${version}";
-    sha256 = "sha256-WH8FfQ7cD4aFUi9iE0tR/B+5oWy8tMVmMLxusDwXF7w=";
+    sha256 = "sha256-pqBTrHBvsuosyQqCnSiI3+pOe2J6XeIQ8dai+kTVFjc=";
   };
 
-  cargoSha256 = "sha256-TH9DNCoUVqH5g05Z4Vdv7F8CCLnaYezupI5FeJhYTaQ=";
+  cargoHash = "sha256-dx13p+kEyqhyaF8ejJLWsgW3IpEvS9nlIHhjxOpp4d8=";
 
   nativeBuildInputs = [ makeWrapper ];
 
@@ -20,7 +20,7 @@ rustPlatform.buildRustPackage rec {
   postInstall = ''
     wrapProgram $out/bin/navi \
       --prefix PATH : "$out/bin" \
-      --prefix PATH : ${lib.makeBinPath [ fzf wget ]}
+      --prefix PATH : ${lib.makeBinPath([ wget ] ++ lib.optionals withFzf [ fzf ])}
   '';
 
   checkFlags = [
@@ -29,10 +29,11 @@ rustPlatform.buildRustPackage rec {
    ];
 
   meta = with lib; {
-    description = "An interactive cheatsheet tool for the command-line and application launchers";
+    description = "Interactive cheatsheet tool for the command-line and application launchers";
     homepage = "https://github.com/denisidoro/navi";
     license = licenses.asl20;
     platforms = platforms.unix;
+    mainProgram = "navi";
     maintainers = with maintainers; [ cust0dian ];
   };
 }

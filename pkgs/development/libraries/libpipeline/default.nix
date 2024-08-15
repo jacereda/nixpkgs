@@ -1,14 +1,19 @@
-{ lib, stdenv, fetchurl }:
+{ lib, stdenv, fetchurl, updateAutotoolsGnuConfigScriptsHook }:
 
 stdenv.mkDerivation rec {
-  name = "libpipeline-1.5.3";
+  pname = "libpipeline";
+  version = "1.5.7";
 
   src = fetchurl {
-    url = "mirror://savannah/libpipeline/${name}.tar.gz";
-    sha256 = "1c5dl017xil2ssb6a5vg927bnsbc9vymfgi9ahvqbb8gypx0igsx";
+    url = "mirror://savannah/libpipeline/libpipeline-${version}.tar.gz";
+    sha256 = "sha256-uLRRlJiQIqeewTF/ZKKnWxVRsqVb6gb2dwTLKi5GkLA=";
   };
 
   patches = lib.optionals stdenv.isDarwin [ ./fix-on-osx.patch ];
+
+  # necessary to build on FreeBSD native pending inclusion of
+  # https://git.savannah.gnu.org/cgit/config.git/commit/?id=e4786449e1c26716e3f9ea182caf472e4dbc96e0
+  nativeBuildInputs = [ updateAutotoolsGnuConfigScriptsHook ];
 
   meta = with lib; {
     homepage = "http://libpipeline.nongnu.org";

@@ -1,23 +1,29 @@
-{ lib
-, buildPythonPackage
-, fetchPypi
-, async-timeout
+{
+  lib,
+  async-timeout,
+  buildPythonPackage,
+  fetchPypi,
+  pythonOlder,
+  setuptools,
 }:
 
 buildPythonPackage rec {
   pname = "aiopulse";
-  version = "0.4.2";
+  version = "0.4.5";
+  pyproject = true;
+
+  disabled = pythonOlder "3.6";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "0fnscm27l77c8cd7jhbn35axyalq61kksy3fcqzv21fz55lklsm0";
+    hash = "sha256-yrltqnePNnNwsVGkfXgtrtL/FuazRvmoVL4L0H4j4Bg=";
   };
 
-  propagatedBuildInputs = [
-    async-timeout
-  ];
+  nativeBuildInputs = [ setuptools ];
 
-  # tests are not present
+  propagatedBuildInputs = [ async-timeout ];
+
+  # Tests are not present
   doCheck = false;
 
   pythonImportsCheck = [ "aiopulse" ];
@@ -31,6 +37,7 @@ buildPythonPackage rec {
       binary protocol to issues commands to the Pulse Hub.
     '';
     homepage = "https://github.com/atmurray/aiopulse";
+    changelog = "https://github.com/atmurray/aiopulse/releases/tag/v${version}";
     license = with licenses; [ asl20 ];
     maintainers = with maintainers; [ fab ];
   };

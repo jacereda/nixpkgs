@@ -1,28 +1,81 @@
-{ lib, buildPythonPackage, fetchPypi, installShellFiles
-, Babel, requests, requests_oauthlib, six, click, markdown, pyyaml, cryptography
-, pytest-runner, coverage, flake8, mock, pytestCheckHook, pytest-cov, tox, gntp, sleekxmpp
+{
+  lib,
+  apprise,
+  babel,
+  buildPythonPackage,
+  click,
+  cryptography,
+  fetchPypi,
+  gntp,
+  installShellFiles,
+  markdown,
+  paho-mqtt,
+  pytest-mock,
+  pytest-xdist,
+  pytestCheckHook,
+  pythonOlder,
+  pyyaml,
+  requests,
+  requests-oauthlib,
+  setuptools,
+  testers,
 }:
 
 buildPythonPackage rec {
   pname = "apprise";
-  version = "0.9.5.1";
+  version = "1.8.1";
+  pyproject = true;
+
+  disabled = pythonOlder "3.7";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "sha256-vwkHA66xK4LGhdazZ0o93+cSpGwgiTCMm8IC8D4G1Y0=";
+    hash = "sha256-CKIP5yZyt+kPeWnVuHnWV8Li2zhaiowQ9Uy6VlvyN/I=";
   };
 
-  nativeBuildInputs = [ Babel installShellFiles ];
+  nativeBuildInputs = [ installShellFiles ];
 
-  propagatedBuildInputs = [
-    cryptography requests requests_oauthlib six click markdown pyyaml
+  build-system = [
+    babel
+    setuptools
   ];
 
-  checkInputs = [
-    pytest-runner coverage flake8 mock pytestCheckHook pytest-cov tox gntp sleekxmpp
+  dependencies = [
+    click
+    cryptography
+    markdown
+    pyyaml
+    requests
+    requests-oauthlib
   ];
 
-  disabledTests = [ "test_apprise_cli_nux_env"  ];
+  nativeCheckInputs = [
+    gntp
+    paho-mqtt
+    pytest-mock
+    pytest-xdist
+    pytestCheckHook
+  ];
+
+  disabledTests = [
+    "test_apprise_cli_nux_env"
+    # Nondeterministic. Fails with `assert 0 == 1`
+    "test_notify_emoji_general"
+    "test_plugin_mqtt_general"
+    # Nondeterministic. Fails with `assert 3 == 2`
+    "test_plugin_matrix_transaction_ids_api_v3"
+    # Nondeterministic. Fails with `AssertionError`
+    "test_plugin_xbmc_kodi_urls"
+    # Nondeterministic. Fails with `AssertionError`
+    "test_plugin_zulip_urls"
+  ];
+
+  disabledTestPaths = [
+    # AttributeError: module 'apprise.plugins' has no attribute 'NotifyBulkSMS'
+    "test/test_plugin_bulksms.py"
+    # Nondeterministic. Multiple tests will fail with `AssertionError`
+    "test/test_plugin_workflows.py"
+  ];
 
   postInstall = ''
     installManPage packaging/man/apprise.1
@@ -30,10 +83,19 @@ buildPythonPackage rec {
 
   pythonImportsCheck = [ "apprise" ];
 
-  meta = with lib; {
+  passthru = {
+    tests.version = testers.testVersion {
+      package = apprise;
+      version = "v${version}";
+    };
+  };
+
+  meta = {
+    description = "Push Notifications that work with just about every platform";
     homepage = "https://github.com/caronc/apprise";
-    description = "Push Notifications that work with just about every platform!";
-    license = licenses.mit;
-    maintainers = [ maintainers.marsam ];
+    changelog = "https://github.com/caronc/apprise/releases/tag/v${version}";
+    license = lib.licenses.bsd3;
+    maintainers = with lib.maintainers; [ getchoo ];
+    mainProgram = "apprise";
   };
 }

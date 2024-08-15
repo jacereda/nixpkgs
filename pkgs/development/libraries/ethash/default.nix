@@ -2,21 +2,21 @@
 
 stdenv.mkDerivation rec {
   pname = "ethash";
-  version = "0.7.1";
+  version = "1.0.1";
 
   src =
     fetchFromGitHub {
       owner = "chfast";
       repo = "ethash";
       rev = "v${version}";
-      sha256 = "sha256-ba8SBtJd0ERunO9KpJZkutkO6ZnZOEGzWn2IjO1Uu28=";
+      sha256 = "sha256-BjgfWDn72P4NJhzq0ySW8bvZI3AQB9jOaRqFIeCfJ8k=";
     };
 
   nativeBuildInputs = [
     cmake
   ];
 
-  checkInputs = [
+  nativeCheckInputs = [
     gbenchmark
     gtest
   ];
@@ -41,7 +41,7 @@ stdenv.mkDerivation rec {
     description = "PoW algorithm for Ethereum 1.0 based on Dagger-Hashimoto";
     homepage = "https://github.com/ethereum/ethash";
     platforms = platforms.unix;
-    maintainers = with maintainers; [ ];
+    maintainers = [ ];
     license = licenses.asl20;
   };
 }

@@ -1,16 +1,17 @@
-{ lib
-, buildPythonPackage
-, fetchFromGitHub
-, pygame
-, pyglet
-, pysdl2
-, pytestCheckHook
-, pythonOlder
+{
+  lib,
+  buildPythonPackage,
+  fetchFromGitHub,
+  pygame,
+  pyglet,
+  pysdl2,
+  pytestCheckHook,
+  pythonOlder,
 }:
 
 buildPythonPackage rec {
   pname = "pytmx";
-  version = "3.30";
+  version = "3.31";
   format = "setuptools";
 
   disabled = pythonOlder "3.7";
@@ -18,8 +19,8 @@ buildPythonPackage rec {
   src = fetchFromGitHub {
     owner = "bitcraft";
     repo = "PyTMX";
-    rev = version;
-    sha256 = "sha256-d6VPmRdqUO6YhkOYYeXOEcrli/35IFkxK73AcZYHixw=";
+    rev = "v${version}";
+    sha256 = "05v8zv06fymvgv332g48kcing4k4ncy2iwgpy1qmxrpin1avyynx";
   };
 
   propagatedBuildInputs = [
@@ -35,9 +36,7 @@ buildPythonPackage rec {
     "pytmx.util_pysdl2"
   ];
 
-  checkInputs = [
-    pytestCheckHook
-  ];
+  nativeCheckInputs = [ pytestCheckHook ];
 
   disabledTests = [
     # AssertionError on the property name

@@ -1,23 +1,29 @@
-{ lib, fetchFromGitHub, python2Packages }:
+{
+  lib,
+  fetchFromGitHub,
+  python3Packages,
+}:
 
-python2Packages.buildPythonApplication rec {
-  program = "grin";
-  version = "1.2.1";
-  name = "${program}-${version}";
+python3Packages.buildPythonApplication {
+  pname = "grin";
+  version = "1.3.0-unstable-2023-08-30";
   namePrefix = "";
+  pyproject = true;
 
   src = fetchFromGitHub {
-    owner = "rkern";
-    repo = program;
-    rev = "8dd4b5309b3bc04fe9d3e71836420f7d8d4a293f";
-    sha256 = "0vz2aahwdcy1296g4w3i79dkvmzk9jc2n2zmlcvlg5m3s6h7b6jd";
+    owner = "matthew-brett";
+    repo = "grin";
+    rev = "00e11ebf17bbb37dc33d282eac1282c0bcc07e82";
+    hash = "sha256-0lrCOXFb2v0hCxWd9O7ysbn8CjPd8NHOJhARYzJJcYg=";
   };
 
-  buildInputs = with python2Packages; [ nose ];
+  build-system = [ python3Packages.setuptools ];
+
+  nativeCheckInputs = [ python3Packages.pytestCheckHook ];
 
   meta = {
-    homepage = "https://github.com/rkern/grin";
-    description = "A grep program configured the way I like it";
+    homepage = "https://github.com/matthew-brett/grin";
+    description = "Grep program configured the way I like it";
     platforms = lib.platforms.all;
     maintainers = [ lib.maintainers.sjagoe ];
   };

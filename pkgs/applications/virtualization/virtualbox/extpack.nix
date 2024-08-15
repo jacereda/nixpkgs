@@ -1,4 +1,4 @@
-{fetchurl, lib, virtualbox}:
+{ fetchurl, lib, virtualbox }:
 
 with lib;
 
@@ -12,14 +12,14 @@ fetchurl rec {
     # Manually sha256sum the extensionPack file, must be hex!
     # Thus do not use `nix-prefetch-url` but instead plain old `sha256sum`.
     # Checksums can also be found at https://www.virtualbox.org/download/hashes/${version}/SHA256SUMS
-    let value = "85d7858a95d802c41cb86e1b573dc501d782e5d040937e0d8505a37c29509774";
+    let value = "d750fb17688d70e0cb2d7b06f1ad3a661303793f4d1ac39cfa9a54806b89da25";
     in assert (builtins.stringLength value) == 64; value;
 
   meta = {
     description = "Oracle Extension pack for VirtualBox";
     license = licenses.virtualbox-puel;
     homepage = "https://www.virtualbox.org/";
-    maintainers = with maintainers; [ sander cdepillabout ];
+    maintainers = with maintainers; [ sander friedrichaltheide ];
     platforms = [ "x86_64-linux" ];
   };
 }

@@ -6,12 +6,7 @@ in {
     services.pleroma = with lib; {
       enable = mkEnableOption "pleroma";
 
-      package = mkOption {
-        type = types.package;
-        default = pkgs.pleroma;
-        defaultText = literalExpression "pkgs.pleroma";
-        description = "Pleroma package to use.";
-      };
+      package = mkPackageOption pkgs "pleroma" { };
 
       user = mkOption {
         type = types.str;
@@ -42,9 +37,9 @@ in {
           configuration imperatively, meaning you can override a
           setting by appending a new str to this NixOS option list.
 
-          <emphasis>DO NOT STORE ANY PLEROMA SECRET
-          HERE</emphasis>, use
-          <link linkend="opt-services.pleroma.secretConfigFile">services.pleroma.secretConfigFile</link>
+          *DO NOT STORE ANY PLEROMA SECRET
+          HERE*, use
+          [services.pleroma.secretConfigFile](#opt-services.pleroma.secretConfigFile)
           instead.
 
           This setting is going to be stored in a file part of
@@ -52,7 +47,7 @@ in {
           the right place to store any secret
 
           Have a look to Pleroma section in the NixOS manual for more
-          informations.
+          information.
           '';
       };
 
@@ -62,8 +57,8 @@ in {
         description = ''
           Path to the file containing your secret pleroma configuration.
 
-          <emphasis>DO NOT POINT THIS OPTION TO THE NIX
-          STORE</emphasis>, the store being world-readable, it'll
+          *DO NOT POINT THIS OPTION TO THE NIX
+          STORE*, the store being world-readable, it'll
           compromise all your secrets.
         '';
       };
@@ -97,9 +92,11 @@ in {
 
     systemd.services.pleroma = {
       description = "Pleroma social network";
+      wants = [ "network-online.target" ];
       after = [ "network-online.target" "postgresql.service" ];
       wantedBy = [ "multi-user.target" ];
       restartTriggers = [ config.environment.etc."/pleroma/config.exs".source ];
+      environment.RELEASE_COOKIE = "/var/lib/pleroma/.cookie";
       serviceConfig = {
         User = cfg.user;
         Group = cfg.group;
@@ -116,8 +113,14 @@ in {
         # has not been updated. But the no-op process is pretty fast.
         # Better be safe than sorry migration-wise.
         ExecStartPre =
-          let preScript = pkgs.writers.writeBashBin "pleromaStartPre"
-            "${cfg.package}/bin/pleroma_ctl migrate";
+          let preScript = pkgs.writers.writeBashBin "pleromaStartPre" ''
+            if [ ! -f /var/lib/pleroma/.cookie ]
+            then
+              echo "Creating cookie file"
+              dd if=/dev/urandom bs=1 count=16 | hexdump -e '16/1 "%02x"' > /var/lib/pleroma/.cookie
+            fi
+            ${cfg.package}/bin/pleroma_ctl migrate
+          '';
           in "${preScript}/bin/pleromaStartPre";
 
         ExecStart = "${cfg.package}/bin/pleroma start";
@@ -134,9 +137,11 @@ in {
         NoNewPrivileges = true;
         CapabilityBoundingSet = "~CAP_SYS_ADMIN";
       };
+      # disksup requires bash
+      path = [ pkgs.bash ];
     };
 
   };
-  meta.maintainers = with lib.maintainers; [ ninjatrappeur ];
-  meta.doc = ./pleroma.xml;
+  meta.maintainers = with lib.maintainers; [ picnoir ];
+  meta.doc = ./pleroma.md;
 }

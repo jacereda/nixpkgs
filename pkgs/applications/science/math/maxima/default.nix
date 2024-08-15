@@ -1,24 +1,30 @@
-{ lib, stdenv, fetchurl, fetchpatch, sbcl, texinfo, perl, python3, makeWrapper, autoreconfHook
-, rlwrap ? null, tk ? null, gnuplot ? null, ecl ? null, ecl-fasl ? false
+{ lib
+, stdenv
+, fetchurl
+, fetchpatch
+, texinfo
+, perl
+, python3
+, makeWrapper
+, autoreconfHook
+, rlwrap ? null
+, tk ? null
+, gnuplot ? null
+, lisp-compiler
 }:
 
 let
-  name    = "maxima";
-  version = "5.45.0";
-
-  lisp-compiler = if ecl-fasl then ecl else sbcl;
-
-  searchPath =
-    lib.makeBinPath
-      (lib.filter (x: x != null) [ lisp-compiler rlwrap tk gnuplot ]);
+  # Allow to remove some executables from the $PATH of the wrapped binary
+  searchPath = lib.makeBinPath
+    (lib.filter (x: x != null) [ lisp-compiler rlwrap tk gnuplot ]);
 in
-stdenv.mkDerivation ({
-  inherit version;
-  name = "${name}-${version}";
+stdenv.mkDerivation (finalAttrs: {
+  pname = "maxima";
+  version = "5.47.0";
 
   src = fetchurl {
-    url = "mirror://sourceforge/${name}/${name}-${version}.tar.gz";
-    sha256 = "sha256-x2MfMmRIBc67e6/vOrUzHEus0sJ+OE/YgyO1A5pg0Ng=";
+    url = "mirror://sourceforge/maxima/maxima-${finalAttrs.version}.tar.gz";
+    sha256 = "sha256-kQQCGyT9U+jAOpg1CctC6TepJejAyFwzXXcJoU/UD3o=";
   };
 
   nativeBuildInputs = [
@@ -31,7 +37,7 @@ stdenv.mkDerivation ({
 
   strictDeps = true;
 
-  checkInputs = [
+  nativeCheckInputs = [
     gnuplot
   ];
 
@@ -46,38 +52,35 @@ stdenv.mkDerivation ({
     done
     # Move emacs modules and documentation into the right place.
     mkdir -p $out/share/emacs $out/share/doc
-    ln -s ../maxima/${version}/emacs $out/share/emacs/site-lisp
-    ln -s ../maxima/${version}/doc $out/share/doc/maxima
+    ln -s ../maxima/${finalAttrs.version}/emacs $out/share/emacs/site-lisp
+    ln -s ../maxima/${finalAttrs.version}/doc $out/share/doc/maxima
   ''
-   + (lib.optionalString ecl-fasl ''
-     cp src/binary-ecl/maxima.fas* "$out/lib/maxima/${version}/binary-ecl/"
+   + (lib.optionalString (lisp-compiler.pname == "ecl") ''
+     cp src/binary-ecl/maxima.fas* "$out/lib/maxima/${finalAttrs.version}/binary-ecl/"
    '')
   ;
 
   patches = [
     # fix path to info dir (see https://trac.sagemath.org/ticket/11348)
     (fetchpatch {
-      url = "https://git.sagemath.org/sage.git/plain/build/pkgs/maxima/patches/infodir.patch?id=07d6c37d18811e2b377a9689790a7c5e24da16ba";
+      url = "https://raw.githubusercontent.com/sagemath/sage/07d6c37d18811e2b377a9689790a7c5e24da16ba/build/pkgs/maxima/patches/infodir.patch";
       sha256 = "09v64n60f7i6frzryrj0zd056lvdpms3ajky4f9p6kankhbiv21x";
     })
 
     # fix https://sourceforge.net/p/maxima/bugs/2596/
     (fetchpatch {
-      url = "https://git.sagemath.org/sage.git/plain/build/pkgs/maxima/patches/matrixexp.patch?id=07d6c37d18811e2b377a9689790a7c5e24da16ba";
+      url = "https://raw.githubusercontent.com/sagemath/sage/07d6c37d18811e2b377a9689790a7c5e24da16ba/build/pkgs/maxima/patches/matrixexp.patch";
       sha256 = "06961hn66rhjijfvyym21h39wk98sfxhp051da6gz0n9byhwc6zg";
     })
 
-    # undo https://sourceforge.net/p/maxima/code/ci/f5e9b0f7eb122c4e48ea9df144dd57221e5ea0ca, see see https://trac.sagemath.org/ticket/13364#comment:93
+    # undo https://sourceforge.net/p/maxima/code/ci/f5e9b0f7eb122c4e48ea9df144dd57221e5ea0ca
+    # see https://trac.sagemath.org/ticket/13364#comment:93
     (fetchpatch {
-      url = "https://git.sagemath.org/sage.git/plain/build/pkgs/maxima/patches/undoing_true_false_printing_patch.patch?id=07d6c37d18811e2b377a9689790a7c5e24da16ba";
+      url = "https://raw.githubusercontent.com/sagemath/sage/07d6c37d18811e2b377a9689790a7c5e24da16ba/build/pkgs/maxima/patches/undoing_true_false_printing_patch.patch";
       sha256 = "0fvi3rcjv6743sqsbgdzazy9jb6r1p1yq63zyj9fx42wd1hgf7yx";
     })
-  ] ++ lib.optionals ecl-fasl [
-    # build fasl, needed for ECL support
-    (fetchpatch {
-      url = "https://git.sagemath.org/sage.git/plain/build/pkgs/maxima/patches/maxima.system.patch?id=07d6c37d18811e2b377a9689790a7c5e24da16ba";
-      sha256 = "18zafig8vflhkr80jq2ivk46k92dkszqlyq8cfmj0b2vcfjwwbar";
-    })
+
+    ./5.47.0-CVE-2024-34490.patch
   ];
 
   # The test suite is disabled since 5.42.2 because of the following issues:
@@ -97,13 +100,13 @@ stdenv.mkDerivation ({
   enableParallelBuilding = true;
 
   passthru = {
-    ecl = ecl;
+    inherit lisp-compiler;
   };
 
-  meta = {
+  meta = with lib; {
     description = "Computer algebra system";
     homepage = "http://maxima.sourceforge.net";
-    license = lib.licenses.gpl2;
+    license = licenses.gpl2Plus;
 
     longDescription = ''
       Maxima is a fairly complete computer algebra system written in
@@ -111,7 +114,7 @@ stdenv.mkDerivation ({
       DOE-MACSYMA and licensed under the GPL. Its abilities include
       symbolic integration, 3D plotting, and an ODE solver.
     '';
-
-    platforms = lib.platforms.unix;
+    maintainers = with maintainers; [ doronbehar ];
+    platforms = platforms.unix;
   };
 })

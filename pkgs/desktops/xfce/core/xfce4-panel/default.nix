@@ -1,7 +1,7 @@
-{ mkXfceDerivation
+{ lib
+, mkXfceDerivation
 , exo
 , garcon
-, glib
 , gobject-introspection
 , gtk3
 , libdbusmenu-gtk3
@@ -16,9 +16,9 @@
 mkXfceDerivation {
   category = "xfce";
   pname = "xfce4-panel";
-  version = "4.16.3";
+  version = "4.18.6";
 
-  sha256 = "sha256-PdE64WKdluKfof/l1wTPi7JdpJMYWIvi0yIdpyntsCA=";
+  sha256 = "sha256-eQLz/LJIx2WkzcSLytRdJdhtGv0woT48mdqG7eHB0U4=";
 
   nativeBuildInputs = [
     gobject-introspection
@@ -36,7 +36,6 @@ mkXfceDerivation {
   ];
 
   propagatedBuildInputs = [
-    glib
     gtk3
     libxfce4util
   ];
@@ -45,13 +44,11 @@ mkXfceDerivation {
 
   postPatch = ''
     substituteInPlace plugins/clock/clock.c \
-       --replace "/usr/share/zoneinfo" "${tzdata}/share/zoneinfo"
+       --replace-fail "/usr/share/zoneinfo" "${tzdata}/share/zoneinfo"
   '';
 
-  # Workaround https://bugzilla.xfce.org/show_bug.cgi?id=15825
-  NIX_CFLAGS_COMPILE = "-I${glib.dev}/include/gio-unix-2.0";
-
-  meta = {
+  meta = with lib; {
     description = "Panel for the Xfce desktop environment";
+    maintainers = with maintainers; [ ] ++ teams.xfce.members;
   };
 }

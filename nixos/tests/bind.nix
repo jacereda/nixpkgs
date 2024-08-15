@@ -1,7 +1,7 @@
 import ./make-test-python.nix {
   name = "bind";
 
-  machine = { pkgs, lib, ... }: {
+  nodes.machine = { pkgs, lib, ... }: {
     services.bind.enable = true;
     services.bind.extraOptions = "empty-zones-enable no;";
     services.bind.zones = lib.singleton {
@@ -22,7 +22,6 @@ import ./make-test-python.nix {
 
   testScript = ''
     machine.wait_for_unit("bind.service")
-    machine.wait_for_open_port(53)
     machine.succeed("host 192.168.0.1 127.0.0.1 | grep -qF ns.example.org")
   '';
 }

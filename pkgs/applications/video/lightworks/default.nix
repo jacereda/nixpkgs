@@ -1,6 +1,30 @@
-{ lib, stdenv, fetchurl, dpkg, makeWrapper, buildFHSUserEnv
-, gtk3, gdk-pixbuf, cairo, libjpeg_original, glib, pango, libGLU
-, libGL, nvidia_cg_toolkit, zlib, openssl, libuuid , alsa-lib, udev, libjack2
+{
+  lib,
+  stdenv,
+  fetchurl,
+  dpkg,
+  makeWrapper,
+  buildFHSEnv,
+  gtk3,
+  gdk-pixbuf,
+  cairo,
+  libjpeg_original,
+  glib,
+  pango,
+  libGLU,
+  libGL,
+  nvidia_cg_toolkit,
+  zlib,
+  openssl,
+  libuuid,
+  alsa-lib,
+  udev,
+  libjack2,
+  freetype,
+  libva,
+  libvdpau,
+  twolame,
+  gmp,
 }:
 let
   fullPath = lib.makeLibraryPath [
@@ -20,20 +44,26 @@ let
     alsa-lib
     libjack2
     udev
+    freetype
+    libva
+    libvdpau
+    twolame
+    gmp
   ];
 
   lightworks = stdenv.mkDerivation rec {
-    version = "2021.2.1";
-    rev = "128456";
+    version = "2023.2";
+    rev = "146752";
     pname = "lightworks";
 
     src =
       if stdenv.hostPlatform.system == "x86_64-linux" then
         fetchurl {
-          url = "https://cdn.lwks.com/releases/${version}/lightworks_${lib.versions.majorMinor version}_r${rev}.deb";
-          sha256 = "sha256-GkTg43IUF1NgEm/wT9CZw68Dw/R2BYBU/F4bsCxQowQ=";
+          url = "https://cdn.lwks.com/releases/${version}/lightworks_${version}_r${rev}.deb";
+          sha256 = "sha256-Xjcqdhe85YdPX8AHpKmo/K77AURg0JvtqIvilQOV2ek=";
         }
-      else throw "${pname}-${version} is not supported on ${stdenv.hostPlatform.system}";
+      else
+        throw "${pname}-${version} is not supported on ${stdenv.hostPlatform.system}";
 
     nativeBuildInputs = [ makeWrapper ];
     buildInputs = [ dpkg ];
@@ -72,21 +102,26 @@ let
     dontPatchELF = true;
   };
 
+in
 # Lightworks expects some files in /usr/share/lightworks
-in buildFHSUserEnv {
-  name = lightworks.name;
+buildFHSEnv {
+  inherit (lightworks) pname version;
 
-  targetPkgs = pkgs: [
-      lightworks
-  ];
+  targetPkgs = pkgs: [ lightworks ];
 
   runScript = "lightworks";
 
   meta = {
     description = "Professional Non-Linear Video Editor";
     homepage = "https://www.lwks.com/";
+    sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
     license = lib.licenses.unfree;
-    maintainers = with lib.maintainers; [ antonxy vojta001 ];
+    mainProgram = "lightworks";
+    maintainers = with lib.maintainers; [
+      antonxy
+      vojta001
+      kashw2
+    ];
     platforms = [ "x86_64-linux" ];
   };
 }

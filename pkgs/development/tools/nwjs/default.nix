@@ -1,96 +1,149 @@
-{ stdenv, lib, fetchurl, buildEnv, makeWrapper
-
-, xorg, alsa-lib, dbus, glib, gtk3, atk, pango, freetype, fontconfig
-, gdk-pixbuf, cairo, nss, nspr, gconf, expat, systemd, libcap
+{ alsa-lib
+, at-spi2-core
+, atk
+, autoPatchelfHook
+, buildEnv
+, cairo
+, cups
+, dbus
+, expat
+, fetchurl
+, ffmpeg
+, fontconfig
+, freetype
+, gdk-pixbuf
+, glib
+, gtk3
+, lib
+, libcap
+, libdrm
+, libGL
 , libnotify
-, ffmpeg, libxcb, cups
-, sqlite, udev
 , libuuid
+, libxcb
+, libxkbcommon
+, makeWrapper
+, mesa
+, nspr
+, nss
+, pango
 , sdk ? false
+, sqlite
+, stdenv
+, systemd
+, udev
+, wrapGAppsHook3
+, xorg
 }:
+
 let
-  bits = if stdenv.hostPlatform.system == "x86_64-linux" then "x64"
-         else "ia32";
+  bits = if stdenv.hostPlatform.system == "x86_64-linux" then "x64" else "ia32";
 
   nwEnv = buildEnv {
     name = "nwjs-env";
     paths = [
-      xorg.libX11 xorg.libXrender glib /*gtk2*/ gtk3 atk pango cairo gdk-pixbuf
-      freetype fontconfig xorg.libXcomposite alsa-lib xorg.libXdamage
-      xorg.libXext xorg.libXfixes nss nspr gconf expat dbus
-      xorg.libXtst xorg.libXi xorg.libXcursor xorg.libXrandr
-      xorg.libXScrnSaver cups
-      libcap libnotify
+      alsa-lib
+      at-spi2-core
+      atk
+      cairo
+      cups
+      dbus
+      expat
+      fontconfig
+      freetype
+      gdk-pixbuf
+      glib
+      gtk3
+      libcap
+      libdrm
+      libGL
+      libnotify
+      libxkbcommon
+      mesa
+      nspr
+      nss
+      pango
+      xorg.libX11
+      xorg.libXScrnSaver
+      xorg.libXcomposite
+      xorg.libXcursor
+      xorg.libXdamage
+      xorg.libXext
+      xorg.libXfixes
+      xorg.libXi
+      xorg.libXrandr
+      xorg.libXrender
+      xorg.libXtst
+      xorg.libxshmfence
       # libnw-specific (not chromium dependencies)
-      ffmpeg libxcb
+      ffmpeg
+      libxcb
       # chromium runtime deps (dlopen’d)
-      sqlite udev
       libuuid
+      sqlite
+      udev
     ];
 
     extraOutputsToInstall = [ "lib" "out" ];
   };
 
-in stdenv.mkDerivation rec {
+  version = "0.90.0";
+in
+stdenv.mkDerivation {
   pname = "nwjs";
-  version = "0.33.4";
+  inherit version;
 
-  src = if sdk then fetchurl {
-    url = "https://dl.nwjs.io/v${version}/nwjs-sdk-v${version}-linux-${bits}.tar.gz";
-    sha256 = if bits == "x64" then
-      "1hi6xispxvyb6krm5j11mv8509dwpw5ikpbkvq135gsk3gm29c9y" else
-      "00p4clbfinrj5gp2i84a263l3h00z8g7mnx61qwmr0z02kvswz9s";
-  } else fetchurl {
-    url = "https://dl.nwjs.io/v${version}/nwjs-v${version}-linux-${bits}.tar.gz";
-    sha256 = if bits == "x64" then
-      "09zd6gja3l20xx03h2gawpmh9f8nxqjp8qdkds5nz9kbbckhkj52" else
-      "0nlpdz76k1p1pq4xygfr2an91m0d7p5fjyg2xhiggyy8b7sp4964";
-  };
+  src =
+    let flavor = if sdk then "sdk-" else "";
+    in fetchurl {
+      url = "https://dl.nwjs.io/v${version}/nwjs-${flavor}v${version}-linux-${bits}.tar.gz";
+      hash = {
+        "sdk-ia32" = "sha256-dETXtOdJ9/1wZ47l/j/K5moN4m+KNc7vu7wVGql8NXQ=";
+        "sdk-x64" = "sha256-mRIKIrFIdXQ+tLled3ygJvMCBDKP08bl3IlqTbQmYq0=";
+        "ia32" = "sha256-+nGIQuWdPfctPNzDu7mkEUOmLx1cwcJoVCAk6ImNBxQ=";
+        "x64" = "sha256-uEb0GTONaR58nhjGAan1HCOqQKtQ2JDrTaSL+SfRY6E=";
+      }."${flavor + bits}";
+    };
 
-  # we have runtime deps like sqlite3 that should remain
-  dontPatchELF = true;
+  nativeBuildInputs = [
+    autoPatchelfHook
+    (wrapGAppsHook3.override { inherit makeWrapper; })
+  ];
 
-  installPhase =
-    let ccPath = lib.makeLibraryPath [ stdenv.cc.cc ];
-    in ''
+  buildInputs = [ nwEnv ];
+  appendRunpaths = map (pkg: (lib.getLib pkg) + "/lib") [ nwEnv stdenv.cc.libc stdenv.cc.cc ];
+
+  preFixup = ''
+    gappsWrapperArgs+=(
+      --add-flags "\''${NIXOS_OZONE_WL:+\''${WAYLAND_DISPLAY:+--ozone-platform-hint=auto --enable-features=WaylandWindowDecorations}}"
+    )
+  '';
+
+  installPhase = ''
+      runHook preInstall
+
       mkdir -p $out/share/nwjs
       cp -R * $out/share/nwjs
       find $out/share/nwjs
 
-      patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" $out/share/nwjs/nw
-
       ln -s ${lib.getLib systemd}/lib/libudev.so $out/share/nwjs/libudev.so.0
-
-      libpath="$out/share/nwjs/lib/"
-      for f in "$libpath"/*.so; do
-        patchelf --set-rpath "${nwEnv}/lib:${ccPath}:$libpath" "$f"
-      done
-      patchelf --set-rpath "${nwEnv}/lib:${nwEnv}/lib64:${ccPath}:$libpath" $out/share/nwjs/nw
-      # check, whether all RPATHs are correct (all dependencies found)
-      checkfile=$(mktemp)
-      for f in "$libpath"/*.so "$out/share/nwjs/nw"; do
-         (echo "$f:";
-          ldd "$f"  ) > "$checkfile"
-      done
-      if <"$checkfile" grep -e "not found"; then
-        cat "$checkfile"
-        exit 1
-      fi
 
       mkdir -p $out/bin
       ln -s $out/share/nwjs/nw $out/bin
 
       mkdir $out/lib
       ln -s $out/share/nwjs/lib/libnw.so $out/lib/libnw.so
-  '';
 
-  nativeBuildInputs = [ makeWrapper ];
+      runHook postInstall
+    '';
 
   meta = with lib; {
-    description = "An app runtime based on Chromium and node.js";
+    description = "App runtime based on Chromium and node.js";
     homepage = "https://nwjs.io/";
-    platforms = ["i686-linux" "x86_64-linux"];
-    maintainers = [ maintainers.offline ];
+    platforms = [ "i686-linux" "x86_64-linux" ];
+    sourceProvenance = with sourceTypes; [ binaryNativeCode ];
+    maintainers = [ maintainers.mikaelfangel ];
+    mainProgram = "nw";
     license = licenses.bsd3;
   };
 }

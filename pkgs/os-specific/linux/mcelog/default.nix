@@ -2,13 +2,13 @@
 
 stdenv.mkDerivation rec {
   pname = "mcelog";
-  version = "178";
+  version = "180";
 
   src = fetchFromGitHub {
     owner  = "andikleen";
     repo   = "mcelog";
     rev    = "v${version}";
-    sha256 = "sha256-++R/R3oRw0O0MoDnASdVr9UIiI0yS4UcIO8nV62PLzE=";
+    sha256 = "1xy1082c67yd48idg5vwvrw7yx74gn6jj2d9c67d0rh6yji091ki";
   };
 
   postPatch = ''
@@ -36,6 +36,7 @@ stdenv.mkDerivation rec {
 
   meta = with lib; {
     description = "Log x86 machine checks: memory, IO, and CPU hardware errors";
+    mainProgram = "mcelog";
     longDescription = ''
       The mcelog daemon accounts memory and some other errors in various ways
       on modern x86 Linux systems. The daemon can be queried and/or execute

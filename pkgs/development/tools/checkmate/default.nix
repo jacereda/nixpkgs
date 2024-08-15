@@ -5,22 +5,24 @@
 
 buildGoModule rec {
   pname = "checkmate";
-  version = "0.4.6";
+  version = "0.9.3";
 
   src = fetchFromGitHub {
     owner = "adedayo";
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-x3R6xkfgFhmR3iGSAXLCUl5wPQ25TqEBI5z9p0I/GoY=";
+    hash = "sha256-XzzN4oIG6E4NsMGl4HzFlgAGhkRieRn+jyA0bT8fcrg=";
   };
 
-  vendorSha256 = "sha256-ulXilkDEkvpfCgdJ55gzb8qpcra3s8wSjcEupxWP+h8=";
+  vendorHash = "sha256-D87b/LhHnu8xE0wRdB/wLIuf5NlqrVnKt2WAF29bdZo=";
 
   subPackages = [ "." ];
 
   meta = with lib; {
     description = "Pluggable code security analysis tool";
+    mainProgram = "checkmate";
     homepage = "https://github.com/adedayo/checkmate";
+    changelog = "https://github.com/adedayo/checkmate/releases/tag/v${version}";
     license = licenses.bsd3;
     maintainers = with maintainers; [ fab ];
   };

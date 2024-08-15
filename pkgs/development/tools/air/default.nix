@@ -1,23 +1,34 @@
-{ lib, buildGoModule, fetchFromGitHub }:
+{
+  lib,
+  buildGoModule,
+  fetchFromGitHub,
+}:
 
 buildGoModule rec {
   pname = "air";
-  version = "1.27.3";
+  version = "1.52.3";
 
   src = fetchFromGitHub {
-    owner = "cosmtrek";
+    owner = "air-verse";
     repo = "air";
     rev = "v${version}";
-    sha256 = "sha256-QO3cPyr2FqCdoiax/V0fe7kRwT61T3efnfO8uWp8rRM=";
+    hash = "sha256-TLTg9fYkIlTFDwkjRIQ7mAmKd+jA5Q9EPQ62fJ6zS9o=";
   };
 
-  vendorSha256 = "sha256-B7AgUFjiW3P1dU88u3kswbCQJ7Qq7rgPlX+b+3Pq1L4=";
+  vendorHash = "sha256-dSu00NAq6hEOdJxXp+12UaUq32z53Wzla3/u+2nxqPw=";
+
+  ldflags = [
+    "-s"
+    "-w"
+    "-X=main.airVersion=${version}"
+  ];
 
   subPackages = [ "." ];
 
   meta = with lib; {
     description = "Live reload for Go apps";
-    homepage = "https://github.com/cosmtrek/air";
+    mainProgram = "air";
+    homepage = "https://github.com/air-verse/air";
     license = licenses.gpl3Only;
     maintainers = with maintainers; [ Gonzih ];
   };

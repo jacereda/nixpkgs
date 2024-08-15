@@ -1,14 +1,15 @@
-{ lib
-, buildPythonPackage
-, isPy27
-, fetchFromGitHub
-, poetry-core
-, requests
+{
+  lib,
+  buildPythonPackage,
+  isPy27,
+  fetchFromGitHub,
+  poetry-core,
+  requests,
 }:
 
 buildPythonPackage rec {
   pname = "spiderpy";
-  version = "1.7.1";
+  version = "1.7.2";
   format = "pyproject";
 
   disabled = isPy27;
@@ -17,16 +18,12 @@ buildPythonPackage rec {
     owner = "peternijssen";
     repo = "spiderpy";
     rev = version;
-    sha256 = "sha256-gQ/Y5c8+aSvoJzXI6eQ9rk0xDPxpi0xgO3xBKR+vVrY=";
+    hash = "sha256-Yujy8HSMbK2DQ/913r2c74hKPYDfcHFKq04ysqxG+go=";
   };
 
-  nativeBuildInputs = [
-    poetry-core
-  ];
+  nativeBuildInputs = [ poetry-core ];
 
-  propagatedBuildInputs = [
-    requests
-  ];
+  propagatedBuildInputs = [ requests ];
 
   # tests don't mock remote resources
   doCheck = false;

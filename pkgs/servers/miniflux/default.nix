@@ -1,29 +1,33 @@
-{ lib, buildGoModule, fetchFromGitHub, installShellFiles, nixosTests }:
+{ lib, buildGoModule, fetchFromGitHub, fetchpatch2, installShellFiles, nixosTests }:
 
-let
+buildGoModule rec {
   pname = "miniflux";
-  version = "2.0.33";
-
-in buildGoModule {
-  inherit pname version;
+  version = "2.1.4";
 
   src = fetchFromGitHub {
-    owner = pname;
-    repo = pname;
-    rev = version;
-    sha256 = "0vcfpy71gdvd0z20v6d36l3yvmnm4nmfplivw9yjzv8kbnf9mabc";
+    owner = "miniflux";
+    repo = "v2";
+    rev = "refs/tags/${version}";
+    hash = "sha256-1EH8KtKdAssxLk0IyhJsbrFU1obDTvmaGtFyLVlnOdQ=";
   };
 
-  vendorSha256 = "1j4jskcply9mxz9bggw1c6368k22rga6f3f6mgs1pklz5v7r7n2j";
+  patches = [
+    (fetchpatch2 {
+      # Fix panic during YouTube channel feed discovery
+      name = "miniflux-pr2742.patch";
+      url = "https://github.com/miniflux/v2/commit/79ea9e28b5a8c09f4d1dcbf31b661fb5f8e85e6a.patch";
+      hash = "sha256-BZPv83QsJ6iJs12FLALfTN//VZL/BfGkXs3Pzn9cGeU=";
+    })
+  ];
+
+  vendorHash = "sha256-kr2qCKuwp6Fpr0zEjggqk4Mff3V9pxGLU71lRhdRrW8=";
 
   nativeBuildInputs = [ installShellFiles ];
 
-  checkPhase = ''
-    go test $(go list ./... | grep -v client)
-  ''; # skip client tests as they require network access
+  checkFlags = [ "-skip=TestClient" ]; # skip client tests as they require network access
 
   ldflags = [
-    "-s" "-w" "-X miniflux.app/version.Version=${version}"
+    "-s" "-w" "-X miniflux.app/v2/internal/version.Version=${version}"
   ];
 
   postInstall = ''
@@ -37,6 +41,7 @@ in buildGoModule {
     description = "Minimalist and opinionated feed reader";
     homepage = "https://miniflux.app/";
     license = licenses.asl20;
-    maintainers = with maintainers; [ rvolosatovs benpye ];
+    maintainers = with maintainers; [ rvolosatovs benpye emilylange ];
+    mainProgram = "miniflux";
   };
 }

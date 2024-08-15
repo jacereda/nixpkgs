@@ -1,22 +1,38 @@
-{ buildPythonPackage, fetchFromGitHub, pillow, scipy, numpy, pytestCheckHook, imread, freeimage, lib, stdenv }:
+{
+  buildPythonPackage,
+  fetchFromGitHub,
+  pillow,
+  scipy,
+  numpy,
+  pytestCheckHook,
+  imread,
+  lib,
+  stdenv,
+}:
 
 buildPythonPackage rec {
   pname = "mahotas";
-  version = "1.4.11";
+  version = "1.4.14";
+  format = "setuptools";
 
   src = fetchFromGitHub {
     owner = "luispedro";
     repo = "mahotas";
-    rev = "v${version}";
-    sha256 = "029gvy1fb855pvxvy8zwj44k4s7qpqi0161bg5wldfiprrysn1kw";
+    rev = "refs/tags/v${version}";
+    hash = "sha256-9tjk3rhcfAYROZKwmwHzHAN7Ui0EgmxPErQyF//K0r8=";
   };
 
-  propagatedBuildInputs = [ numpy imread pillow scipy freeimage ];
-  checkInputs = [ pytestCheckHook ];
+  propagatedBuildInputs = [
+    imread
+    numpy
+    pillow
+    scipy
+  ];
 
-  postPatch = ''
-    substituteInPlace mahotas/io/freeimage.py --replace "/opt/local/lib" "${freeimage}/lib"
-  '';
+  nativeCheckInputs = [ pytestCheckHook ];
+
+  # mahotas/_morph.cpp:864:10: error: no member named 'random_shuffle' in namespace 'std'
+  env = lib.optionalAttrs stdenv.cc.isClang { NIX_CFLAGS_COMPILE = "-std=c++14"; };
 
   # tests must be run in the build directory
   preCheck = ''
@@ -31,9 +47,12 @@ buildPythonPackage rec {
     "test_haralick3d"
   ];
 
+  pythonImportsCheck = [ "mahotas" ];
+
   disabled = stdenv.isi686; # Failing tests
 
   meta = with lib; {
+    broken = (stdenv.isLinux && stdenv.isAarch64);
     description = "Computer vision package based on numpy";
     homepage = "https://mahotas.readthedocs.io/";
     maintainers = with maintainers; [ luispedro ];

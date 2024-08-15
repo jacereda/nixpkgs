@@ -2,19 +2,29 @@
 
 stdenv.mkDerivation rec {
   pname = "samtools";
-  version = "1.13";
+  version = "1.19.2";
 
   src = fetchurl {
     url = "https://github.com/samtools/samtools/releases/download/${version}/${pname}-${version}.tar.bz2";
-    sha256 = "sha256-YWyi4FHMgAmh6cAc/Yx8r4twkW3f9m87dpFAeUZfjGA=";
+    hash = "sha256-cfYEmWaOTAjn10X7/yTBXMigl3q6sazV0rtBm9sGXpY=";
   };
+
+  # tests require `bgzip` from the htslib package
+  nativeCheckInputs = [ htslib ];
 
   nativeBuildInputs = [ perl ];
 
   buildInputs = [ zlib ncurses htslib ];
 
+  preConfigure = lib.optional stdenv.hostPlatform.isStatic ''
+    export LIBS="-lz -lbz2 -llzma"
+  '';
+  makeFlags = lib.optional stdenv.hostPlatform.isStatic "AR=${stdenv.cc.targetPrefix}ar";
+
   configureFlags = [ "--with-htslib=${htslib}" ]
-    ++ lib.optional (ncurses == null) "--without-curses";
+    ++ lib.optional (ncurses == null) "--without-curses"
+    ++ lib.optionals stdenv.hostPlatform.isStatic ["--without-curses" ]
+    ;
 
   preCheck = ''
     patchShebangs test/

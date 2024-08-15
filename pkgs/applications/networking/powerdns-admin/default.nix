@@ -1,65 +1,55 @@
-{ lib, stdenv, fetchFromGitHub, mkYarnPackage, writeText, python3 }:
+{ lib, stdenv, fetchFromGitHub, fetchYarnDeps, yarnConfigHook, nixosTests, writeText, python3 }:
 
 let
-  version = "0.2.3";
+  pname = "powerdns-admin";
+  version = "0.4.2";
   src = fetchFromGitHub {
-    owner = "ngoduykhanh";
+    owner = "PowerDNS-Admin";
     repo = "PowerDNS-Admin";
     rev = "v${version}";
-    sha256 = "16faz57d77mxkflkvwyi8gb9wvnq2vhw79b84v1fmqvxri1yaphw";
+    hash = "sha256-q9mt8wjSNFb452Xsg+qhNOWa03KJkYVGAeCWVSzZCyk=";
   };
 
-  python = python3.override {
-    packageOverrides = self: super: {
-      dnspython = super.dnspython.overridePythonAttrs (oldAttrs: rec {
-        version = "1.16.0";
-        src = oldAttrs.src.override {
-          inherit version;
-          sha256 = "36c5e8e38d4369a08b6780b7f27d790a292b2b08eea01607865bf0936c558e01";
-        };
-      });
-    };
-  };
+  python = python3;
 
   pythonDeps = with python.pkgs; [
-    flask flask_assets flask_login flask_sqlalchemy flask_migrate flask-seasurf flask_mail flask-sslify
-    mysqlclient sqlalchemy
-    configobj bcrypt requests ldap pyotp qrcode dnspython
-    gunicorn python3-saml pyopenssl pytz cssmin jsmin authlib bravado-core
-    lima pytimeparse pyyaml
+    flask flask-assets flask-login flask-sqlalchemy flask-migrate flask-seasurf flask-mail flask-session flask-session-captcha flask-sslify
+    mysqlclient psycopg2 sqlalchemy
+    certifi cffi configobj cryptography bcrypt requests python-ldap pyotp qrcode dnspython
+    gunicorn itsdangerous python3-saml pytz rcssmin rjsmin authlib bravado-core
+    lima lxml passlib pyasn1 pytimeparse pyyaml jinja2 itsdangerous webcolors werkzeug zipp zxcvbn
   ];
 
-  assets = mkYarnPackage {
-    inherit src version;
-    packageJSON = ./package.json;
-    yarnNix = ./yarndeps.nix;
+  all_patches = [
+    ./0001-Fix-flask-2.3-issue.patch
+  ];
 
-    nativeBuildInputs = pythonDeps;
-    patchPhase = ''
-      sed -i -r -e "s|'cssmin',\s?'cssrewrite'|'cssmin'|g" powerdnsadmin/assets.py
-    '';
+  assets = stdenv.mkDerivation {
+    pname = "${pname}-assets";
+    inherit version src;
+
+    offlineCache = fetchYarnDeps {
+      yarnLock = "${src}/yarn.lock";
+      hash = "sha256-rXIts+dgOuZQGyiSke1NIG7b4lFlR/Gfu3J6T3wP3aY=";
+    };
+
+    nativeBuildInputs = [
+      yarnConfigHook
+    ] ++ pythonDeps;
+    patches = all_patches ++ [
+      ./0002-Remove-cssrewrite-filter.patch
+    ];
     buildPhase = ''
-      # The build process expects the directory to be writable
-      # with node_modules at a specific path
-      # https://github.com/ngoduykhanh/PowerDNS-Admin/blob/master/.yarnrc
-
-      approot=deps/powerdns-admin-assets
-
-      ln -s $node_modules $approot/powerdnsadmin/static/node_modules
-      FLASK_APP=$approot/powerdnsadmin/__init__.py flask assets build
+      SESSION_TYPE=filesystem FLASK_APP=./powerdnsadmin/__init__.py flask assets build
     '';
     installPhase = ''
-      # https://github.com/ngoduykhanh/PowerDNS-Admin/blob/54b257768f600c5548a1c7e50eac49c40df49f92/docker/Dockerfile#L43
+      # https://github.com/PowerDNS-Admin/PowerDNS-Admin/blob/54b257768f600c5548a1c7e50eac49c40df49f92/docker/Dockerfile#L43
       mkdir $out
-      cp -r $approot/powerdnsadmin/static/{generated,assets,img} $out
-      find $node_modules/icheck/skins/square -name '*.png' -exec cp {} $out/generated \;
-
-      mkdir $out/fonts
-      cp $node_modules/ionicons/dist/fonts/* $out/fonts
-      cp $node_modules/bootstrap/dist/fonts/* $out/fonts
-      cp $node_modules/font-awesome/fonts/* $out/fonts
+      cp -r powerdnsadmin/static/{generated,assets,img} $out
+      find powerdnsadmin/static/node_modules -name webfonts -exec cp -r {} $out \; -printf "Copying %P\n"
+      find powerdnsadmin/static/node_modules -name fonts -exec cp -r {} $out \; -printf "Copying %P\n"
+      find powerdnsadmin/static/node_modules/icheck/skins/square -name '*.png' -exec cp {} $out/generated \;
     '';
-    distPhase = "true";
   };
 
   assetsPy = writeText "assets.py" ''
@@ -71,10 +61,8 @@ let
     assets.register('js_main', 'generated/main.js')
     assets.register('css_main', 'generated/main.css')
   '';
-in stdenv.mkDerivation rec {
-  pname = "powerdns-admin";
-
-  inherit src version;
+in stdenv.mkDerivation {
+  inherit pname version src;
 
   nativeBuildInputs = [ python.pkgs.wrapPython ];
 
@@ -89,6 +77,13 @@ in stdenv.mkDerivation rec {
     exec python -m gunicorn.app.wsgiapp "powerdnsadmin:create_app()" "$@"
   '';
 
+  patches = all_patches ++ [
+    ./0003-Fix-flask-migrate-4.0-compatibility.patch
+    ./0004-Fix-flask-session-and-powerdns-admin-compatibility.patch
+    ./0005-Use-app-context-to-create-routes.patch
+    ./0006-Register-modules-before-starting.patch
+  ];
+
   postPatch = ''
     rm -r powerdnsadmin/static powerdnsadmin/assets.py
   '';
@@ -100,7 +95,7 @@ in stdenv.mkDerivation rec {
     wrapPythonPrograms
 
     mkdir -p $out/share $out/bin
-    cp -r powerdnsadmin $out/share/powerdnsadmin
+    cp -r migrations powerdnsadmin $out/share/
 
     ln -s ${assets} $out/share/powerdnsadmin/static
     ln -s ${assetsPy} $out/share/powerdnsadmin/assets.py
@@ -114,10 +109,17 @@ in stdenv.mkDerivation rec {
     runHook postInstall
   '';
 
+  passthru = {
+    # PYTHONPATH of all dependencies used by the package
+    pythonPath = python3.pkgs.makePythonPath pythonDeps;
+    tests = nixosTests.powerdns-admin;
+  };
+
   meta = with lib; {
-    description = "A PowerDNS web interface with advanced features";
-    homepage = "https://github.com/ngoduykhanh/PowerDNS-Admin";
+    description = "PowerDNS web interface with advanced features";
+    mainProgram = "powerdns-admin";
+    homepage = "https://github.com/PowerDNS-Admin/PowerDNS-Admin";
     license = licenses.mit;
-    maintainers = with maintainers; [ zhaofengli ];
+    maintainers = with maintainers; [ Flakebi zhaofengli ];
   };
 }

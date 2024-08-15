@@ -2,80 +2,61 @@
 , stdenv
 , fetchFromGitHub
 , nix-update-script
-, pkg-config
 , meson
 , ninja
+, pkg-config
 , vala
-, desktop-file-utils
-, gtk3
+, wrapGAppsHook3
+, clutter
+, evolution-data-server
+, folks
+, geoclue2
+, geocode-glib_2
 , granite
+, gtk3
+, libchamplain_libsoup3
 , libgee
 , libhandy
-, geoclue2
-, libchamplain
-, clutter
-, folks
-, geocode-glib
-, python3
-, libnotify
 , libical
-, libgdata
-, evolution-data-server
-, appstream-glib
-, elementary-icon-theme
-, wrapGAppsHook
+, libportal-gtk3
 }:
 
 stdenv.mkDerivation rec {
   pname = "elementary-calendar";
-  version = "6.0.3";
-
-  repoName = "calendar";
+  version = "8.0.0";
 
   src = fetchFromGitHub {
     owner = "elementary";
-    repo = repoName;
+    repo = "calendar";
     rev = version;
-    sha256 = "sha256-+RQUiJLuCIbmcbtsOCfF9HYFrxtldZMbg2vg/a/IOaY=";
+    sha256 = "sha256-gBQfrRSaw3TKcsSAQh/hcTpBoEQstGdLbppoZ1/Z1q8=";
   };
 
   nativeBuildInputs = [
-    appstream-glib
-    desktop-file-utils
     meson
     ninja
     pkg-config
-    python3
     vala
-    wrapGAppsHook
+    wrapGAppsHook3
   ];
 
   buildInputs = [
     clutter
-    elementary-icon-theme
     evolution-data-server
     folks
     geoclue2
-    geocode-glib
+    geocode-glib_2
     granite
     gtk3
-    libchamplain
+    libchamplain_libsoup3
     libgee
     libhandy
     libical
-    libnotify
-    libgdata # required by some dependency transitively
+    libportal-gtk3
   ];
 
-  postPatch = ''
-    chmod +x meson/post_install.py
-    patchShebangs meson/post_install.py
-  '';
-
   passthru = {
-    updateScript = nix-update-script {
-      attrPath = "pantheon.${pname}";
-    };
+    updateScript = nix-update-script { };
   };
 
   meta = with lib; {

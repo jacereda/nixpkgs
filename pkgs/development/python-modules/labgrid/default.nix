@@ -1,49 +1,55 @@
-{ ansicolors
-, attrs
-, autobahn
-, buildPythonPackage
-, fetchFromGitHub
-, jinja2
-, lib
-, mock
-, pexpect
-, psutil
-, pyserial
-, pytestCheckHook
-, pytest-dependency
-, pytest-mock
-, pyudev
-, pyusb
-, pyyaml
-, requests
-, setuptools-scm
-, xmodem
+{
+  ansicolors,
+  attrs,
+  autobahn,
+  buildPythonPackage,
+  fetchFromGitHub,
+  jinja2,
+  lib,
+  mock,
+  openssh,
+  packaging,
+  pexpect,
+  psutil,
+  pyserial,
+  pytestCheckHook,
+  pytest-dependency,
+  pytest-mock,
+  pyudev,
+  pyusb,
+  pyyaml,
+  requests,
+  setuptools,
+  setuptools-scm,
+  wheel,
+  xmodem,
 }:
 
 buildPythonPackage rec {
   pname = "labgrid";
-  version = "0.4.0";
+  version = "23.0.6";
 
   src = fetchFromGitHub {
     owner = "labgrid-project";
     repo = "labgrid";
-    rev = "v${version}";
-    sha256 = "17j013dw66h4jm1hl92g892sx9r9c48pnl7d58p1y0l4jfca8gmn";
+    rev = "refs/tags/v${version}";
+    hash = "sha256-UAfBzQZeFNs2UJSFb5fH5wHXQoVU/dOTFciR0/UB7vc=";
   };
 
-  patches = [
-    # Pyserial within Nixpkgs already includes the necessary fix, remove the
-    # pyserial version check from labgrid.
-    ./0001-serialdriver-remove-pyserial-version-check.patch
+  nativeBuildInputs = [
+    setuptools
+    setuptools-scm
+    wheel
   ];
 
-  nativeBuildInputs = [ setuptools-scm ];
+  pyproject = true;
 
   propagatedBuildInputs = [
     ansicolors
     attrs
     autobahn
     jinja2
+    packaging
     pexpect
     pyserial
     pyudev
@@ -53,16 +59,32 @@ buildPythonPackage rec {
     xmodem
   ];
 
-  preBuild = ''
-    export SETUPTOOLS_SCM_PRETEND_VERSION="${version}"
-  '';
+  pythonRelaxDeps = [
+    "attrs"
+    "autobahn"
+    "jinja2"
+    "packaging"
+    "pexpect"
+    "pytest"
+    "pyudev"
+    "requests"
+    "xmodem"
+  ];
 
-  checkInputs = [
+  pythonRemoveDeps = [ "pyserial-labgrid" ];
+
+  nativeCheckInputs = [
     mock
+    openssh
     psutil
     pytestCheckHook
     pytest-mock
     pytest-dependency
+  ];
+
+  disabledtests = [
+    # flaky, timing sensitive
+    "test_timing"
   ];
 
   meta = with lib; {

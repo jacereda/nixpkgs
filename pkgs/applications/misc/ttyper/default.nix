@@ -1,22 +1,24 @@
-{ fetchFromGitHub, lib, rustPlatform }:
+{ lib, rustPlatform, fetchFromGitHub }:
 
 rustPlatform.buildRustPackage rec {
   pname = "ttyper";
-  version = "0.3.0";
+  version = "1.6.0";
 
   src = fetchFromGitHub {
     owner = "max-niederman";
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-9vcoK2mFEivTSZE3KoQRHUr3AfQ/aN5eWP//Jagw3gU=";
+    hash = "sha256-g4OD4Mc3KHN9rrzM+9JvN2xTnSojGQy6yptdGj3zgW4=";
   };
 
-  cargoSha256 = "sha256-VzO32b5oAoXR/Ei9up00XRM63I5kuG68TeX4KBCXIdo=";
+  cargoHash = "sha256-EXBs73651lP2B/1lAGHLcc9F1Xi+Bj6+c9wv2uX56Lg=";
 
   meta = with lib; {
     description = "Terminal-based typing test";
     homepage = "https://github.com/max-niederman/ttyper";
+    changelog = "https://github.com/max-niederman/ttyper/releases/tag/${src.rev}";
     license = licenses.mit;
-    maintainers = with maintainers; [ figsoda ];
+    maintainers = with maintainers; [ figsoda max-niederman ];
+    mainProgram = "ttyper";
   };
 }

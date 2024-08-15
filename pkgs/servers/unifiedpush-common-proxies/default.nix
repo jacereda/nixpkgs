@@ -5,21 +5,22 @@
 
 buildGoModule rec {
   pname = "unifiedpush-common-proxies";
-  version = "1.0.0";
+  version = "2.0.1";
 
   src = fetchFromGitHub {
     owner = "unifiedpush";
     repo = "common-proxies";
     rev = "v${version}";
-    sha256 = "sha256-1Nl36Ldb0/DrQEKgPBsCgJk7oRCIq2m9Vb8D8wnS1g0=";
+    sha256 = "sha256-pMzKK18FZCqJ86nqXfOT7tKCqIw6P0ioxRUi72aef0A=";
   };
 
-  vendorSha256 = "sha256-7A2ErjqmgberMabayWEc3w53+YierfetzmT8DzHwbpE=";
+  vendorHash = "sha256-wVZR/h0AtwZ1eo7EoRKNzaS2Wp0X01e2u3Ugmsnj644=";
 
   meta = with lib; {
-    description = "A set of rewrite proxies and gateways for UnifiedPush";
+    description = "Set of rewrite proxies and gateways for UnifiedPush";
     homepage = "https://github.com/UnifiedPush/common-proxies";
     license = licenses.mit;
-    maintainers = with maintainers; [ yuka ];
+    maintainers = [ ];
+    mainProgram = "up_rewrite";
   };
 }

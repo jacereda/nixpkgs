@@ -1,7 +1,7 @@
 { lib
 , stdenv
 , fetchurl
-, fetchpatch
+, updateAutotoolsGnuConfigScriptsHook
 , perl
 , libiconv
 , zlib
@@ -16,24 +16,25 @@
 , xxHash
 , enableZstd ? true
 , zstd
-, enableCopyDevicesPatch ? false
 , nixosTests
 }:
 
-let
-  base = import ./base.nix { inherit lib fetchurl fetchpatch; };
-in
 stdenv.mkDerivation rec {
   pname = "rsync";
-  version = base.version;
+  version = "3.3.0";
 
-  mainSrc = base.src;
+  src = fetchurl {
+    # signed with key 0048 C8B0 26D4 C96F 0E58  9C2F 6C85 9FB1 4B96 A8C5
+    url = "mirror://samba/rsync/src/rsync-${version}.tar.gz";
+    hash = "sha256-c5nppnCMMtZ4pypjIZ6W8jvgviM25Q/RNISY0HBB35A=";
+  };
 
-  patchesSrc = base.upstreamPatchTarball;
+  nativeBuildInputs = [ updateAutotoolsGnuConfigScriptsHook perl ];
 
-  srcs = [ mainSrc ] ++ lib.optional enableCopyDevicesPatch patchesSrc;
-  patches = lib.optional enableCopyDevicesPatch "./patches/copy-devices.diff"
-    ++ base.extraPatches;
+  patches = [
+    # https://github.com/WayneD/rsync/pull/558
+    ./configure.ac-fix-failing-IPv6-check.patch
+  ];
 
   buildInputs = [ libiconv zlib popt ]
     ++ lib.optional enableACLs acl
@@ -41,28 +42,32 @@ stdenv.mkDerivation rec {
     ++ lib.optional enableLZ4 lz4
     ++ lib.optional enableOpenSSL openssl
     ++ lib.optional enableXXHash xxHash;
-  nativeBuildInputs = [ perl ];
 
   configureFlags = [
+    (lib.enableFeature enableLZ4 "lz4")
+    (lib.enableFeature enableOpenSSL "openssl")
+    (lib.enableFeature enableXXHash "xxhash")
+    (lib.enableFeature enableZstd "zstd")
     "--with-nobody-group=nogroup"
 
     # disable the included zlib explicitly as it otherwise still compiles and
     # links them even.
     "--with-included-zlib=no"
-  ]
-  # Work around issue with cross-compilation:
-  #     configure.sh: error: cannot run test program while cross compiling
-  # Remove once 3.2.4 or more recent is released.
-  # The following PR should fix the cross-compilation issue.
-  # Test using `nix-build -A pkgsCross.aarch64-multiplatform.rsync`.
-  # https://github.com/WayneD/rsync/commit/b7fab6f285ff0ff3816b109a8c3131b6ded0b484
-  ++ lib.optional (stdenv.hostPlatform != stdenv.buildPlatform) "--enable-simd=no"
-  ;
+  ] ++ lib.optionals (stdenv.hostPlatform.isMusl && stdenv.hostPlatform.isx86_64) [
+    # fix `multiversioning needs 'ifunc' which is not supported on this target` error
+    "--disable-roll-simd"
+  ];
+
+  enableParallelBuilding = true;
 
   passthru.tests = { inherit (nixosTests) rsyncd; };
 
-  meta = base.meta // {
-    description = "A fast incremental file transfer utility";
-    maintainers = with lib.maintainers; [ ehmry kampfschlaefer ];
+  meta = with lib; {
+    description = "Fast incremental file transfer utility";
+    homepage = "https://rsync.samba.org/";
+    license = licenses.gpl3Plus;
+    mainProgram = "rsync";
+    maintainers = with lib.maintainers; [ ehmry kampfschlaefer ivan ];
+    platforms = platforms.unix;
   };
 }

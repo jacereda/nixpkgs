@@ -1,11 +1,12 @@
 { lib
+, stdenv
 , fetchurl
 , gettext
 , itstool
 , python3
 , meson
 , ninja
-, wrapGAppsHook
+, wrapGAppsHook3
 , libxml2
 , pkg-config
 , desktop-file-utils
@@ -13,18 +14,20 @@
 , gtk3
 , gtksourceview4
 , gnome
+, adwaita-icon-theme
 , gsettings-desktop-schemas
+, desktopToDarwinBundle
 }:
 
 python3.pkgs.buildPythonApplication rec {
   pname = "meld";
-  version = "3.21.0";
+  version = "3.22.2";
 
   format = "other";
 
   src = fetchurl {
     url = "mirror://gnome/sources/${pname}/${lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
-    sha256 = "toARTVq3kzJFSf1Y9OsgLY4oDAYzoLdl7ebfs0FgqBs=";
+    sha256 = "sha256-RqCnE/vNGxU7N3oeB1fIziVcmCJGdljqz72JsekjFu8=";
   };
 
   nativeBuildInputs = [
@@ -36,25 +39,25 @@ python3.pkgs.buildPythonApplication rec {
     pkg-config
     desktop-file-utils
     gobject-introspection
-    wrapGAppsHook
+    wrapGAppsHook3
     gtk3 # for gtk-update-icon-cache
-  ];
+  ] ++ lib.optionals stdenv.hostPlatform.isDarwin [ desktopToDarwinBundle ];
 
   buildInputs = [
     gtk3
     gtksourceview4
     gsettings-desktop-schemas
-    gnome.adwaita-icon-theme
+    adwaita-icon-theme
   ];
 
-  propagatedBuildInputs = with python3.pkgs; [
+  pythonPath = with python3.pkgs; [
     pygobject3
     pycairo
   ];
 
-  # gobject-introspection and some other similar setup hooks do not currently work with strictDeps.
-  # https://github.com/NixOS/nixpkgs/issues/56943
-  strictDeps = false;
+  postPatch = ''
+    patchShebangs meson_shebang_normalisation.py
+  '';
 
   passthru = {
     updateScript = gnome.updateScript {
@@ -65,9 +68,10 @@ python3.pkgs.buildPythonApplication rec {
 
   meta = with lib; {
     description = "Visual diff and merge tool";
-    homepage = "http://meldmerge.org/";
+    homepage = "https://meld.app/";
     license = licenses.gpl2Plus;
     platforms = platforms.linux ++ platforms.darwin;
     maintainers = with maintainers; [ jtojnar mimame ];
+    mainProgram = "meld";
   };
 }

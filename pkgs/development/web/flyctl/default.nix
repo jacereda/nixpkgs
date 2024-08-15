@@ -1,32 +1,70 @@
-{ buildGoModule, fetchFromGitHub, lib }:
+{ lib, buildGoModule, fetchFromGitHub, testers, flyctl, installShellFiles }:
 
 buildGoModule rec {
   pname = "flyctl";
-  version = "0.0.250";
+  version = "0.2.109";
 
   src = fetchFromGitHub {
     owner = "superfly";
     repo = "flyctl";
     rev = "v${version}";
-    sha256 = "sha256-QhEstfzx0zqC+dDgqfgmi1zOdc491YbzVAgXVaoTVUU=";
+    hash = "sha256-5+WOc/mVFSO20E6ENFzMSSLYioMkCV8mKIVAVpdFWzU=";
   };
 
-  preBuild = ''
-    go generate ./...
-  '';
+  vendorHash = "sha256-XXyDHyH1XSh0gJedaQB4HKexz4DMz6rcBlrYoWSKacg=";
 
   subPackages = [ "." ];
 
-  vendorSha256 = "sha256-JxEl23bwfvd8jNBYqIXBIu1pNu2rt+jvdEl0RdXCidE=";
+  ldflags = [
+    "-s" "-w"
+    "-X github.com/superfly/flyctl/internal/buildinfo.buildDate=1970-01-01T00:00:00Z"
+    "-X github.com/superfly/flyctl/internal/buildinfo.buildVersion=${version}"
+  ];
+  tags = ["production"];
 
-  doCheck = false;
+  nativeBuildInputs = [ installShellFiles ];
 
-  ldflags = [ "-s" "-w" "-X github.com/superfly/flyctl/flyctl.Version=${version}" "-X github.com/superfly/flyctl/flyctl.Commit=${src.rev}" "-X github.com/superfly/flyctl/flyctl.BuildDate=1970-01-01T00:00:00+0000" "-X github.com/superfly/flyctl/flyctl.Environment=production" ];
+  patches = [ ./disable-auto-update.patch ];
 
-  meta = with lib; {
+  preBuild = ''
+    GOOS= GOARCH= CGO_ENABLED=0 go generate ./...
+  '';
+
+  preCheck = ''
+    HOME=$(mktemp -d)
+  '';
+
+  # We override checkPhase to be able to test ./... while using subPackages
+  checkPhase = ''
+    runHook preCheck
+    # We do not set trimpath for tests, in case they reference test assets
+    export GOFLAGS=''${GOFLAGS//-trimpath/}
+
+    buildGoDir test ./...
+
+    runHook postCheck
+  '';
+
+  postInstall = ''
+    installShellCompletion --cmd flyctl \
+      --bash <($out/bin/flyctl completion bash) \
+      --fish <($out/bin/flyctl completion fish) \
+      --zsh <($out/bin/flyctl completion zsh)
+    ln -s $out/bin/flyctl $out/bin/fly
+  '';
+
+  passthru.tests.version = testers.testVersion {
+    package = flyctl;
+    command = "HOME=$(mktemp -d) flyctl version";
+    version = "v${flyctl.version}";
+  };
+
+  meta = {
     description = "Command line tools for fly.io services";
+    downloadPage = "https://github.com/superfly/flyctl";
     homepage = "https://fly.io/";
-    license = licenses.asl20;
-    maintainers = with maintainers; [ aaronjanse ];
+    license = lib.licenses.asl20;
+    maintainers = with lib.maintainers; [ adtya jsierles techknowlogick RaghavSood teutat3s ];
+    mainProgram = "flyctl";
   };
 }

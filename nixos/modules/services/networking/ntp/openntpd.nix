@@ -23,6 +23,7 @@ in
 
     servers = mkOption {
       default = config.services.ntp.servers;
+      defaultText = literalExpression "config.services.ntp.servers";
       type = types.listOf types.str;
       inherit (options.services.ntp.servers) description;
     };
@@ -35,7 +36,7 @@ in
         listen on ::1
       '';
       description = ''
-        Additional text appended to <filename>openntpd.conf</filename>.
+        Additional text appended to {file}`openntpd.conf`.
       '';
     };
 

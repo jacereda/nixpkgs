@@ -1,28 +1,27 @@
-{ lib
-, buildPythonPackage
-, fetchFromGitHub
-, pytestCheckHook
+{
+  lib,
+  buildPythonPackage,
+  fetchFromGitHub,
+  pytestCheckHook,
+  pythonOlder,
 }:
 
 buildPythonPackage rec {
   pname = "pyahocorasick";
-  version = "1.4.1";
+  version = "2.1.0";
+  format = "setuptools";
+
+  disabled = pythonOlder "3.7";
 
   src = fetchFromGitHub {
     owner = "WojciechMula";
     repo = pname;
-    rev = version;
-    sha256 = "13x3718if28l50474xrz1b9709kvnvdg3nzm6y8bh7mc9a4zyss5";
+    rev = "refs/tags/${version}";
+    hash = "sha256-SCIgu0uEjiSUiIP0WesJG+y+3ZqFBfI5PdgUzviOVrs=";
   };
 
-  postPatch = ''
-    substituteInPlace unittests.py \
-        --replace '(tmp, "test.dat")' "(\"$TMPDIR\", \"test.dat\")"
-  '';
+  nativeCheckInputs = [ pytestCheckHook ];
 
-  checkInputs = [ pytestCheckHook ];
-
-  pytestFlagsArray = [ "unittests.py" ];
   pythonImportsCheck = [ "ahocorasick" ];
 
   meta = with lib; {
@@ -33,6 +32,7 @@ buildPythonPackage rec {
       key strings occurrences at once in some input text.
     '';
     homepage = "https://github.com/WojciechMula/pyahocorasick";
+    changelog = "https://github.com/WojciechMula/pyahocorasick/blob/${version}/CHANGELOG.rst";
     license = with licenses; [ bsd3 ];
     maintainers = with maintainers; [ fab ];
   };

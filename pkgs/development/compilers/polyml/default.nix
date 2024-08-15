@@ -1,8 +1,21 @@
-{ lib, stdenv, fetchFromGitHub, fetchpatch, autoreconfHook, gmp, libffi }:
+{ lib
+, stdenv
+, fetchFromGitHub
+, autoreconfHook
+, gmp
+, libffi
+}:
 
 stdenv.mkDerivation rec {
   pname = "polyml";
-  version = "5.8.2";
+  version = "5.9.1";
+
+  src = fetchFromGitHub {
+    owner = "polyml";
+    repo = "polyml";
+    rev = "v${version}";
+    sha256 = "sha256-72wm8dt+Id59A5058mVE5P9TkXW5/LZRthZoxUustVA=";
+  };
 
   prePatch = lib.optionalString stdenv.isDarwin ''
     substituteInPlace configure.ac --replace stdc++ c++
@@ -18,12 +31,13 @@ stdenv.mkDerivation rec {
     "--with-gmp"
   ];
 
-  src = fetchFromGitHub {
-    owner = "polyml";
-    repo = "polyml";
-    rev = "v${version}";
-    sha256 = "0vvla816g9rk9aa75gq63rb7bf6yla27p8wh1s1ycgq2in2zk0py";
-  };
+  doCheck = true;
+
+  checkPhase = ''
+    runHook preCheck
+    make check
+    runHook postCheck
+  '';
 
   meta = with lib; {
     description = "Standard ML compiler and interpreter";

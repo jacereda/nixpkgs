@@ -1,33 +1,46 @@
-{lib, stdenv, fetchurl, ocaml, lablgtk, findlib, libGLU, libGL, freeglut, camlp4 } :
+{ lib, stdenv, fetchFromGitHub, ocaml, findlib, libGLU, libglut, camlp-streams } :
 
-let
-  pname = "lablgl";
-in
+if lib.versionOlder ocaml.version "4.06"
+then throw "lablgl is not available for OCaml ${ocaml.version}"
+else
 
 stdenv.mkDerivation rec {
-  name = "${pname}-${version}";
-  version = "1.05";
+  pname = "ocaml${ocaml.version}-lablgl";
+  version = "1.07";
 
-  src = fetchurl {
-    url = "http://wwwfun.kurims.kyoto-u.ac.jp/soft/lsl/dist/lablgl-${version}.tar.gz";
-    sha256 = "0qabydd219i4ak7hxgc67496qnnscpnydya2m4ijn3cpbgih7zyq";
+  src = fetchFromGitHub {
+    owner = "garrigue";
+    repo = "lablgl";
+    rev = "v${version}";
+    hash = "sha256-GiQKHMn5zHyvDrA2ve12X5YTm3/RZp8tukIqifgVaW4=";
   };
 
-  buildInputs = [ocaml findlib lablgtk freeglut camlp4];
-  propagatedBuildInputs = [ libGLU libGL ];
+  strictDeps = true;
 
-  patches = [ ./Makefile.config.patch ./META.patch ];
+  nativeBuildInputs = [ ocaml findlib ];
+  buildInputs = [ libglut camlp-streams ];
+  propagatedBuildInputs = [
+    libGLU
+  ];
+
+  patches = [ ./META.patch ];
 
   preConfigure = ''
-    substituteInPlace Makefile.config \
-      --subst-var-by BINDIR $out/bin \
-      --subst-var-by INSTALLDIR $out/lib/ocaml/${ocaml.version}/site-lib/lablgl \
-      --subst-var-by DLLDIR $out/lib/ocaml/${ocaml.version}/site-lib/lablgl \
-      --subst-var-by TKINCLUDES "" \
-      --subst-var-by XINCLUDES ""
+    mkdir -p $out/bin
+    mkdir -p $out/lib/ocaml/${ocaml.version}/site-lib/stublibs
+    cp \
+      Makefile.config.${if stdenv.hostPlatform.isDarwin then "osx" else "ex"} \
+      Makefile.config
   '';
 
-  createFindlibDestdir = true;
+  makeFlags = [
+    "BINDIR=${placeholder "out"}/bin/"
+    "INSTALLDIR=${placeholder "out"}/lib/ocaml/${ocaml.version}/site-lib/lablgl/"
+    "DLLDIR=${placeholder "out"}/lib/ocaml/${ocaml.version}/site-lib/stublibs/"
+    "XINCLUDES="
+    "TKINCLUDES="
+    "TKLIBS="
+  ];
 
   buildFlags = [ "lib" "libopt" "glut" "glutopt" ];
 
@@ -36,10 +49,10 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    homepage = "http://wwwfun.kurims.kyoto-u.ac.jp/soft/lsl/lablgl.html";
     description = "OpenGL bindings for ocaml";
+    homepage = "http://wwwfun.kurims.kyoto-u.ac.jp/soft/lsl/lablgl.html";
     license = licenses.gpl2;
     maintainers = with maintainers; [ pSub vbgl ];
-    broken = stdenv.isDarwin;
+    mainProgram = "lablglut";
   };
 }

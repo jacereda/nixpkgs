@@ -18,7 +18,7 @@ let
         ${master.ip}  api.${domain}
         ${concatMapStringsSep "\n" (machineName: "${machines.${machineName}.ip}  ${machineName}.${domain}") (attrNames machines)}
       '';
-      kubectl = with pkgs; runCommand "wrap-kubectl" { buildInputs = [ makeWrapper ]; } ''
+      wrapKubectl = with pkgs; runCommand "wrap-kubectl" { nativeBuildInputs = [ makeWrapper ]; } ''
         mkdir -p $out/bin
         makeWrapper ${pkgs.kubernetes}/bin/kubectl $out/bin/kubectl --set KUBECONFIG "/etc/kubernetes/cluster-admin.kubeconfig"
       '';
@@ -43,15 +43,14 @@ let
                   trustedInterfaces = ["mynet"];
 
                   extraCommands = concatMapStrings  (node: ''
-                    iptables -A INPUT -s ${node.config.networking.primaryIPAddress} -j ACCEPT
+                    iptables -A INPUT -s ${node.networking.primaryIPAddress} -j ACCEPT
                   '') (attrValues nodes);
                 };
               };
-              programs.bash.enableCompletion = true;
-              environment.systemPackages = [ kubectl ];
+              programs.bash.completion.enable = true;
+              environment.systemPackages = [ wrapKubectl ];
               services.flannel.iface = "eth1";
               services.kubernetes = {
-                addons.dashboard.enable = true;
                 proxy.hostname = "${masterName}.${domain}";
 
                 easyCerts = true;
@@ -60,14 +59,11 @@ let
                   securePort = 443;
                   advertiseAddress = master.ip;
                 };
+                # NOTE: what featureGates are useful for testing might change in
+                # the future, see link below to find new ones
+                # https://kubernetes.io/docs/reference/command-line-tools-reference/feature-gates/
+                featureGates = {CPUManager = true; AppArmor= false;};
                 masterAddress = "${masterName}.${config.networking.domain}";
-                # workaround for:
-                #   https://github.com/kubernetes/kubernetes/issues/102676
-                #   (workaround from) https://github.com/kubernetes/kubernetes/issues/95488
-                kubelet.extraOpts = ''\
-                  --cgroups-per-qos=false \
-                  --enforce-node-allocatable="" \
-                '';
               };
             }
             (optionalAttrs (any (role: role == "master") machine.roles) {

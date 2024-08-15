@@ -1,8 +1,8 @@
-{ stdenv, fetchurl }:
+{ stdenv, fetchurl, libiconv }:
 
 let
-  mecab-base = import ./base.nix { inherit fetchurl; };
+  mecab-base = import ./base.nix { inherit fetchurl libiconv; };
 in
-stdenv.mkDerivation (mecab-base // {
-    name = "mecab-nodic-${mecab-base.version}";
-})
+stdenv.mkDerivation (finalAttrs: ((mecab-base finalAttrs) // {
+  pname = "mecab-nodic";
+}))

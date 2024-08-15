@@ -1,18 +1,17 @@
 { lib, stdenv, fetchFromGitHub }:
 
-stdenv.mkDerivation {
+stdenv.mkDerivation rec {
   pname = "zsa-udev-rules";
-  version = "unstable-2020-12-16";
+  version = "unstable-2023-11-30";
 
-  # TODO: use version and source from nixpkgs/pkgs/development/tools/wally-cli/default.nix after next release
   src = fetchFromGitHub {
     owner = "zsa";
     repo = "wally";
-    rev = "e5dde3c700beab39fb941c6941e55535bf9b2af6";
-    sha256 = "0pkybi32r1hrmpa1mc8qlzhv7xy5n5rr5ah25lbr0cipp1bda417";
+    rev = "a6648f6b543b703e3902faf5c08e997e0d58c909";
+    hash = "sha256-j9n3VoX+UngX12DF28rtNh+oy80Th1BINPQqk053lvE=";
   };
 
-  # it only installs files
+  # Only copies udevs rules
   dontConfigure = true;
   dontBuild = true;
   dontFixup = true;

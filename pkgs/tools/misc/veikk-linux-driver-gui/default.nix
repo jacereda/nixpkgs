@@ -1,12 +1,12 @@
-{ lib, mkDerivation, fetchFromGitHub, gnumake, qmake }:
+{ lib, mkDerivation, fetchFromGitHub, qmake }:
 
 mkDerivation rec {
-  name = "veikk-linux-driver-gui";
+  pname = "veikk-linux-driver-gui";
   version = "2.0";
 
   src = fetchFromGitHub {
     owner = "jlam55555";
-    repo = name;
+    repo = pname;
     rev = "v${version}";
     sha256 = "02g1q79kwjlzg95w38a1d7nxvcry8xcsvhax2js4c7xqvzhkki5j";
   };
@@ -28,5 +28,6 @@ mkDerivation rec {
     license = licenses.gpl2Only;
     platforms = platforms.linux;
     maintainers = with maintainers; [ nicbk ];
+    mainProgram = "veikk-linux-driver-gui";
   };
 }

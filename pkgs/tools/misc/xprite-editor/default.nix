@@ -29,15 +29,19 @@ rustPlatform.buildRustPackage rec {
 
   nativeBuildInputs = lib.optionals stdenv.isLinux [ pkg-config python3 ];
 
-  cargoSha256 = "0z1ip667d1qwvm9md3zg8ib9jixpg7qj5ypwib7r2928h14yg7ck";
+  cargoHash = "sha256-k53nSYBIJJHPivz6IvF5t0eZVkTvj1ZT3RyHdoy5MXw=";
 
   cargoBuildFlags = [ "--bin" "xprite-native" ];
 
   meta = with lib; {
+    # error[E0034]: multiple applicable items in scope
+    # multiple `clamp` found
+    # https://github.com/NixOS/nixpkgs/issues/146949
+    broken = true;
     homepage = "https://github.com/rickyhan/xprite-editor";
     description = "Pixel art editor";
     license = licenses.gpl3;
-    maintainers = [ maintainers.marsam ];
+    maintainers = [ ];
     platforms = platforms.linux ++ platforms.darwin;
   };
 }

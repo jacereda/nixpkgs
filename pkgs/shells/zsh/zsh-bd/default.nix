@@ -11,6 +11,7 @@ stdenv.mkDerivation rec {
     sha256 = "020f8nq86g96cps64hwrskppbh2dapfw2m9np1qbs5pgh16z4fcb";
   };
 
+  strictDeps = true;
   dontBuild = true;
 
   installPhase = ''
@@ -21,7 +22,7 @@ stdenv.mkDerivation rec {
   '';
 
   meta = {
-    description = "Jump back to a specific directory, without doing `cd ../../..` ";
+    description = "Jump back to a specific directory, without doing `cd ../../..`";
     homepage = "https://github.com/Tarrasch/zsh-bd";
     license = lib.licenses.free;
 

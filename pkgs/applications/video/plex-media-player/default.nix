@@ -7,7 +7,7 @@ let
   # sandboxed builds, we manually download them and save them so these files
   # are fetched ahead-of-time instead of during the CMake build. To update
   # plex-media-player use the update.sh script, so the versions and hashes
-  # for these files are are also updated!
+  # for these files are also updated!
   depSrcs = import ./deps.nix { inherit fetchurl; };
 in mkDerivation rec {
   pname = "plex-media-player";
@@ -34,14 +34,20 @@ in mkDerivation rec {
     ln -s ${webClientTv} build/dependencies/web-client-tv-${webClientTvBuildId}.tar.xz
   '';
 
-  cmakeFlags = [ "-DCMAKE_BUILD_TYPE=RelWithDebInfo" "-DQTROOT=${qtbase}" ];
+  cmakeBuildType = "RelWithDebInfo";
+
+  cmakeFlags = [ "-DQTROOT=${qtbase}" ];
+
+  # plexmediaplayer currently segfaults under wayland
+  qtWrapperArgs = [ "--set" "QT_QPA_PLATFORM" "xcb" ];
 
   passthru.updateScript = ./update.sh;
 
   meta = with lib; {
     description = "Streaming media player for Plex";
     license = licenses.gpl2;
-    maintainers = with maintainers; [ ];
+    maintainers = with maintainers; [ b4dm4n ];
     homepage = "https://plex.tv";
+    mainProgram = "plexmediaplayer";
   };
 }

@@ -7,7 +7,7 @@
 
 let
   jre = stdenv.mkDerivation {
-    name = "${jdk.name}-minimal-jre";
+    pname = "${jdk.pname}-minimal-jre";
     version = jdk.version;
 
     buildInputs = [ jdk ];
@@ -30,10 +30,10 @@ let
 
     passthru = {
       home = "${jre}";
-      tests = [
-        (callPackage ./tests/test_jre_minimal.nix {})
-        (callPackage ./tests/test_jre_minimal_with_logging.nix {})
-      ];
+      tests = {
+        jre_minimal-hello = callPackage ./tests/test_jre_minimal.nix {};
+        jre_minimal-hello-logging = callPackage ./tests/test_jre_minimal_with_logging.nix {};
+      };
     };
   };
 in jre

@@ -15,13 +15,13 @@ in
 
 stdenv.mkDerivation rec {
   pname = "janus-gateway";
-  version = "0.11.3";
+  version = "1.2.3";
 
   src = fetchFromGitHub {
     owner = "meetecho";
     repo = pname;
     rev = "v${version}";
-    sha256 = "15nadpz67w24f4wz8ya0kx0a1jc4wxv1kl0d5fr7kckkdyijh7gz";
+    sha256 = "sha256-3o9XxxTlWppq1mFgIUjstUFz6bT44mvBJa4FBgcc4Pc=";
   };
 
   nativeBuildInputs = [ autoreconfHook pkg-config gengetopt ];
@@ -34,12 +34,16 @@ stdenv.mkDerivation rec {
   enableParallelBuilding = true;
 
   configureFlags = [
-    "--enable-boringssl=${boringssl}"
+    "--enable-boringssl=${lib.getDev boringssl}"
     "--enable-libsrtp2"
     "--enable-turn-rest-api"
     "--enable-json-logger"
     "--enable-gelf-event-handler"
     "--enable-post-processing"
+  ];
+
+  makeFlagsArray = [
+    "BORINGSSL_LIBS=-L${lib.getLib boringssl}/lib"
   ];
 
   outputs = [ "out" "dev" "doc" "man" ];
@@ -52,6 +56,7 @@ stdenv.mkDerivation rec {
   meta = with lib; {
     description = "General purpose WebRTC server";
     homepage = "https://janus.conf.meetecho.com/";
+    changelog = "https://github.com/meetecho/janus-gateway/blob/v${version}/CHANGELOG.md";
     license = licenses.gpl3Only;
     platforms = platforms.linux;
     maintainers = with maintainers; [ fpletz ];

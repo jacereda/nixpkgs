@@ -1,9 +1,11 @@
-{ lib, stdenv
+{ lib
+, stdenv
 , fetchFromGitHub
 , meson
 , ninja
 , sassc
 , gnome
+, gnome-themes-extra
 , gtk-engine-murrine
 , gdk-pixbuf
 , librsvg
@@ -11,32 +13,20 @@
 
 stdenv.mkDerivation rec {
   pname = "materia-theme";
-  version = "20200916";
+  version = "20210322";
 
   src = fetchFromGitHub {
     owner = "nana-4";
     repo = pname;
     rev = "v${version}";
-    sha256 = "0qaxxafsn5zd2ysgr0jyv5j73360mfdmxyd55askswlsfphssn74";
+    sha256 = "1fsicmcni70jkl4jb3fvh7yv0v9jhb8nwjzdq8vfwn256qyk0xvl";
   };
 
-  nativeBuildInputs = [
-    meson
-    ninja
-    sassc
-  ];
+  nativeBuildInputs = [ meson ninja sassc ];
 
-  buildInputs = [
-    gnome.gnome-themes-extra
-    gdk-pixbuf
-    librsvg
-  ];
+  buildInputs = [ gnome-themes-extra gdk-pixbuf librsvg ];
 
-  propagatedUserEnvPkgs = [
-    gtk-engine-murrine
-  ];
-
-  dontBuild = true;
+  propagatedUserEnvPkgs = [ gtk-engine-murrine ];
 
   mesonFlags = [
     "-Dgnome_shell_version=${lib.versions.majorMinor gnome.gnome-shell.version}"

@@ -1,24 +1,28 @@
-{ stdenv, lib, fetchFromGitHub, cmake } :
+{ stdenv, lib, fetchFromGitHub, cmake, gfortran, gtest, openmp }:
 
 stdenv.mkDerivation rec {
   pname = "spglib";
-  version = "1.16.2";
+  version = "2.5.0"; # N.B: if you change this, please update: pythonPackages.spglib
 
   src = fetchFromGitHub {
-    owner = "atztogo";
+    owner = "spglib";
     repo = "spglib";
     rev = "v${version}";
-    sha256 = "1sbrk26xyvlhqxxv9cq2ycxwbiafgmh7lf221377zpqq8q3iavd7";
+    hash = "sha256-/PG+ewlxIyf5Au2kVvsAYCfGZgUOOEpA1uATu15ut+M=";
   };
 
-  nativeBuildInputs = [ cmake ];
+  nativeBuildInputs = [ cmake gfortran gtest ];
 
-  checkTarget = "check";
+  buildInputs = lib.optionals stdenv.isDarwin [ openmp ];
+
+  cmakeFlags = [ "-DSPGLIB_WITH_Fortran=On" ];
+
   doCheck = true;
 
   meta = with lib; {
     description = "C library for finding and handling crystal symmetries";
-    homepage = "https://atztogo.github.io/spglib/";
+    homepage = "https://spglib.github.io/spglib/";
+    changelog = "https://github.com/spglib/spglib/raw/v${version}/ChangeLog";
     license = licenses.bsd3;
     maintainers = [ maintainers.markuskowa ];
     platforms = platforms.all;

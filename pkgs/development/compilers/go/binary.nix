@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchurl, version, hashes }:
+{ stdenv, fetchurl, version, hashes }:
 let
   toGoKernel = platform:
     if platform.isDarwin then "darwin"
@@ -11,6 +11,7 @@ let
     "armv6l" = "armv6l";
     "armv7l" = "armv6l";
     "powerpc64le" = "ppc64le";
+    "riscv64" = "riscv64";
   }.${platform.parsed.cpu.name} or (throw "Unsupported CPU ${platform.parsed.cpu.name}");
 
   toGoPlatform = platform: "${toGoKernel platform}-${toGoCPU platform}";
@@ -31,13 +32,8 @@ stdenv.mkDerivation rec {
   installPhase = ''
     runHook preInstall
     mkdir -p $out/share/go $out/bin
-    mv bin/* $out/bin
     cp -r . $out/share/go
-    ${lib.optionalString stdenv.isLinux (''
-    patchelf \
-      --set-interpreter $(cat $NIX_CC/nix-support/dynamic-linker) \
-      $out/bin/go
-    '')}
+    ln -s $out/share/go/bin/go $out/bin/go
     runHook postInstall
   '';
 }

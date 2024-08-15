@@ -1,31 +1,46 @@
-{ lib
-, buildPythonApplication
-, fetchPypi
-, pbr
-, oslo-config
-, oslo-log
-, oslo-serialization
-, oslo-utils
-, prettytable
-, requests
-, simplejson
-, Babel
-, osc-lib
-, python-keystoneclient
-, debtcollector
-, callPackage
+{
+  lib,
+  buildPythonPackage,
+  fetchPypi,
+  pbr,
+  openstackdocstheme,
+  oslo-config,
+  oslo-log,
+  oslo-serialization,
+  oslo-utils,
+  prettytable,
+  requests,
+  simplejson,
+  setuptools,
+  sphinxHook,
+  sphinxcontrib-programoutput,
+  babel,
+  osc-lib,
+  python-keystoneclient,
+  debtcollector,
+  callPackage,
 }:
 
-buildPythonApplication rec {
+buildPythonPackage rec {
   pname = "python-manilaclient";
-  version = "3.0.0";
+  version = "4.9.1";
+  pyproject = true;
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "2d90af35c5beccc53fa6b0f5a3c4b330a065e86924c33c42b017f18943ab2b05";
+    hash = "sha256-TebykdG0fkeC+5Vs9eiwuJpXam41gg8gR4F2poYKDhI=";
   };
 
-  propagatedBuildInputs = [
+  build-system = [
+    openstackdocstheme
+    setuptools
+    sphinxHook
+    sphinxcontrib-programoutput
+  ];
+
+  sphinxBuilders = [ "man" ];
+
+  dependencies = [
     pbr
     oslo-config
     oslo-log
@@ -34,7 +49,7 @@ buildPythonApplication rec {
     prettytable
     requests
     simplejson
-    Babel
+    babel
     osc-lib
     python-keystoneclient
     debtcollector
@@ -51,6 +66,7 @@ buildPythonApplication rec {
 
   meta = with lib; {
     description = "Client library for OpenStack Manila API";
+    mainProgram = "manila";
     homepage = "https://github.com/openstack/python-manilaclient";
     license = licenses.asl20;
     maintainers = teams.openstack.members;

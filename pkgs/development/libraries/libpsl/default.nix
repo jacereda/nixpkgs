@@ -10,23 +10,21 @@
 , libxslt
 , pkg-config
 , python3
-, valgrind
+, buildPackages
 , publicsuffix-list
 }:
 
-let
-  enableValgrindTests = !stdenv.isDarwin && lib.meta.availableOn stdenv.hostPlatform valgrind
-    # Apparently valgrind doesn't support some new ARM features on (some) Hydra machines:
-    #  VEX: Mismatch detected between RDMA and atomics features.
-    && !stdenv.isAarch64;
-in stdenv.mkDerivation rec {
+stdenv.mkDerivation rec {
   pname = "libpsl";
-  version = "0.21.1";
+  version = "0.21.5";
 
   src = fetchurl {
     url = "https://github.com/rockdaboot/libpsl/releases/download/${version}/libpsl-${version}.tar.lz";
-    sha256 = "1a9kp2rj71jb9q030lmp3zhy33rqxscawbfzhp288fxvazapahv4";
+    hash = "sha256-mp9qjG7bplDPnqVUdc0XLdKEhzFoBOnHMgLZdXLNOi0=";
   };
+
+  # bin/psl-make-dafsa brings a large runtime closure through python3
+  outputs = [ "bin" "out" "dev" ];
 
   nativeBuildInputs = [
     autoreconfHook
@@ -35,16 +33,14 @@ in stdenv.mkDerivation rec {
     gtk-doc
     lzip
     pkg-config
-    python3
     libxslt
-  ] ++ lib.optionals enableValgrindTests [
-    valgrind
   ];
 
   buildInputs = [
     libidn2
     libunistring
     libxslt
+    python3
   ];
 
   propagatedBuildInputs = [
@@ -65,8 +61,7 @@ in stdenv.mkDerivation rec {
     "--with-psl-distfile=${publicsuffix-list}/share/publicsuffix/public_suffix_list.dat"
     "--with-psl-file=${publicsuffix-list}/share/publicsuffix/public_suffix_list.dat"
     "--with-psl-testfile=${publicsuffix-list}/share/publicsuffix/test_psl.txt"
-  ] ++ lib.optionals enableValgrindTests [
-    "--enable-valgrind-tests"
+    "PYTHON=${lib.getExe buildPackages.python3}"
   ];
 
   enableParallelBuilding = true;
@@ -85,7 +80,9 @@ in stdenv.mkDerivation rec {
     homepage = "https://rockdaboot.github.io/libpsl/";
     changelog = "https://raw.githubusercontent.com/rockdaboot/${pname}/${pname}-${version}/NEWS";
     license = licenses.mit;
-    platforms = platforms.unix;
     maintainers = [ maintainers.c0bw3b ];
+    mainProgram = "psl";
+    platforms = platforms.unix ++ platforms.windows;
+    pkgConfigModules = [ "libpsl" ];
   };
 }

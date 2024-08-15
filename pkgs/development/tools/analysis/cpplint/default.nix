@@ -2,29 +2,45 @@
 
 python3Packages.buildPythonApplication rec {
   pname = "cpplint";
-  version = "1.5.1";
+  version = "1.6.1";
+  pyproject = true;
 
   # Fetch from github instead of pypi, since the test cases are not in the pypi archive
   src = fetchFromGitHub {
-    owner = pname;
-    repo = pname;
-    rev = version;
-    sha256 = "0k927mycj1k4l3fbxrk597bhcjl2nrpaas1imbjgk64cyq8dv7lh";
+    owner = "cpplint";
+    repo = "cpplint";
+    rev = "refs/tags/${version}";
+    hash = "sha256-N5YrlhEXQGYxhsJ4M5dGYZUzA81GKRSI83goaqbtCkI=";
   };
 
   postPatch = ''
+    substituteInPlace setup.py \
+      --replace-fail '"pytest-runner==5.2"' ""
+
     patchShebangs cpplint_unittest.py
+
+    substituteInPlace cpplint_unittest.py \
+      --replace-fail "assertEquals" "assertEqual"
   '';
 
-  checkInputs = with python3Packages; [ pytest pytest-runner ];
+  build-system = with python3Packages; [
+    setuptools
+  ];
+
+  nativeCheckInputs = with python3Packages; [
+    pytest
+    pytest-runner
+  ];
+
   checkPhase = ''
     ./cpplint_unittest.py
   '';
 
-  meta = with lib; {
+  meta = {
     homepage = "https://github.com/cpplint/cpplint";
     description = "Static code checker for C++";
-    maintainers = [ maintainers.bhipple ];
-    license = [ licenses.bsd3 ];
+    mainProgram = "cpplint";
+    maintainers = [ lib.maintainers.bhipple ];
+    license = [ lib.licenses.bsd3 ];
   };
 }

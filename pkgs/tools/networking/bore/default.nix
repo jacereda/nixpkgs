@@ -1,33 +1,33 @@
-{ lib, stdenv, rustPlatform, fetchFromBitbucket, llvmPackages, Libsystem, SystemConfiguration, installShellFiles }:
+{ lib, stdenv, rustPlatform, fetchFromBitbucket, Libsystem, SystemConfiguration, installShellFiles }:
 
 rustPlatform.buildRustPackage rec {
   pname = "bore";
-  version = "0.3.3";
+  version = "0.4.1";
 
   src = fetchFromBitbucket {
     owner = "delan";
     repo = "nonymous";
-    rev = version;
-    sha256 = "0gws1f625izrb3armh6bay1k8l9p9csl37jx03yss1r720k4vn2x";
+    rev = "${pname}-${version}";
+    sha256 = "1fdnnx7d18gj4rkv1dc6q379dqabl66zks9i0rjarjwcci8m30d9";
   };
 
-  cargoSha256 = "1n09gcp1y885lz6g2f73zw3fd0fmv7nwlvaqba2yl0kylzk7naa6";
-  cargoBuildFlags = "-p ${pname}";
+  cargoHash = "sha256-vUKv98lfsrxBiJxjL8ZKLZ1IVCX5hHzl+F5y4Ot3i/Y=";
+  cargoBuildFlags = [ "-p" pname ];
+
+  # error[E0793]: reference to packed field is unaligned
+  doCheck = !stdenv.isDarwin;
 
   # FIXME can’t test --all-targets and --doc in a single invocation
+  cargoTestFlags = [ "--all-targets" "--workspace" ];
   checkFeatures = [ "std" ];
 
-  cargoTestFlags = [ "--all-targets" "--workspace" ];
-
   nativeBuildInputs = [ installShellFiles ]
-    ++ lib.optional stdenv.isDarwin llvmPackages.libclang;
+    ++ lib.optional stdenv.isDarwin rustPlatform.bindgenHook;
 
   buildInputs = lib.optionals stdenv.isDarwin [
     Libsystem
     SystemConfiguration
   ];
-
-  LIBCLANG_PATH="${llvmPackages.libclang.lib}/lib";
 
   postInstall = ''
     installManPage $src/bore/doc/bore.1
@@ -44,6 +44,8 @@ rustPlatform.buildRustPackage rec {
     description = "DNS query tool";
     homepage = "https://crates.io/crates/bore";
     license = licenses.isc;
-    maintainers = [ maintainers.delan ];
+    maintainers = [ ];
+    mainProgram = "bore";
+    broken = stdenv.isDarwin; # bindgen fails on: "in6_addr_union_(...)" is not a valid Ident
   };
 }

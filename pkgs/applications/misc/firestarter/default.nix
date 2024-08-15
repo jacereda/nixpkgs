@@ -2,17 +2,19 @@
 , lib
 , fetchFromGitHub
 , fetchzip
-, addOpenGLRunpath
+, addDriverRunpath
 , cmake
 , glibc_multi
 , glibc
 , git
 , pkg-config
-, cudatoolkit
+, cudaPackages ? {}
 , withCuda ? false
 }:
 
 let
+  inherit (cudaPackages) cudatoolkit;
+
   hwloc = stdenv.mkDerivation rec {
     pname = "hwloc";
     version = "2.2.0";
@@ -65,7 +67,7 @@ stdenv.mkDerivation rec {
     git
     pkg-config
   ] ++ lib.optionals withCuda [
-    addOpenGLRunpath
+    addDriverRunpath
   ];
 
   buildInputs = [ hwloc ] ++ (if withCuda then
@@ -93,14 +95,16 @@ stdenv.mkDerivation rec {
   '';
 
   postFixup = lib.optionalString withCuda ''
-    addOpenGLRunpath $out/bin/FIRESTARTER_CUDA
+    addDriverRunpath $out/bin/FIRESTARTER_CUDA
   '';
 
   meta = with lib; {
+    broken = (stdenv.isLinux && stdenv.isAarch64);
     homepage = "https://tu-dresden.de/zih/forschung/projekte/firestarter";
     description = "Processor Stress Test Utility";
     platforms = platforms.linux;
     maintainers = with maintainers; [ astro marenz ];
     license = licenses.gpl3;
+    mainProgram = "FIRESTARTER";
   };
 }

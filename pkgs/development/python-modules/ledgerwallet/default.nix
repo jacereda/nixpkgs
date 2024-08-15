@@ -1,48 +1,75 @@
-{ lib, stdenv
-, fetchFromGitHub
-, buildPythonPackage
-, cryptography
-, click
-, construct
-, ecdsa
-, hidapi
-, intelhex
-, pillow
-, protobuf
-, requests
-, tabulate
-, AppKit
+{
+  lib,
+  stdenv,
+  fetchFromGitHub,
+  buildPythonPackage,
+  cryptography,
+  click,
+  construct,
+  ecdsa,
+  hidapi,
+  intelhex,
+  pillow,
+  protobuf,
+  requests,
+  setuptools,
+  setuptools-scm,
+  tabulate,
+  toml,
+  AppKit,
 }:
 
 buildPythonPackage rec {
   pname = "ledgerwallet";
-  version = "0.1.2";
+  version = "0.5.0";
+  format = "pyproject";
 
   src = fetchFromGitHub {
     owner = "LedgerHQ";
     repo = "ledgerctl";
     rev = "v${version}";
-    sha256 = "0fb93h2wxm9as9rsywlgz2ng4wrlbjphn6mgbhj6nls2i86rrdxk";
+    hash = "sha256-PBULYvyO3+YaW+a1/enJtKB/DR4ndL/o/WdpETbWyZ0=";
   };
 
-  patches = [
-    # Fix removed function in construct library
-    # https://github.com/LedgerHQ/ledgerctl/issues/17
-    # https://github.com/construct/construct/commit/8915512f53552b1493afdbce5bbf8bb6f2aa4411
-    ./remove-iterateints.patch
+  buildInputs = [
+    setuptools
+    setuptools-scm
+  ] ++ lib.optionals stdenv.isDarwin [ AppKit ];
+  propagatedBuildInputs = [
+    cryptography
+    click
+    construct
+    ecdsa
+    hidapi
+    intelhex
+    pillow
+    protobuf
+    requests
+    tabulate
+    toml
   ];
 
-  buildInputs = lib.optionals stdenv.isDarwin [ AppKit ];
-  propagatedBuildInputs = [
-    cryptography click construct ecdsa hidapi intelhex pillow protobuf requests tabulate
-  ];
+  postPatch = ''
+    substituteInPlace pyproject.toml \
+      --replace-fail '"protobuf >=3.20,<4"' '"protobuf >=3.20"'
+  '';
+
+  # Regenerate protobuf bindings to lift the version upper-bound and enable
+  # compatibility the current default protobuf library.
+  preBuild = ''
+    protoc --python_out=. --pyi_out=. ledgerwallet/proto/*.proto
+  '';
 
   pythonImportsCheck = [ "ledgerwallet" ];
 
   meta = with lib; {
     homepage = "https://github.com/LedgerHQ/ledgerctl";
-    description = "A library to control Ledger devices";
+    description = "Library to control Ledger devices";
+    mainProgram = "ledgerctl";
     license = licenses.mit;
-    maintainers = with maintainers; [ d-xo ];
+    maintainers = with maintainers; [
+      d-xo
+      erdnaxe
+    ];
   };
 }

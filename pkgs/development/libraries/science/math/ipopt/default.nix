@@ -1,34 +1,54 @@
-{ lib, stdenv, fetchurl, unzip, blas, lapack, gfortran }:
+{ lib
+, stdenv
+, fetchFromGitHub
+, pkg-config
+, blas
+, lapack
+, gfortran
+, enableAMPL ? true, libamplsolver
+, enableMUMPS ? true, mumps, mpi
+, enableSPRAL ? true, spral
+}:
 
 assert (!blas.isILP64) && (!lapack.isILP64);
 
 stdenv.mkDerivation rec {
   pname = "ipopt";
-  version = "3.12.13";
+  version = "3.14.16";
 
-  src = fetchurl {
-    url = "https://www.coin-or.org/download/source/Ipopt/Ipopt-${version}.zip";
-    sha256 = "0kzf05aypx8q5mr3sciclk926ans0yi2d2chjdxxgpi3sza609dx";
+  src = fetchFromGitHub {
+    owner = "coin-or";
+    repo = "Ipopt";
+    rev = "releases/${version}";
+    sha256 = "sha256-ZuiZZMq7NzOm6CCJgMBgEWs8PEfM3pVr2yOWbS42l8U=";
   };
 
   CXXDEFS = [ "-DHAVE_RAND" "-DHAVE_CSTRING" "-DHAVE_CSTDIO" ];
 
-  configureFlags = [
-    "--with-blas-lib=-lblas"
-    "--with-lapack-lib=-llapack"
+  configureFlags = lib.optionals enableAMPL [
+    "--with-asl-cflags=-I${libamplsolver}/include"
+    "--with-asl-lflags=-lamplsolver"
+  ] ++ lib.optionals enableMUMPS [
+    "--with-mumps-cflags=-I${mumps}/include"
+    "--with-mumps-lflags=-ldmumps"
+  ] ++ lib.optionals enableSPRAL [
+    "--with-spral-cflags=-I${spral}/include"
+    "--with-spral-lflags=-lspral"
   ];
 
-  nativeBuildInputs = [ unzip gfortran ];
-
-  buildInputs = [ blas lapack ];
+  nativeBuildInputs = [ pkg-config gfortran ];
+  buildInputs = [ blas lapack ]
+    ++ lib.optionals enableAMPL [ libamplsolver ]
+    ++ lib.optionals enableMUMPS [ mumps mpi ]
+    ++ lib.optionals enableSPRAL [ spral ];
 
   enableParallelBuilding = true;
 
-  meta = with lib; {
-    description = "A software package for large-scale nonlinear optimization";
+  meta = {
+    description = "Software package for large-scale nonlinear optimization";
     homepage = "https://projects.coin-or.org/Ipopt";
-    license = licenses.epl10;
-    platforms = platforms.unix;
-    maintainers = with maintainers; [ abbradar ];
+    license = lib.licenses.epl10;
+    platforms = lib.platforms.unix;
+    maintainers = with lib.maintainers; [ abbradar ];
   };
 }

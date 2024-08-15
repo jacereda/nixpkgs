@@ -14,13 +14,13 @@
 
 stdenv.mkDerivation rec {
   pname = "pangomm";
-  version= "2.48.1";
+  version= "2.52.0";
 
   outputs = [ "out" "dev" ];
 
   src = fetchurl {
     url = "mirror://gnome/sources/${pname}/${lib.versions.majorMinor version}/${pname}-${version}.tar.xz";
-    sha256 = "sha256-d2rVPnkeQxBrf0D/CDS+5uTrHGrXy20hVUb3o98O3E0=";
+    hash = "sha256-NKE0EmpkhP8S93Q1jDbsxE0OnfCU4bg3ltl3S7fSSUc=";
   };
 
   nativeBuildInputs = [
@@ -28,7 +28,7 @@ stdenv.mkDerivation rec {
     meson
     ninja
     python3
-  ] ++ lib.optional stdenv.isDarwin [
+  ] ++ lib.optionals stdenv.isDarwin [
     ApplicationServices
   ];
 

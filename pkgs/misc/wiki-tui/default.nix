@@ -1,31 +1,48 @@
-{ lib, rustPlatform, fetchFromGitHub, ncurses, openssl, pkg-config, stdenv, nix-update-script, Security }:
+{
+  lib,
+  stdenv,
+  rustPlatform,
+  fetchFromGitHub,
+  ncurses,
+  openssl,
+  pkg-config,
+  Security,
+}:
 
 rustPlatform.buildRustPackage rec {
   pname = "wiki-tui";
-  version = "0.4.2";
+  version = "0.8.2";
 
   src = fetchFromGitHub {
     owner = "Builditluc";
-    repo = pname;
+    repo = "wiki-tui";
     rev = "v${version}";
-    sha256 = "sha256-TWpCmHG07dv0/hXGpo71Ie0uDRqs6yywHzcv0Hpi8Sc=";
+    hash = "sha256-euyg4wYWYerYT3hKdOCjokx8lJldGN7E3PHimDgQy3U=";
   };
 
-  buildInputs = [ ncurses openssl ] ++ lib.optional stdenv.isDarwin Security;
+  # Note: bump `time` dependency to be able to build with rust 1.80, should be removed on the next
+  # release (see: https://github.com/NixOS/nixpkgs/issues/332957)
+  cargoPatches = [ ./time.patch ];
 
   nativeBuildInputs = [ pkg-config ];
 
-  cargoSha256 = "sha256-tJhbIsmh4zw1Dhvc2jE0N1cTE4//DOe3rDzDVNiTigA=";
+  buildInputs = [
+    ncurses
+    openssl
+  ] ++ lib.optionals stdenv.isDarwin [ Security ];
 
-  passthru.updateScript = nix-update-script {
-    attrPath = pname;
-  };
+  cargoHash = "sha256-XovbT+KC0va7yC5j7kf6t1SnXe1uyy1KI8FRV1AwkS0=";
 
   meta = with lib; {
-    description = "A simple and easy to use Wikipedia Text User Interface";
+    description = "Simple and easy to use Wikipedia Text User Interface";
     homepage = "https://github.com/builditluc/wiki-tui";
+    changelog = "https://github.com/Builditluc/wiki-tui/releases/tag/v${version}";
     license = licenses.mit;
-    maintainers = with maintainers; [ legendofmiracles ];
+    maintainers = with maintainers; [
+      lom
+      builditluc
+      matthiasbeyer
+    ];
     mainProgram = "wiki-tui";
   };
 }

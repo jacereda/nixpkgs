@@ -9,7 +9,15 @@ in
 {
   options = {
     services.jackett = {
-      enable = mkEnableOption "Jackett";
+      enable = mkEnableOption "Jackett, API support for your favorite torrent trackers";
+
+      port = mkOption {
+        default = 9117;
+        type = types.port;
+        description = ''
+          Port serving the web interface
+        '';
+      };
 
       dataDir = mkOption {
         type = types.str;
@@ -35,12 +43,7 @@ in
         description = "Group under which Jackett runs.";
       };
 
-      package = mkOption {
-        type = types.package;
-        default = pkgs.jackett;
-        defaultText = literalExpression "pkgs.jackett";
-        description = "Jackett package to use.";
-      };
+      package = mkPackageOption pkgs "jackett" { };
     };
   };
 
@@ -58,13 +61,13 @@ in
         Type = "simple";
         User = cfg.user;
         Group = cfg.group;
-        ExecStart = "${cfg.package}/bin/Jackett --NoUpdates --DataFolder '${cfg.dataDir}'";
+        ExecStart = "${cfg.package}/bin/Jackett --NoUpdates --Port ${toString cfg.port} --DataFolder '${cfg.dataDir}'";
         Restart = "on-failure";
       };
     };
 
     networking.firewall = mkIf cfg.openFirewall {
-      allowedTCPPorts = [ 9117 ];
+      allowedTCPPorts = [ cfg.port ];
     };
 
     users.users = mkIf (cfg.user == "jackett") {

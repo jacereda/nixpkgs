@@ -1,23 +1,26 @@
-{ lib
-, buildPythonPackage
-, fetchPypi
-, flask
-, python3-openid
-, isPy3k
+{
+  lib,
+  buildPythonPackage,
+  fetchPypi,
+  setuptools,
+  flask,
+  python3-openid,
 }:
 
 buildPythonPackage rec {
   pname = "flask-openid";
-  version = "1.2.5";
-  disable = !isPy3k;
+  version = "1.3.1";
+  pyproject = true;
 
   src = fetchPypi {
-    pname = "Flask-OpenID";
+    pname = "flask_openid";
     inherit version;
-    sha256 = "5a8ffe1c8c0ad1cc1f5030e1223ea27f8861ee0215a2a58a528cc61379e5ccab";
+    hash = "sha256-J2KLwKN+ZTCUiCMZPgaNeQNa2Ulth7dAQEQ+xITHZXo=";
   };
 
-  propagatedBuildInputs = [
+  build-system = [ setuptools ];
+
+  dependencies = [
     flask
     python3-openid
   ];
@@ -29,6 +32,6 @@ buildPythonPackage rec {
     description = "OpenID support for Flask";
     homepage = "https://pythonhosted.org/Flask-OpenID/";
     license = licenses.bsd3;
-    maintainers = [ maintainers.costrouc ];
+    maintainers = [ ];
   };
 }

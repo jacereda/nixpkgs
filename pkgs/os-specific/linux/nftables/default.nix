@@ -1,50 +1,53 @@
-{ lib, stdenv, fetchurl, pkg-config, bison, file, flex
+{ lib, stdenv, fetchurl, pkg-config, bison, flex
 , asciidoc, libxslt, findXMLCatalogs, docbook_xml_dtd_45, docbook_xsl
 , libmnl, libnftnl, libpcap
-, gmp, jansson, readline
+, gmp, jansson
+, autoreconfHook
 , withDebugSymbols ? false
-, withPython ? false , python3
-, withXtables ? true , iptables
+, withCli ? true, libedit
+, withXtables ? true, iptables
+, nixosTests
 }:
 
-with lib;
-
 stdenv.mkDerivation rec {
-  version = "1.0.0";
+  version = "1.0.9";
   pname = "nftables";
 
   src = fetchurl {
-    url = "https://netfilter.org/projects/nftables/files/${pname}-${version}.tar.bz2";
-    sha256 = "1x25zs2czmn14mmq1nqi4zibsvh04vqjbx5lxj42nylnmxym9gsq";
+    url = "https://netfilter.org/projects/nftables/files/${pname}-${version}.tar.xz";
+    hash = "sha256-o8MEzZugYSOe4EdPmvuTipu5nYm5YCRvZvDDoKheFM0=";
   };
 
   nativeBuildInputs = [
-    pkg-config bison file flex
+    autoreconfHook
+    pkg-config bison flex
     asciidoc docbook_xml_dtd_45 docbook_xsl findXMLCatalogs libxslt
   ];
 
   buildInputs = [
     libmnl libnftnl libpcap
-    gmp jansson readline
-  ] ++ optional withXtables iptables
-    ++ optional withPython python3;
-
-  preConfigure = ''
-    substituteInPlace ./configure --replace /usr/bin/file ${file}/bin/file
-  '';
+    gmp jansson
+  ] ++ lib.optional withCli libedit
+    ++ lib.optional withXtables iptables;
 
   configureFlags = [
     "--with-json"
-  ] ++ optional (!withDebugSymbols) "--disable-debug"
-    ++ optional (!withPython) "--disable-python"
-    ++ optional withPython "--enable-python"
-    ++ optional withXtables "--with-xtables";
+    (lib.withFeatureAs withCli "cli" "editline")
+  ] ++ lib.optional (!withDebugSymbols) "--disable-debug"
+    ++ lib.optional withXtables "--with-xtables";
 
-  meta = {
-    description = "The project that aims to replace the existing {ip,ip6,arp,eb}tables framework";
+  passthru.tests = {
+    inherit (nixosTests) firewall-nftables;
+    lxd-nftables = nixosTests.lxd.nftables;
+    nat = { inherit (nixosTests.nat.nftables) firewall standalone; };
+  };
+
+  meta = with lib; {
+    description = "Project that aims to replace the existing {ip,ip6,arp,eb}tables framework";
     homepage = "https://netfilter.org/projects/nftables/";
     license = licenses.gpl2Only;
     platforms = platforms.linux;
-    maintainers = with maintainers; [ izorkin ];
+    maintainers = with maintainers; [ izorkin ] ++ teams.helsinki-systems.members;
+    mainProgram = "nft";
   };
 }

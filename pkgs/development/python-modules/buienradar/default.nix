@@ -1,27 +1,27 @@
-{ lib
-, buildPythonPackage
-, pythonOlder
-, fetchFromGitHub
-, docopt
-, pytz
-, requests
-, setuptools
-, vincenty
-, xmltodict
-, pytestCheckHook
+{
+  lib,
+  buildPythonPackage,
+  fetchFromGitHub,
+  docopt,
+  pytz,
+  requests,
+  setuptools,
+  vincenty,
+  xmltodict,
+  pytestCheckHook,
 }:
 
 buildPythonPackage rec {
   pname = "buienradar";
-  version = "1.0.4";
-
-  disabled = pythonOlder "3.4";
+  version = "1.0.6";
+  format = "setuptools";
 
   src = fetchFromGitHub {
     owner = "mjj4791";
     repo = "python-buienradar";
-    rev = version;
-    sha256 = "1s0m5x7wdvzzsm797lh6531k614ybh7z0cikxjxqw377mivpz4wq";
+    # https://github.com/mjj4791/python-buienradar/issues/14
+    rev = "6081a860e190eb59c2ea3ebdcb8a50f6133a0b53";
+    hash = "sha256-5bFGPR8StyQTMRcvECdHGC33oAR/9noeCbpwx3DSquQ=";
   };
 
   propagatedBuildInputs = [
@@ -33,9 +33,7 @@ buildPythonPackage rec {
     xmltodict
   ];
 
-  checkInputs = [
-    pytestCheckHook
-  ];
+  nativeCheckInputs = [ pytestCheckHook ];
 
   disabledTests = [
     # require network connection
@@ -51,6 +49,7 @@ buildPythonPackage rec {
 
   meta = with lib; {
     description = "Library and CLI tools for interacting with buienradar";
+    mainProgram = "buienradar";
     homepage = "https://github.com/mjj4791/python-buienradar";
     license = licenses.mit;
     maintainers = with maintainers; [ dotlambda ];

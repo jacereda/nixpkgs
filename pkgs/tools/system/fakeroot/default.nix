@@ -1,76 +1,85 @@
-{ lib, stdenv, fetchurl, fetchpatch, getopt, libcap, gnused }:
+{ lib
+, coreutils
+, stdenv
+, fetchFromGitLab
+, fetchpatch
+, getopt
+, libcap
+, gnused
+, nixosTests
+, testers
+, autoreconfHook
+, po4a
+}:
 
-stdenv.mkDerivation rec {
-  version = "1.23";
+stdenv.mkDerivation (finalAttrs: {
+  version = "1.32.2";
   pname = "fakeroot";
 
-  src = fetchurl {
-    url = "http://http.debian.net/debian/pool/main/f/fakeroot/fakeroot_${version}.orig.tar.xz";
-    sha256 = "1xpl0s2yjyjwlf832b6kbkaa5921liybaar13k7n45ckd9lxd700";
+  src = fetchFromGitLab {
+    owner = "clint";
+    repo = "fakeroot";
+    rev = "upstream/${finalAttrs.version}";
+    domain = "salsa.debian.org";
+    hash = "sha256-j1qSMPNCtAxClqYqWkRNQmtxkitYi7g/9KtQ5XqcX3w=";
   };
 
   patches = lib.optionals stdenv.isLinux [
     ./einval.patch
 
-    # glibc 2.33 patches from ArchLinux
+    # patches needed for musl libc, borrowed from alpine packaging.
+    # it is applied regardless of the environment to prevent patchrot
     (fetchpatch {
-      url = "https://raw.githubusercontent.com/archlinux/svntogit-packages/15b01cf37ff64c487f7440df4e09b090cd93b58f/fakeroot/trunk/fakeroot-1.25.3-glibc-2.33-fix-1.patch";
-      sha256 = "sha256-F6BcxYInSLu7Fxg6OmMZDhTWoLqsc//yYPlTZqQQl68=";
+      name = "do-not-redefine-id_t.patch";
+      url = "https://git.alpinelinux.org/aports/plain/main/fakeroot/do-not-redefine-id_t.patch?id=f68c541324ad07cc5b7f5228501b5f2ce4b36158";
+      sha256 = "sha256-i9PoWriSrQ7kLZzbvZT3Kq1oXzK9mTyBqq808BGepOw=";
     })
     (fetchpatch {
-      url = "https://raw.githubusercontent.com/archlinux/svntogit-packages/15b01cf37ff64c487f7440df4e09b090cd93b58f/fakeroot/trunk/fakeroot-1.25.3-glibc-2.33-fix-2.patch";
-      sha256 = "sha256-ifpJxhk6MyQpFolC1hIAAUjcHmOHVU1D25tRwpu2S/k=";
+      name = "fakeroot-no64.patch";
+      url = "https://git.alpinelinux.org/aports/plain/main/fakeroot/fakeroot-no64.patch?id=f68c541324ad07cc5b7f5228501b5f2ce4b36158";
+      sha256 = "sha256-NCDaB4nK71gvz8iQxlfaQTazsG0SBUQ/RAnN+FqwKkY=";
     })
     (fetchpatch {
-      url = "https://raw.githubusercontent.com/archlinux/svntogit-packages/15b01cf37ff64c487f7440df4e09b090cd93b58f/fakeroot/trunk/fakeroot-1.25.3-glibc-2.33-fix-3.patch";
-      sha256 = "sha256-o2Xm4C64Ny9TL8fjsZltjO1CdJ4VGwqZ+LnufVL5Sq8=";
-    })
-  ]
-  # patchset from brew
-  ++ lib.optionals stdenv.isDarwin [
-    (fetchpatch {
-      name = "0001-Implement-openat-2-wrapper-which-handles-optional-ar.patch";
-      url = "https://bugs.debian.org/cgi-bin/bugreport.cgi?msg=5;filename=0001-Implement-openat-2-wrapper-which-handles-optional-ar.patch;att=1;bug=766649";
-      sha256 = "1m6ggrqwqy0in264sxqk912vniipiw629dxq7kibakvsswfk6bkk";
-    })
-    (fetchpatch {
-      name = "0002-OS-X-10.10-introduced-id_t-int-in-gs-etpriority.patch";
-      url = "https://bugs.debian.org/cgi-bin/bugreport.cgi?msg=5;filename=0002-OS-X-10.10-introduced-id_t-int-in-gs-etpriority.patch;att=2;bug=766649";
-      sha256 = "0rhayp42x4i1a6yc4d28kpshmf7lrmaprq64zfrjpdn4kbs0rkln";
-    })
-    (fetchpatch {
-      name = "fakeroot-always-pass-mode.patch";
-      url = "https://bugs.debian.org/cgi-bin/bugreport.cgi?att=2;bug=766649;filename=fakeroot-always-pass-mode.patch;msg=20";
-      sha256 = "0i3zaca1v449dm9m1cq6wq4dy6hc2y04l05m9gg8d4y4swld637p";
+      name = "addendum-charset-conversion.patch";
+      url = "https://salsa.debian.org/clint/fakeroot/-/commit/b769fb19fd89d696a5e0fd70b974f833f6a0655a.patch";
+      hash = "sha256-3z1g+xzlyTpa055kpsoumP/E8srDlZss6B7Fv5A0QkU=";
     })
   ];
 
-  buildInputs = [ getopt gnused ]
-    ++ lib.optional (!stdenv.isDarwin) libcap
-    ;
+  nativeBuildInputs = [ autoreconfHook po4a ];
+  buildInputs = lib.optional (!stdenv.isDarwin) libcap;
 
   postUnpack = ''
-    sed -i -e "s@getopt@$(type -p getopt)@g" -e "s@sed@$(type -p sed)@g" ${pname}-${version}/scripts/fakeroot.in
+    sed -i \
+      -e 's@getopt@${getopt}/bin/getopt@g' \
+      -e 's@sed@${gnused}/bin/sed@g' \
+      -e 's@kill@${coreutils}/bin/kill@g' \
+      -e 's@/bin/ls@${coreutils}/bin/ls@g' \
+      -e 's@cut@${coreutils}/bin/cut@g' \
+      source/scripts/fakeroot.in
   '';
 
-  postConfigure = let
-    # additional patch from brew, but needs to be applied to a generated file
-    patch-wraptmpf = fetchpatch {
-      name = "fakeroot-patch-wraptmpf-h.patch";
-      url = "https://bugs.debian.org/cgi-bin/bugreport.cgi?att=3;bug=766649;filename=fakeroot-patch-wraptmpf-h.patch;msg=20";
-      sha256 = "1jhsi4bv6nnnjb4vmmmbhndqg719ckg860hgw98bli8m05zwbx6a";
-    };
-  in lib.optional stdenv.isDarwin ''
-    make wraptmpf.h
-    patch -p1 < ${patch-wraptmpf}
+  postConfigure = ''
+    pushd doc
+    po4a -k 0 --variable "srcdir=../doc/" po4a/po4a.cfg
+    popd
   '';
+
+  passthru = {
+    tests = {
+      version = testers.testVersion {
+        package = finalAttrs.finalPackage;
+      };
+      # A lightweight *unit* test that exercises fakeroot and fakechroot together:
+      nixos-etc = nixosTests.etc.test-etc-fakeroot;
+    };
+  };
 
   meta = {
     homepage = "https://salsa.debian.org/clint/fakeroot";
     description = "Give a fake root environment through LD_PRELOAD";
     license = lib.licenses.gpl2Plus;
-    maintainers = with lib.maintainers; [viric];
+    maintainers = [ ];
     platforms = lib.platforms.unix;
   };
-
-}
+})

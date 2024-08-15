@@ -2,31 +2,32 @@
 
 python3Packages.buildPythonApplication rec {
   pname = "ytcc";
-  version = "2.5.3";
+  version = "2.6.1";
+  pyproject = true;
 
   src = fetchFromGitHub {
     owner = "woefe";
     repo = "ytcc";
     rev = "v${version}";
-    sha256 = "1skhg8ca2bjjfi02pjsi3w7v3f4xhzg7bqyy0cajxsymzqzqp7lm";
+    hash = "sha256-pC2uoog+nev/Xa6UbXX4vX00VQQLHtZzbVkxrxO/Pg8=";
   };
 
-  postPatch = ''
-    substituteInPlace setup.py --replace "youtube_dl" "yt_dlp"
-  '';
-
-  nativeBuildInputs = [ gettext installShellFiles ];
+  nativeBuildInputs = [
+    gettext
+    installShellFiles
+  ] ++ (with python3Packages; [
+    setuptools
+  ]);
 
   propagatedBuildInputs = with python3Packages; [
-    click
-    feedparser
-    lxml
-    sqlalchemy
     yt-dlp
+    click
     wcwidth
   ];
 
-  checkInputs = with python3Packages; [ nose pytestCheckHook ];
+  nativeCheckInputs = with python3Packages; [
+    pytestCheckHook
+  ];
 
   # Disable tests that touch network or shell out to commands
   disabledTests = [
@@ -44,12 +45,16 @@ python3Packages.buildPythonApplication rec {
 
   postInstall = ''
     installManPage doc/ytcc.1
+    installShellCompletion --cmd ytcc \
+      --bash scripts/completions/bash/ytcc.completion.sh \
+      --fish scripts/completions/fish/ytcc.fish \
+      --zsh scripts/completions/zsh/_ytcc
   '';
 
   meta = {
     description = "Command Line tool to keep track of your favourite YouTube channels without signing up for a Google account";
     homepage = "https://github.com/woefe/ytcc";
     license = lib.licenses.gpl3Plus;
-    maintainers = with lib.maintainers; [ marius851000 marsam ];
+    maintainers = with lib.maintainers; [ marius851000 ];
   };
 }

@@ -1,29 +1,56 @@
-{ lib
-, buildPythonPackage
-, fetchPypi
-, rednose
-, six
-, mock
-, isPyPy
+{
+  lib,
+  buildPythonPackage,
+  fetchPypi,
+  setuptools,
+  pytestCheckHook,
+  mock,
+  six,
+  isPyPy,
 }:
 
 buildPythonPackage rec {
   pname = "sure";
-  version = "2.0.0";
+  version = "2.0.1";
+  pyproject = true;
+
   disabled = isPyPy;
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "34ae88c846046742ef074036bf311dc90ab152b7bc09c342b281cebf676727a2";
+    hash = "sha256-yPxvq8Dn9phO6ruUJUDkVkblvvC7mf5Z4C2mNOTUuco=";
   };
 
-  buildInputs = [ rednose ];
-  propagatedBuildInputs = [ six mock ];
+  postPatch = ''
+    substituteInPlace setup.cfg \
+      --replace "rednose = 1" "" \
+      --replace-fail "--cov=sure" ""
+  '';
 
-  meta = with lib; {
+  build-system = [ setuptools ];
+
+  dependencies = [
+    mock
+    six
+  ];
+
+  nativeCheckInputs = [
+    pytestCheckHook
+    mock
+  ];
+
+  disabledTestPaths = [
+    "tests/test_old_api.py" # require nose
+  ];
+
+  pythonImportsCheck = [ "sure" ];
+
+  meta = {
     description = "Utility belt for automated testing";
-    homepage = "https://sure.readthedocs.io/en/latest/";
-    license = licenses.gpl3Plus;
+    mainProgram = "sure";
+    homepage = "https://sure.readthedocs.io/";
+    changelog = "https://github.com/gabrielfalcao/sure/blob/v${version}/CHANGELOG.md";
+    license = lib.licenses.gpl3Plus;
+    maintainers = with lib.maintainers; [ sigmanificient ];
   };
-
 }

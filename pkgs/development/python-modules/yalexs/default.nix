@@ -1,57 +1,71 @@
-{ lib
-, aiofiles
-, aiohttp
-, aioresponses
-, aiounittest
-, asynctest
-, buildPythonPackage
-, fetchFromGitHub
-, pubnub
-, pytestCheckHook
-, python-dateutil
-, pythonOlder
-, requests
-, requests-mock
+{
+  lib,
+  aiofiles,
+  aiohttp,
+  aioresponses,
+  aiounittest,
+  buildPythonPackage,
+  ciso8601,
+  fetchFromGitHub,
+  freenub,
+  poetry-core,
+  pyjwt,
+  pytestCheckHook,
+  python-dateutil,
+  pythonOlder,
+  requests-mock,
+  requests,
+  typing-extensions,
 }:
 
 buildPythonPackage rec {
   pname = "yalexs";
-  version = "1.1.13";
-  disabled = pythonOlder "3.6";
+  version = "6.4.4";
+  pyproject = true;
+
+  disabled = pythonOlder "3.9";
 
   src = fetchFromGitHub {
     owner = "bdraco";
-    repo = pname;
-    rev = "v${version}";
-    sha256 = "0938540n60xv7kxam3azszn3nj0mnhhgh5p4hgbfxj43bkwpqz4n";
+    repo = "yalexs";
+    rev = "refs/tags/v${version}";
+    hash = "sha256-vW6BMb0aaGGsXwZci5FE9VuSB/hi0pltIVH/OcL0mnw=";
   };
 
-  propagatedBuildInputs = [
+  postPatch = ''
+    substituteInPlace pyproject.toml \
+      --replace-fail "-v -Wdefault --cov=yalexs --cov-report=term-missing:skip-covered" ""
+  '';
+
+  build-system = [ poetry-core ];
+
+  dependencies = [
     aiofiles
     aiohttp
-    pubnub
+    ciso8601
+    freenub
+    pyjwt
     python-dateutil
     requests
+    typing-extensions
   ];
 
-  checkInputs = [
+  # aiounittest is not supported on 3.12
+  doCheck = pythonOlder "3.12";
+
+  nativeCheckInputs = [
     aioresponses
     aiounittest
-    asynctest
     pytestCheckHook
     requests-mock
   ];
-
-  postPatch = ''
-    # Not used requirement
-    substituteInPlace setup.py --replace '"vol",' ""
-  '';
 
   pythonImportsCheck = [ "yalexs" ];
 
   meta = with lib; {
     description = "Python API for Yale Access (formerly August) Smart Lock and Doorbell";
     homepage = "https://github.com/bdraco/yalexs";
+    changelog = "https://github.com/bdraco/yalexs/releases/tag/v${version}";
     license = with licenses; [ mit ];
     maintainers = with maintainers; [ fab ];
   };

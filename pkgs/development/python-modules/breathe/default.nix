@@ -1,24 +1,58 @@
-{ lib, fetchPypi, buildPythonPackage, docutils, six, sphinx, isPy3k, isPy27 }:
+{
+  lib,
+  buildPythonPackage,
+  defusedxml,
+  fetchFromGitHub,
+  fetchpatch,
+  pytestCheckHook,
+  pythonOlder,
+  setuptools,
+  sphinx,
+}:
 
 buildPythonPackage rec {
-  version = "4.31.0";
   pname = "breathe";
-  disabled = isPy27;
+  version = "4.35.0";
+  pyproject = true;
 
-  src = fetchPypi {
-    inherit pname version;
-    sha256 = "925eeff96c6640cd857e4ddeae6f75464a1d5e2e08ee56dccce4043583ae2050";
+  disabled = pythonOlder "3.7";
+
+  src = fetchFromGitHub {
+    owner = "breathe-doc";
+    repo = "breathe";
+    rev = "refs/tags/v${version}";
+    hash = "sha256-LJXvtScyWRL8zfj877bJ4xuIbLV9IN3Sn9KPUTLMjMI=";
   };
 
-  propagatedBuildInputs = [ docutils six sphinx ];
+  patches = [
+    # sphinx 7.2 support https://github.com/breathe-doc/breathe/pull/964
+    (fetchpatch {
+      url = "https://github.com/breathe-doc/breathe/commit/caa8dc45222b35d360c24bf36835a7d8e6d86df2.patch";
+      hash = "sha256-wWe4x4WwZTrDhNZAF7mhfHHNEjd+Kp4YXghL+DPa10w=";
+    })
+    # sphinx 7.2 support https://github.com/breathe-doc/breathe/pull/976
+    (fetchpatch {
+      url = "https://github.com/breathe-doc/breathe/commit/09c856bf72de41e82582f31855e916295ba6d382.patch";
+      hash = "sha256-vU3DUrj4Jj4AUolFFtWmaLMf9RG7TmKqJe5sCwwRjPI=";
+    })
+  ];
 
-  doCheck = !isPy3k;
+  build-system = [ setuptools ];
+
+  dependencies = [ sphinx ];
+
+  nativeCheckInputs = [
+    defusedxml
+    pytestCheckHook
+  ];
+
+  pythonImportsCheck = [ "breathe" ];
 
   meta = {
-    homepage = "https://github.com/michaeljones/breathe";
-    license = lib.licenses.bsd3;
     description = "Sphinx Doxygen renderer";
-    inherit (sphinx.meta) platforms;
+    mainProgram = "breathe-apidoc";
+    homepage = "https://github.com/breathe-doc/breathe";
+    license = lib.licenses.bsd3;
+    maintainers = lib.teams.sphinx.members;
   };
 }
-

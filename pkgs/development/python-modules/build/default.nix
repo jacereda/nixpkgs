@@ -1,77 +1,110 @@
-{ lib
-, stdenv
-, buildPythonPackage
-, fetchFromGitHub
-, filelock
-, flit-core
-, importlib-metadata
-, isPy3k
-, packaging
-, pep517
-, pytest-mock
-, pytest-rerunfailures
-, pytest-xdist
-, pytestCheckHook
-, pythonOlder
-, toml
-, typing ? null
+{
+  lib,
+  stdenv,
+  build,
+  buildPythonPackage,
+  fetchFromGitHub,
+  flit-core,
+  filelock,
+  packaging,
+  pyproject-hooks,
+  pytest-mock,
+  pytest-rerunfailures,
+  pytest-xdist,
+  pytestCheckHook,
+  pythonOlder,
+  setuptools,
+  tomli,
+  wheel,
 }:
 
 buildPythonPackage rec {
   pname = "build";
-  version = "0.5.1";
+  version = "1.2.1";
   format = "pyproject";
+
+  disabled = pythonOlder "3.7";
 
   src = fetchFromGitHub {
     owner = "pypa";
-    repo = pname;
-    rev = version;
-    sha256 = "15hc9mbxsngfc9n805x8rk7yqbxnw12mpk6hfwcsldnfii1vg2ph";
+    repo = "build";
+    rev = "refs/tags/${version}";
+    hash = "sha256-G0g+1v19sQMUuQlZKGELZOwwX07i7TIdEdaYzr8bKtI=";
   };
 
-  nativeBuildInputs = [
-    flit-core
-  ];
+  postPatch = ''
+    # not strictly required, causes circular dependency cycle
+    sed -i '/importlib-metadata >= 4.6/d' pyproject.toml
+  '';
+
+  nativeBuildInputs = [ flit-core ];
 
   propagatedBuildInputs = [
-    toml
-    pep517
     packaging
-  ] ++ lib.optionals (!isPy3k) [
-    typing
-  ] ++ lib.optionals (pythonOlder "3.8") [
-    importlib-metadata
-  ];
+    pyproject-hooks
+  ] ++ lib.optionals (pythonOlder "3.11") [ tomli ];
 
-  checkInputs = [
-    filelock
-    pytest-mock
-    pytest-rerunfailures
-    pytest-xdist
-    pytestCheckHook
-  ];
+  # We need to disable tests because this package is part of the bootstrap chain
+  # and its test dependencies cannot be built yet when this is being built.
+  doCheck = false;
 
-  disabledTests = [
-    "test_isolation"
-    "test_isolated_environment_install"
-    "test_default_pip_is_never_too_old"
-    "test_build"
-    "test_init"
-  ] ++ lib.optionals stdenv.isDarwin [
-    # expects Apple's python and its quirks
-    "test_can_get_venv_paths_with_conflicting_default_scheme"
-  ];
+  passthru.tests = {
+    pytest = buildPythonPackage {
+      pname = "${pname}-pytest";
+      inherit src version;
+      format = "other";
+
+      dontBuild = true;
+      dontInstall = true;
+
+      nativeCheckInputs = [
+        build
+        filelock
+        pytest-mock
+        pytest-rerunfailures
+        pytest-xdist
+        pytestCheckHook
+        setuptools
+        wheel
+      ];
+
+      pytestFlagsArray = [
+        "-W"
+        "ignore::DeprecationWarning"
+      ];
+
+      __darwinAllowLocalNetworking = true;
+
+      disabledTests =
+        [
+          # Tests often fail with StopIteration
+          "test_isolat"
+          "test_default_pip_is_never_too_old"
+          "test_build"
+          "test_with_get_requires"
+          "test_init"
+          "test_output"
+          "test_wheel_metadata"
+        ]
+        ++ lib.optionals stdenv.isDarwin [
+          # Expects Apple's Python and its quirks
+          "test_can_get_venv_paths_with_conflicting_default_scheme"
+        ];
+    };
+  };
 
   pythonImportsCheck = [ "build" ];
 
   meta = with lib; {
+    mainProgram = "pyproject-build";
     description = "Simple, correct PEP517 package builder";
     longDescription = ''
       build will invoke the PEP 517 hooks to build a distribution package. It
       is a simple build tool and does not perform any dependency management.
     '';
     homepage = "https://github.com/pypa/build";
-    maintainers = with maintainers; [ fab ];
+    changelog = "https://github.com/pypa/build/blob/${version}/CHANGELOG.rst";
     license = licenses.mit;
+    maintainers = teams.python.members ++ [ maintainers.fab ];
   };
 }

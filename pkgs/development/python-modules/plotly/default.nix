@@ -1,35 +1,46 @@
-{ lib
-, buildPythonPackage
-, fetchPypi
-, pytz
-, requests
-, six
-, tenacity
+{
+  lib,
+  buildPythonPackage,
+  fetchPypi,
+  setuptools,
+  packaging,
+  tenacity,
 }:
 
 buildPythonPackage rec {
   pname = "plotly";
-  version = "5.3.1";
+  version = "5.23.0";
+  pyproject = true;
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "6598393e898a9c5ae78397f76f07002ec41fd92e5f746d3b9806248d53885643";
+    hash = "sha256-ieV9ADoRYwOjTeZwCGI5E2fdVkIiq3H4Ux33Ann8AZM=";
   };
 
-  propagatedBuildInputs = [
-    pytz
-    requests
-    six
+  postPatch = ''
+    substituteInPlace pyproject.toml \
+      --replace-fail "\"jupyterlab~=3.0;python_version>='3.6'\"," ""
+  '';
+
+  env.SKIP_NPM = true;
+
+  build-system = [ setuptools ];
+
+  dependencies = [
+    packaging
     tenacity
   ];
+
+  pythonImportsCheck = [ "plotly" ];
 
   # No tests in archive
   doCheck = false;
 
   meta = with lib; {
     description = "Python plotting library for collaborative, interactive, publication-quality graphs";
+    downloadPage = "https://github.com/plotly/plotly.py";
     homepage = "https://plot.ly/python/";
     license = with licenses; [ mit ];
-    maintainers = with maintainers; [ ];
+    maintainers = [ ];
   };
 }

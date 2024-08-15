@@ -81,18 +81,25 @@ in
         gid = config.ids.gids.ircd;
       };
 
-      systemd.tmpfiles.rules = [
-        "d ${cfg.statedir} - ${cfg.user} ${cfg.group} - -"
-      ];
+      systemd.tmpfiles.settings."10-charybdis".${cfg.statedir}.d = {
+        inherit (cfg) user group;
+      };
+
+      environment.etc."charybdis/ircd.conf".source = configFile;
 
       systemd.services.charybdis = {
         description = "Charybdis IRC daemon";
         wantedBy = [ "multi-user.target" ];
+        reloadIfChanged = true;
+        restartTriggers = [
+          configFile
+        ];
         environment = {
           BANDB_DBPATH = "${cfg.statedir}/ban.db";
         };
         serviceConfig = {
-          ExecStart   = "${charybdis}/bin/charybdis -foreground -logfile /dev/stdout -configfile ${configFile}";
+          ExecStart   = "${charybdis}/bin/charybdis -foreground -logfile /dev/stdout -configfile /etc/charybdis/ircd.conf";
+          ExecReload = "${coreutils}/bin/kill -HUP $MAINPID";
           Group = cfg.group;
           User = cfg.user;
         };

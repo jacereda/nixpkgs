@@ -1,22 +1,27 @@
-{ lib
-, buildPythonPackage
-, fetchPypi
-, sphinx
-, beautifulsoup4
-, python-slugify
-, unidecode
-, css-html-js-minify
-, lxml
+{
+  lib,
+  beautifulsoup4,
+  buildPythonPackage,
+  css-html-js-minify,
+  fetchPypi,
+  lxml,
+  python-slugify,
+  pythonOlder,
+  sphinx,
+  unidecode,
 }:
 
 buildPythonPackage rec {
   pname = "sphinx-material";
-  version = "0.0.32";
+  version = "0.0.36";
+  format = "setuptools";
+
+  disabled = pythonOlder "3.7";
 
   src = fetchPypi {
     pname = "sphinx_material";
     inherit version;
-    sha256 = "ec02825a1bbe8b662fe624c11b87f1cd8d40875439b5b18c38649cf3366201fa";
+    hash = "sha256-7v9ffT3AFq8yuv33DGbmcdFch1Tb4GE9+9Yp++2RKGk=";
   };
 
   propagatedBuildInputs = [
@@ -33,7 +38,7 @@ buildPythonPackage rec {
   pythonImportsCheck = [ "sphinx_material" ];
 
   meta = with lib; {
-    description = "A material-based, responsive theme inspired by mkdocs-material";
+    description = "Material-based, responsive theme inspired by mkdocs-material";
     homepage = "https://bashtage.github.io/sphinx-material";
     license = licenses.mit;
     maintainers = with maintainers; [ FlorianFranzen ];

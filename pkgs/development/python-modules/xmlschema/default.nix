@@ -1,45 +1,44 @@
-{ lib
-, buildPythonPackage
-, fetchFromGitHub
-, elementpath
-, lxml
-, pytestCheckHook
-, pythonOlder
+{
+  lib,
+  buildPythonPackage,
+  elementpath,
+  fetchFromGitHub,
+  jinja2,
+  lxml,
+  pytestCheckHook,
+  pythonOlder,
+  setuptools,
 }:
 
 buildPythonPackage rec {
-  version = "1.8.2";
   pname = "xmlschema";
+  version = "3.3.2";
+  pyproject = true;
 
-  disabled = pythonOlder "3.6";
+  disabled = pythonOlder "3.7";
 
   src = fetchFromGitHub {
     owner = "sissaschool";
     repo = "xmlschema";
-    rev = "v${version}";
-    sha256 = "sha256-d7f19T17aAwdtNDjCrsXXY39u0aRgQo4vFPnxFNs2PQ=";
+    rev = "refs/tags/v${version}";
+    hash = "sha256-cZVNgY0Y9tE+ud8596Ujidc7aq+Gon9x6q/XDCuJ9oI=";
   };
 
-  propagatedBuildInputs = [
-    elementpath
-  ];
+  build-system = [ setuptools ];
 
-  checkInputs = [
+  dependencies = [ elementpath ];
+
+  nativeCheckInputs = [
+    jinja2
     lxml
     pytestCheckHook
   ];
 
-  # Ignore broken fixtures, and tests for files which don't exist.
-  # For darwin, we need to explicity say we can't reach network
   disabledTests = [
-    "export_remote"
-    "element_tree_import_script"
-  ];
-
-  disabledTestPaths = [
-    "tests/test_schemas.py"
-    "tests/test_memory.py"
-    "tests/test_validation.py"
+    # -file://///filer01/MY_HOME/dev/XMLSCHEMA/test.xsd
+    # +file:////filer01/MY_HOME/dev/XMLSCHEMA/test.xsd
+    "test_normalize_url_slashes"
+    "test_normalize_url_with_base_unc_path"
   ];
 
   pythonImportsCheck = [ "xmlschema" ];
@@ -47,7 +46,8 @@ buildPythonPackage rec {
   meta = with lib; {
     description = "XML Schema validator and data conversion library for Python";
     homepage = "https://github.com/sissaschool/xmlschema";
+    changelog = "https://github.com/sissaschool/xmlschema/blob/${src.rev}/CHANGELOG.rst";
     license = licenses.mit;
-    maintainers = with maintainers; [ jonringer ];
+    maintainers = [ ];
   };
 }

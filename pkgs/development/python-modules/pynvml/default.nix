@@ -1,28 +1,67 @@
-{ lib
-, buildPythonPackage
-, fetchPypi
-, pythonOlder
-, cudatoolkit
+{
+  lib,
+  buildPythonPackage,
+  cudaPackages,
+  fetchFromGitHub,
+  substituteAll,
+  pythonOlder,
+  addDriverRunpath,
+  setuptools,
+  pytestCheckHook,
+  versioneer,
+  pynvml,
 }:
 
 buildPythonPackage rec {
   pname = "pynvml";
-  version = "11.0.0";
+  version = "11.5.0";
+  pyproject = true;
   disabled = pythonOlder "3.6";
 
-  src = fetchPypi {
-    inherit pname version;
-    sha256 = "sha256-1fxKItNVtAw0HWugqoiKLU0iUxd9JDkA+EAbfmyssbs=";
+  src = fetchFromGitHub {
+    owner = "gpuopenanalytics";
+    repo = "pynvml";
+    rev = "refs/tags/${version}";
+    hash = "sha256-K3ZENjgi+TVDxr55dRK1y8SwzfgVIzcnD4oEI+KHRa4=";
   };
 
-  propagatedBuildInputs = [ cudatoolkit ];
+  patches = [
+    (substituteAll {
+      src = ./0001-locate-libnvidia-ml.so.1-on-NixOS.patch;
+      inherit (addDriverRunpath) driverLink;
+    })
+  ];
 
-  doCheck = false;  # no tests in PyPi dist
-  pythonImportsCheck = [ "pynvml" "pynvml.smi" ];
+  # unvendor versioneer
+  postPatch = ''
+    rm versioneer.py
+  '';
+
+  nativeBuildInputs = [
+    setuptools
+    versioneer
+  ];
+
+  pythonImportsCheck = [
+    "pynvml"
+    "pynvml.smi"
+  ];
+
+  nativeCheckInputs = [ pytestCheckHook ];
+
+  # OSError: /run/opengl-driver/lib/libnvidia-ml.so.1: cannot open shared object file: No such file or directory
+  doCheck = false;
+
+  passthru.tests.tester-nvmlInit = cudaPackages.writeGpuTestPython { libraries = [ pynvml ]; } ''
+    import pynvml
+    from pynvml.smi import nvidia_smi  # noqa: F401
+
+    print(f"{pynvml.nvmlInit()=}")
+  '';
 
   meta = with lib; {
     description = "Python bindings for the NVIDIA Management Library";
-    homepage = "https://www.nvidia.com";
+    homepage = "https://github.com/gpuopenanalytics/pynvml";
     license = licenses.bsd3;
     maintainers = [ maintainers.bcdarwin ];
   };

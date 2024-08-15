@@ -1,38 +1,44 @@
-{ lib
-, aiohttp
-, buildPythonPackage
-, fetchFromBitbucket
-, freezegun
-, netifaces
-, pytest-aiohttp
-, pytestCheckHook
-, pythonOlder
-, urllib3
+{
+  lib,
+  aiohttp,
+  buildPythonPackage,
+  fetchFromGitHub,
+  freezegun,
+  netifaces,
+  pytest-aiohttp,
+  pytestCheckHook,
+  pythonOlder,
+  urllib3,
+  setuptools,
+  tenacity,
 }:
 
 buildPythonPackage rec {
   pname = "pydaikin";
-  version = "2.6.0";
-  disabled = pythonOlder "3.6";
+  version = "2.13.2";
+  pyproject = true;
 
-  src = fetchFromBitbucket {
-    owner = "mustang51";
-    repo = pname;
-    rev = "v${version}";
-    sha256 = "sha256-Fk6zMWgvhKp+7BMDGw89Akb4fgK6+xi+AyvEY3pdTQQ=";
+  disabled = pythonOlder "3.11";
+
+  src = fetchFromGitHub {
+    owner = "fredrike";
+    repo = "pydaikin";
+    rev = "refs/tags/v${version}";
+    hash = "sha256-eq6QE5yYPb9y7bNJwk3sLQp7Pw0PtWn2T/6J+ICfPsY=";
   };
 
-  propagatedBuildInputs = [
+  build-system = [ setuptools ];
+
+  dependencies = [
     aiohttp
     netifaces
     urllib3
+    tenacity
   ];
 
-  # while they have tests, they do not run them in their CI and they fail as of 2.6.0
-  # AttributeError: 'DaikinBRP069' object has no attribute 'last_hour_cool_energy_consumption'
-  doCheck = false;
+  doCheck = false; # tests fail and upstream does not seem to run them either
 
-  checkInputs = [
+  nativeCheckInputs = [
     freezegun
     pytest-aiohttp
     pytestCheckHook
@@ -42,8 +48,10 @@ buildPythonPackage rec {
 
   meta = with lib; {
     description = "Python Daikin HVAC appliances interface";
-    homepage = "https://bitbucket.org/mustang51/pydaikin";
+    homepage = "https://github.com/fredrike/pydaikin";
+    changelog = "https://github.com/fredrike/pydaikin/releases/tag/v${version}";
     license = with licenses; [ gpl3Only ];
     maintainers = with maintainers; [ fab ];
+    mainProgram = "pydaikin";
   };
 }

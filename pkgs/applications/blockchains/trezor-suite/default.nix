@@ -8,8 +8,7 @@
 
 let
   pname = "trezor-suite";
-  version = "21.10.2";
-  name = "${pname}-${version}";
+  version = "24.7.2";
 
   suffix = {
     aarch64-linux = "linux-arm64";
@@ -17,24 +16,23 @@ let
   }.${stdenv.hostPlatform.system} or (throw "Unsupported system: ${stdenv.hostPlatform.system}");
 
   src = fetchurl {
-    url = "https://github.com/trezor/${pname}/releases/download/v${version}/Trezor-Suite-${version}-${suffix}.AppImage";
-    sha512 = { # curl -Lfs https://github.com/trezor/trezor-suite/releases/latest/download/latest-linux{-arm64,}.yml | grep ^sha512 | sed 's/: /-/'
-      aarch64-linux = "sha512-+qXN9cQk1u18ZzeMecPNfhkTTsw61iM/IJYksPJl9+zx2AKldv9tAFUnnmKZ65LabiaIXI+emN185SRRcaOndw==";
-      x86_64-linux  = "sha512-WpiG8VOEODqsQ1/jERiEEGwVqR0zbMqERGjOysEVYorA0p3xZyl7OSpWOSWaUjPBZpQtJIBdqhSXeoSRcvfJgg==";
+    url = "https://github.com/trezor/trezor-suite/releases/download/v${version}/Trezor-Suite-${version}-${suffix}.AppImage";
+    hash = { # curl -Lfs https://github.com/trezor/trezor-suite/releases/download/v${version}/latest-linux{-arm64,}.yml | grep ^sha512 | sed 's/: /-/'
+      aarch64-linux = "sha512-RYkRav7U7WUbZuSvwuWf+IvKgkpUYrclW5vzINcVp/Wzqj3Brl0Cb1fC4dFe7c/UyE/K1oQ4++zd2dHJu6gxEQ==";
+      x86_64-linux  = "sha512-WmdH3IC+9tbSLtQirmawi6vgtR7GoFceN2FdZ94rGtCkrvhi9STz5RHfZAljyQfRZ9Xx+DlTChZrsWA6DNqBpg==";
     }.${stdenv.hostPlatform.system} or (throw "Unsupported system: ${stdenv.hostPlatform.system}");
   };
 
   appimageContents = appimageTools.extractType2 {
-    inherit name src;
+    inherit pname version src;
   };
 
 in
 
 appimageTools.wrapType2 rec {
-  inherit name src;
+  inherit pname version src;
 
   extraInstallCommands = ''
-    mv $out/bin/${name} $out/bin/${pname}
     mkdir -p $out/bin $out/share/${pname} $out/share/${pname}/resources
 
     cp -a ${appimageContents}/locales/ $out/share/${pname}
@@ -42,8 +40,7 @@ appimageTools.wrapType2 rec {
     cp -a ${appimageContents}/resources/images/ $out/share/${pname}/resources
 
     install -m 444 -D ${appimageContents}/${pname}.desktop $out/share/applications/${pname}.desktop
-    install -m 444 -D ${appimageContents}/${pname}.png $out/share/icons/hicolor/512x512/apps/${pname}.png
-    install -m 444 -D ${appimageContents}/resources/images/icons/512x512.png $out/share/icons/hicolor/512x512/apps/${pname}.png
+    install -m 444 -D ${appimageContents}/resources/images/desktop/512x512.png $out/share/icons/hicolor/512x512/apps/${pname}.png
     substituteInPlace $out/share/applications/${pname}.desktop \
       --replace 'Exec=AppRun --no-sandbox %U' 'Exec=${pname}'
 
@@ -60,5 +57,6 @@ appimageTools.wrapType2 rec {
     license = licenses.unfree;
     maintainers = with maintainers; [ prusnak ];
     platforms = [ "aarch64-linux" "x86_64-linux" ];
+    mainProgram = "trezor-suite";
   };
 }

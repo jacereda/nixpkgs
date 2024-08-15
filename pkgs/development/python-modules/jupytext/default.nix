@@ -1,59 +1,79 @@
-{ lib
-, buildPythonPackage
-, fetchFromGitHub
-, pythonOlder
-, GitPython
-, jupyter-packaging
-, jupyter-client
-, jupyterlab
-, markdown-it-py
-, mdit-py-plugins
-, nbformat
-, notebook
-, pytestCheckHook
-, pyyaml
-, toml
+{
+  lib,
+  stdenv,
+  buildPythonPackage,
+  fetchPypi,
+  hatch-jupyter-builder,
+  hatchling,
+  jupyter-client,
+  markdown-it-py,
+  mdit-py-plugins,
+  nbformat,
+  notebook,
+  packaging,
+  pytest-xdist,
+  pytestCheckHook,
+  pythonOlder,
+  pyyaml,
+  tomli,
 }:
 
 buildPythonPackage rec {
   pname = "jupytext";
-  version = "1.11.2";
-  format = "pyproject";
+  version = "1.16.4";
+  pyproject = true;
 
-  disabled = pythonOlder "3.6";
+  disabled = pythonOlder "3.8";
 
-  src = fetchFromGitHub {
-    owner = "mwouts";
-    repo = pname;
-    rev = "v${version}";
-    hash = "sha256-S2SKAC2oT4VIVMMDbu/Puo87noAgnQs1hh88JphutA8=";
+  src = fetchPypi {
+    inherit pname version;
+    hash = "sha256-KOM/RvLOekH7nWd6SiyVMnKFV5tkyhBEN8S56x5BdOk=";
   };
 
-  buildInputs = [ jupyter-packaging jupyterlab ];
-  propagatedBuildInputs = [
+  build-system = [
+    hatch-jupyter-builder
+    hatchling
+  ];
+
+  dependencies = [
     markdown-it-py
     mdit-py-plugins
     nbformat
+    packaging
     pyyaml
-    toml
-  ];
+  ] ++ lib.optionals (pythonOlder "3.11") [ tomli ];
 
-  checkInputs = [
-    pytestCheckHook
-    GitPython
+  nativeCheckInputs = [
     jupyter-client
     notebook
+    pytest-xdist
+    pytestCheckHook
   ];
-  # Tests that use a Jupyter notebook require $HOME to be writable.
-  HOME = "$TMPDIR";
-  # Pre-commit tests expect the source directory to be a Git repository.
-  pytestFlagsArray = [ "--ignore-glob='tests/test_pre_commit_*.py'" ];
-  pythonImportsCheck = [ "jupytext" "jupytext.cli" ];
+
+  preCheck = ''
+    # Tests that use a Jupyter notebook require $HOME to be writable
+    export HOME=$(mktemp -d);
+    export PATH=$out/bin:$PATH;
+  '';
+
+  disabledTestPaths = [ "tests/external" ];
+
+  disabledTests = lib.optionals stdenv.isDarwin [
+    # requires access to trash
+    "test_load_save_rename"
+  ];
+
+  pythonImportsCheck = [
+    "jupytext"
+    "jupytext.cli"
+  ];
 
   meta = with lib; {
     description = "Jupyter notebooks as Markdown documents, Julia, Python or R scripts";
     homepage = "https://github.com/mwouts/jupytext";
+    changelog = "https://github.com/mwouts/jupytext/releases/tag/v${version}";
     license = licenses.mit;
-    maintainers = with maintainers; [ timokau ];
+    maintainers = teams.jupyter.members;
+    mainProgram = "jupytext";
   };
 }

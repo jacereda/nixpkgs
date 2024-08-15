@@ -1,23 +1,29 @@
 { lib
-, fetchurl
+, fetchFromGitea
 , buildPythonApplication
 , pbr
 , requests
 , setuptools
+, gitUpdater
 }:
 
 buildPythonApplication rec {
   pname = "git-review";
-  version = "2.1.0";
+  version = "2.4.0";
 
   # Manually set version because prb wants to get it from the git
   # upstream repository (and we are installing from tarball instead)
   PBR_VERSION = version;
 
-  src = fetchurl {
-    url = "https://opendev.org/opendev/${pname}/archive/${version}.tar.gz";
-    hash = "sha256-3A1T+/iXhNeMS2Aww5jISoiNExdv9N9/kwyATSuwVTE=";
+  src = fetchFromGitea {
+    domain = "opendev.org";
+    owner = "opendev";
+    repo = "git-review";
+    rev = version;
+    hash = "sha256-UfYc662NqnQt0+CKc+18jXnNTOcZv8urCNBsWd6x0VQ=";
   };
+
+  outputs = [ "out" "man" ];
 
   nativeBuildInputs = [
     pbr
@@ -35,10 +41,13 @@ buildPythonApplication rec {
 
   pythonImportsCheck = [ "git_review" ];
 
+  passthru.updateScript = gitUpdater { };
+
   meta = with lib; {
     description = "Tool to submit code to Gerrit";
     homepage = "https://opendev.org/opendev/git-review";
     license = licenses.asl20;
     maintainers = with maintainers; [ kira-bruneau ];
+    mainProgram = "git-review";
   };
 }

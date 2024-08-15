@@ -1,23 +1,50 @@
-{ lib, fetchPypi, buildPythonPackage, aiohttp, apispec_3, jinja2, webargs }:
+{
+  lib,
+  aiohttp,
+  apispec,
+  buildPythonPackage,
+  fetchFromGitHub,
+  jinja2,
+  packaging,
+  pytest-aiohttp,
+  pytestCheckHook,
+  pythonOlder,
+  webargs,
+}:
 
 buildPythonPackage rec {
   pname = "aiohttp-apispec";
-  version = "2.2.1";
+  version = "3.0.0b2";
+  format = "setuptools";
 
-  src = fetchPypi {
-    inherit version;
-    pname = "aiohttp-apispec";
-    sha256 = "0hhlmh3mc3xg68znsxyhypb5k12vg59yf72qkyw6ahg8zy3qfz2m";
-    # sha256 = "1svh5h6agbxqk74f77xhmmgbgczs5ldvfaaby50mirh3aickwvfm";
+  disabled = pythonOlder "3.6";
+
+  src = fetchFromGitHub {
+    owner = "maximdanilchenko";
+    repo = pname;
+    rev = "v${version}";
+    hash = "sha256-C+/M25oCLTNGGEUj2EyXn3UjcvPvDYFmmUW8IOoF1uU=";
   };
 
-  propagatedBuildInputs = [ aiohttp apispec_3 jinja2 webargs ];
+  propagatedBuildInputs = [
+    aiohttp
+    apispec
+    jinja2
+    packaging
+    webargs
+  ];
 
-  doCheck = false;
+  nativeCheckInputs = [
+    pytest-aiohttp
+    pytestCheckHook
+  ];
 
-  meta = {
+  pythonImportsCheck = [ "aiohttp_apispec" ];
+
+  meta = with lib; {
     description = "Build and document REST APIs with aiohttp and apispec";
-    license = lib.licenses.mit;
-    homepage = "https://github.com/maximdanilchenko/aiohttp-apispec";
+    homepage = "https://github.com/maximdanilchenko/aiohttp-apispec/";
+    license = licenses.mit;
+    maintainers = [ ];
   };
 }

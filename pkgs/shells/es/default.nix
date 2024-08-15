@@ -1,13 +1,13 @@
-{ lib, stdenv, fetchurl, readline, bison }:
+{ lib, stdenv, fetchpatch, fetchurl, readline, bison }:
 
 stdenv.mkDerivation rec {
 
   pname = "es";
-  version = "0.9.1";
+  version = "0.9.2";
 
   src = fetchurl {
     url = "https://github.com/wryun/es-shell/releases/download/v${version}/es-${version}.tar.gz";
-    sha256 = "1fplzxc6lncz2lv2fyr2ig23rgg5j96rm2bbl1rs28mik771zd5h";
+    sha256 = "sha256-ySZIK0IITpA+uHHuHrDO/Ana5vGt64QI3Z6TMDXE9d0=";
   };
 
   # The distribution tarball does not have a single top-level directory.
@@ -17,12 +17,24 @@ stdenv.mkDerivation rec {
     sourceRoot=.
   '';
 
-  buildInputs = [ readline bison ];
+  patches = [
+    (fetchpatch {
+      # https://github.com/wryun/es-shell/pull/101
+      name = "new-compiler-issues.patch";
+      url = "https://github.com/wryun/es-shell/commit/1eafb5fc4be735e59c9a091cc30adbca8f86fd96.patch";
+      hash = "sha256-0CV1seEiH6PsUnq0akPLiRMy+kIb9qnAK7Ta4I47i60=";
+    })
+  ];
+
+  strictDeps = true;
+  nativeBuildInputs = [ bison ];
+  buildInputs = [ readline ];
 
   configureFlags = [ "--with-readline" ];
 
   meta = with lib; {
-    description = "An extensible shell with higher order functions";
+    description = "Extensible shell with higher order functions";
+    mainProgram = "es";
     longDescription =
       ''
         Es is an extensible shell. The language was derived

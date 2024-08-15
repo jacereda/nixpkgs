@@ -8,16 +8,16 @@
 
 buildGoModule rec {
   pname = "pistol";
-  version = "0.2.2";
+  version = "0.5.2";
 
   src = fetchFromGitHub {
     owner = "doronbehar";
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-rpHtU8CnRh4C75tjdyJWCzbyaHvzyBpGSbJpXW8J9VM=";
+    sha256 = "sha256-/w2BenBIzhD0KHtELlFy7YGv0lykHrjrROZeW75gHis=";
   };
 
-  vendorSha256 = "sha256-ivFH7KtWf4nHCdAJrb6HgKP6aIIjgBKG5XwbeJHBDvU=";
+  vendorHash = "sha256-+Q72DUKLqahgbLCaXOTAYZaMvNfv3XF+SpyqHyB065g=";
 
   doCheck = false;
 
@@ -30,7 +30,7 @@ buildGoModule rec {
     installShellFiles
     asciidoctor
   ];
-  postBuild = ''
+  postInstall = ''
     asciidoctor -b manpage -d manpage README.adoc
     installManPage pistol.1
   '';
@@ -42,5 +42,6 @@ buildGoModule rec {
     homepage = "https://github.com/doronbehar/pistol";
     license = licenses.mit;
     maintainers = with maintainers; [ doronbehar ];
+    mainProgram = "pistol";
   };
 }

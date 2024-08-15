@@ -2,27 +2,28 @@
 
 buildGoModule rec {
   pname = "helm-docs";
-  version = "1.5.0";
+  version = "1.14.2";
 
   src = fetchFromGitHub {
     owner = "norwoodj";
     repo = "helm-docs";
     rev = "v${version}";
-    sha256 = "sha256-eyFuF03rqwfXyjEkqNRkjrJlHBazGYij1EtN0LAKdFk=";
+    hash = "sha256-a7alzjh+vjJPw/g9yaYkOUvwpgiqCrtKTBkV1EuGYtk=";
   };
 
-  vendorSha256 = "sha256-aAn969C4UhFGu5/qXIG/rc1cErQIDtPwEA+f0d43y0w=";
+  vendorHash = "sha256-9VSjxnc804A+PTMy0ZoNWNkHAjh3/kMK0XoEfI/LgEY=";
 
   subPackages = [ "cmd/helm-docs" ];
   ldflags = [
     "-w"
     "-s"
-    "-X main.version=v${version}"
+    "-X main.version=${version}"
   ];
 
   meta = with lib; {
     homepage = "https://github.com/norwoodj/helm-docs";
-    description = "A tool for automatically generating markdown documentation for Helm charts";
+    description = "Tool for automatically generating markdown documentation for Helm charts";
+    mainProgram = "helm-docs";
     license = licenses.gpl3Only;
     maintainers = with maintainers; [ sagikazarmark ];
   };

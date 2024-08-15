@@ -12,17 +12,22 @@
 
 mkDerivation rec {
   pname = "bismuth";
-  version = "2.1.0";
+  version = "3.1.4";
 
   src = fetchFromGitHub {
     owner = "Bismuth-Forge";
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-ICpGgFvVi7tiYbMCo3JWQmbA36rdWF4NFYTWIejhxr4=";
+    sha256 = "sha256-c13OFEw6E/I8j/mqeLnuc9Chi6pc3+AgwAMPpCzh974=";
   };
 
   patches = [
-    ./0001-Avoid-usage-of-npx.patch
+    ./0001-esbuild-config.patch
+  ];
+
+  cmakeFlags = [
+    "-DUSE_TSC=OFF"
+    "-DUSE_NPM=OFF"
   ];
 
   nativeBuildInputs = [
@@ -39,7 +44,7 @@ mkDerivation rec {
   ];
 
   meta = with lib; {
-    description = "A dynamic tiling extension for KWin";
+    description = "Dynamic tiling extension for KWin";
     license = licenses.mit;
     maintainers = with maintainers; [ pasqui23 ];
     homepage = "https://bismuth-forge.github.io/bismuth/";

@@ -11,17 +11,18 @@ rustPlatform.buildRustPackage rec {
     sha256 = "17lm8jd07bi499mywg2iq669im34j4x4yhc8a3adxn12f8j0dfg7";
     # test directory has files with unicode names which causes hash mismatches
     # It is also not used by any tests or parts of build process
-    extraPostFetch = ''
+    postFetch = ''
       rm -r $out/test
     '';
   };
 
-  cargoSha256 = "0gg1w0xx36aswfm0y53nqwwz7zds25ysmklbrc8v2r91j74bhkzw";
+  cargoHash = "sha256-/E+4yJEhZbERy4vOqn0Ruv3zOcd2FA+q41qZ0Tvg4T0=";
 
   meta = with lib; {
-    description = "A tool to analyze file system usage written in Rust";
+    description = "Tool to analyze file system usage written in Rust";
     homepage = "https://github.com/nachoparker/dutree";
     license = licenses.gpl3Plus;
     maintainers = with maintainers; [ figsoda ];
+    mainProgram = "dutree";
   };
 }

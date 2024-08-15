@@ -1,10 +1,16 @@
-{ lib, stdenv, fetchurl, ncurses, glib, pkg-config, gtk2 }:
+{ lib, stdenv, fetchurl, ncurses, glib, pkg-config, gtk2, util-linux }:
 
 stdenv.mkDerivation rec {
   pname = "latencytop";
   version = "0.5";
 
-  patchPhase = "sed -i s,/usr,$out, Makefile";
+  postPatch = ''
+    sed -i s,/usr,$out, Makefile
+
+    # Fix #171609
+    substituteInPlace fsync.c --replace /bin/mount ${util-linux}/bin/mount
+  '';
+
   preInstall = "mkdir -p $out/sbin";
 
   src = fetchurl {
@@ -19,8 +25,9 @@ stdenv.mkDerivation rec {
   meta = {
     homepage = "http://latencytop.org";
     description = "Tool to show kernel reports on latencies (LATENCYTOP option)";
-    license = lib.licenses.gpl2;
-    maintainers = [ lib.maintainers.viric ];
+    mainProgram = "latencytop";
+    license = lib.licenses.gpl2Only;
+    maintainers = [ ];
     platforms = lib.platforms.linux;
   };
 }

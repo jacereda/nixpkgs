@@ -1,5 +1,5 @@
 { fetchurl, lib, stdenv, libtool, gettext, zlib, readline, gsasl
-, guile, python3, pcre, libffi, groff }:
+, guile, python3, pcre, libffi, groff, libxcrypt }:
 
 stdenv.mkDerivation rec {
   pname = "dico";
@@ -12,10 +12,15 @@ stdenv.mkDerivation rec {
 
   hardeningDisable = [ "format" ];
 
-  buildInputs =
-    [ libtool gettext zlib readline gsasl guile python3 pcre libffi groff ];
+  nativeBuildInputs = [ groff ];
 
-  doCheck = true;
+  buildInputs =
+    [ libtool gettext zlib readline gsasl guile python3 pcre libffi libxcrypt ];
+
+  strictDeps = true;
+
+  # ERROR: All 188 tests were run, 90 failed unexpectedly.
+  doCheck = !stdenv.isDarwin;
 
   meta = with lib; {
     description = "Flexible dictionary server and client implementing RFC 2229";

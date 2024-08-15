@@ -81,7 +81,7 @@ in
         default = 0;
         description = ''
           Number of threads used for mining.
-          Set to <literal>0</literal> to use all available.
+          Set to `0` to use all available.
         '';
       };
 
@@ -130,7 +130,7 @@ in
         default = -1;
         description = ''
           Limit of the upload rate in kB/s.
-          Set to <literal>-1</literal> to leave unlimited.
+          Set to `-1` to leave unlimited.
         '';
       };
 
@@ -139,7 +139,7 @@ in
         default = -1;
         description = ''
           Limit of the download rate in kB/s.
-          Set to <literal>-1</literal> to leave unlimited.
+          Set to `-1` to leave unlimited.
         '';
       };
 
@@ -148,7 +148,7 @@ in
         default = 0;
         description = ''
           Maximum number of threads used for a parallel job.
-          Set to <literal>0</literal> to leave unlimited.
+          Set to `0` to leave unlimited.
         '';
       };
 
@@ -157,7 +157,7 @@ in
         default = 0;
         description = ''
           Maximum number of blocks to sync at once.
-          Set to <literal>0</literal> for adaptive.
+          Set to `0` for adaptive.
         '';
       };
 
@@ -222,7 +222,7 @@ in
       serviceConfig = {
         User  = "monero";
         Group = "monero";
-        ExecStart = "${pkgs.monero}/bin/monerod --config-file=${configFile} --non-interactive";
+        ExecStart = "${pkgs.monero-cli}/bin/monerod --config-file=${configFile} --non-interactive";
         Restart = "always";
         SuccessExitStatus = [ 0 1 ];
       };

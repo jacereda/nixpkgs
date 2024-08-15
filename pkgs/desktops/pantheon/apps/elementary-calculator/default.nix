@@ -1,67 +1,57 @@
 { lib
 , stdenv
 , fetchFromGitHub
-, fetchpatch
 , nix-update-script
-, pkg-config
 , meson
 , ninja
+, pkg-config
 , vala
-, desktop-file-utils
-, libxml2
-, gtk3
-, python3
-, granite
-, libgee
-, libhandy
+, wrapGAppsHook4
+, elementary-gtk-theme
 , elementary-icon-theme
-, appstream
-, wrapGAppsHook
+, granite7
+, gtk4
+, libgee
 }:
 
 stdenv.mkDerivation rec {
   pname = "elementary-calculator";
-  version = "1.7.1";
-
-  repoName = "calculator";
+  version = "8.0.0";
 
   src = fetchFromGitHub {
     owner = "elementary";
-    repo = repoName;
+    repo = "calculator";
     rev = version;
-    sha256 = "sha256-GoQFWhEhUBVLYL1vsIIBMT8pKc0dK/ploiGfUtJAJQU=";
-  };
-
-  passthru = {
-    updateScript = nix-update-script {
-      attrPath = "pantheon.${pname}";
-    };
+    sha256 = "sha256-QEs83hSv9Kupj2p/OTnuPZsC8tdm+IqgpeObBVrPRas=";
   };
 
   nativeBuildInputs = [
-    appstream
-    desktop-file-utils
-    libxml2
     meson
     ninja
     pkg-config
-    python3
     vala
-    wrapGAppsHook
+    wrapGAppsHook4
   ];
 
   buildInputs = [
     elementary-icon-theme
-    granite
-    gtk3
+    granite7
+    gtk4
     libgee
-    libhandy
   ];
 
-  postPatch = ''
-    chmod +x meson/post_install.py
-    patchShebangs meson/post_install.py
+  preFixup = ''
+    gappsWrapperArgs+=(
+      # The GTK theme is hardcoded.
+      --prefix XDG_DATA_DIRS : "${elementary-gtk-theme}/share"
+      # The icon theme is hardcoded.
+      --prefix XDG_DATA_DIRS : "$XDG_ICON_DIRS"
+    )
   '';
+
+  passthru = {
+    updateScript = nix-update-script { };
+  };
 
   meta = with lib; {
     homepage = "https://github.com/elementary/calculator";

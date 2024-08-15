@@ -7,7 +7,7 @@
 
 stdenv.mkDerivation rec {
   pname = "kotlin-native";
-  version = "1.6.0";
+  version = "1.9.23";
 
   src = let
     getArch = {
@@ -20,14 +20,14 @@ stdenv.mkDerivation rec {
       "https://github.com/JetBrains/kotlin/releases/download/v${version}/kotlin-native-${arch}-${version}.tar.gz";
 
     getHash = arch: {
-      "macos-aarch64" = "sha256-HLI6E3Y8l/5vAgjT39ezBCEYhCGV3pdjx1B1fL57qO4=";
-      "macos-x86_64" = "sha256-cJV+dP9/pJHlJx55HMqd7KC/OIWEzPXKmobCZLBZ+ec=";
-      "linux-x86_64" = "sha256-C5R2hdPg1cOA9WcSZYkN22Ca3/pslEcp554tuy/HxnQ=";
+      "macos-aarch64" = "1v1ld4nxa77vjxiz4jw5h29s8i4ghfbmq0d01r15i75pr46md8r7";
+      "macos-x86_64" = "05ywdhagj3qzjaw5sd94sgjk89dysky7d7lfqpwvc8s35v77rv8f";
+      "linux-x86_64" = "1j2lpl1r7r30dgard6ia29n3qrsr98wb3qwpc80z4jh6k42qn6id";
     }.${arch};
   in
     fetchurl {
       url = getUrl version getArch;
-      hash = getHash getArch;
+      sha256 = getHash getArch;
     };
 
   nativeBuildInputs = [
@@ -39,7 +39,6 @@ stdenv.mkDerivation rec {
     runHook preInstall
 
     mkdir -p $out
-    rm bin/kotlinc
     mv * $out
 
     runHook postInstall
@@ -51,7 +50,7 @@ stdenv.mkDerivation rec {
 
   meta = {
     homepage = "https://kotlinlang.org/";
-    description = "A modern programming language that makes developers happier";
+    description = "Modern programming language that makes developers happier";
     longDescription = ''
       Kotlin/Native is a technology for compiling Kotlin code to native
       binaries, which can run without a virtual machine. It is an LLVM based

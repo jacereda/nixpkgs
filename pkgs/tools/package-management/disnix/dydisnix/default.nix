@@ -4,7 +4,7 @@
 
 stdenv.mkDerivation rec {
   version = "unstable-2020-11-02";
-  name = "dydisnix-${version}";
+  pname = "dydisnix";
 
   src = fetchFromGitHub {
     owner = "svanderburg";
@@ -21,7 +21,7 @@ stdenv.mkDerivation rec {
   '';
 
   meta = {
-    description = "A toolset enabling self-adaptive redeployment on top of Disnix";
+    description = "Toolset enabling self-adaptive redeployment on top of Disnix";
     longDescription = ''
       Dynamic Disnix is a (very experimental!) prototype extension framework for Disnix supporting dynamic (re)deployment of service-oriented systems.
     '';

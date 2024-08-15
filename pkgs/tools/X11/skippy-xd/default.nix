@@ -1,18 +1,28 @@
-{ lib
-, stdenv
-, fetchgit
-, xorgproto
-, libX11
-, libXft
-, libXcomposite
-, libXdamage
-, libXext
-, libXinerama
-, libjpeg
-, giflib
-, pkg-config
+{
+  lib,
+  stdenv,
+  fetchFromGitHub,
+  xorgproto,
+  libX11,
+  libXft,
+  libXcomposite,
+  libXdamage,
+  libXext,
+  libXinerama,
+  libjpeg,
+  giflib,
+  pkg-config,
 }:
-let
+stdenv.mkDerivation rec {
+  pname = "skippy-xd";
+  version = "0.8.0";
+  src = fetchFromGitHub {
+    owner = "felixfung";
+    repo = "skippy-xd";
+    rev = "30da57cb59ccf77f766718f7d533ddbe533ba241";
+    hash = "sha256-YBUDbI1SHsBI/fA3f3W1sPu3wXSodMbTGvAMqOz7RCM=";
+  };
+  nativeBuildInputs = [ pkg-config ];
   buildInputs = [
     xorgproto
     libX11
@@ -23,26 +33,16 @@ let
     libXinerama
     libjpeg
     giflib
-    pkg-config
   ];
-in
-stdenv.mkDerivation rec {
-  version = "unstable-2015-03-01";
-  pname = "skippy-xd";
-  inherit buildInputs;
-  src = fetchgit {
-    url = "https://github.com/richardgv/skippy-xd/";
-    rev = "397216ca67";
-    sha256 = "0zcjacilmsv69rv85j6nfr6pxy8z36w1sjz0dbjg6s5m4kga1zl8";
-  };
   makeFlags = [ "PREFIX=$(out)" ];
   preInstall = ''
     sed -e "s@/etc/xdg@$out&@" -i Makefile
   '';
-  meta = {
+  meta = with lib; {
     description = "Expose-style compositing-based standalone window switcher";
-    license = lib.licenses.gpl2Plus;
-    maintainers = [ lib.maintainers.raskin ];
-    platforms = lib.platforms.linux;
+    homepage = "https://github.com/felixfung/skippy-xd";
+    license = licenses.gpl2Plus;
+    maintainers = with maintainers; [ raskin ];
+    platforms = platforms.linux;
   };
 }

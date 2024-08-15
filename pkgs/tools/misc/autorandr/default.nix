@@ -1,21 +1,34 @@
-{ lib, stdenv
-, python3Packages
+{ lib
+, python3
 , fetchFromGitHub
 , systemd
-, xrandr }:
+, xrandr
+, installShellFiles
+, desktop-file-utils
+}:
 
-stdenv.mkDerivation rec {
+python3.pkgs.buildPythonApplication rec {
   pname = "autorandr";
-  version = "1.11";
+  version = "1.15";
+  format = "other";
 
-  buildInputs = [ python3Packages.python ];
+  src = fetchFromGitHub {
+    owner = "phillipberndt";
+    repo = "autorandr";
+    rev = "refs/tags/${version}";
+    hash = "sha256-8FMfy3GCN4z/TnfefU2DbKqV3W35I29/SuGGqeOrjNg";
+  };
 
-  # no wrapper, as autorandr --batch does os.environ.clear()
+  nativeBuildInputs = [ installShellFiles desktop-file-utils ];
+  propagatedBuildInputs = with python3.pkgs; [ packaging ];
+
   buildPhase = ''
     substituteInPlace autorandr.py \
       --replace 'os.popen("xrandr' 'os.popen("${xrandr}/bin/xrandr' \
       --replace '["xrandr"]' '["${xrandr}/bin/xrandr"]'
   '';
+
+  patches = [ ./0001-don-t-use-sys.executable.patch ];
 
   outputs = [ "out" "man" ];
 
@@ -23,7 +36,13 @@ stdenv.mkDerivation rec {
     runHook preInstall
     make install TARGETS='autorandr' PREFIX=$out
 
-    make install TARGETS='bash_completion' DESTDIR=$out/share/bash-completion/completions
+    # zsh completions exist but currently have no make target, use
+    # installShellCompletions for both
+    # see https://github.com/phillipberndt/autorandr/issues/197
+    installShellCompletion --cmd autorandr \
+        --bash contrib/bash_completion/autorandr \
+        --zsh contrib/zsh_completion/_autorandr \
+        --fish contrib/fish_completion/autorandr.fish
 
     make install TARGETS='autostart_config' PREFIX=$out DESTDIR=$out
 
@@ -45,18 +64,12 @@ stdenv.mkDerivation rec {
     runHook postInstall
   '';
 
-  src = fetchFromGitHub {
-    owner = "phillipberndt";
-    repo = "autorandr";
-    rev = version;
-    sha256 = "0rmnqk2bi6bbd2if1rll37mlzlqxzmnazfffdhcpzskxwyaj4yn5";
-  };
-
   meta = with lib; {
     homepage = "https://github.com/phillipberndt/autorandr/";
     description = "Automatically select a display configuration based on connected devices";
     license = licenses.gpl3Plus;
-    maintainers = with maintainers; [ coroa globin ];
+    maintainers = with maintainers; [ coroa ];
     platforms = platforms.unix;
+    mainProgram = "autorandr";
   };
 }

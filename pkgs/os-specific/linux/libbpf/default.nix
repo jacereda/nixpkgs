@@ -1,27 +1,44 @@
-{ lib, stdenv, fetchFromGitHub, pkg-config
-, libelf, zlib
-, fetchpatch
-}:
+{ fetchFromGitHub
+, elfutils
+, pkg-config
+, stdenv
+, zlib
+, lib
 
-with builtins;
+# for passthru.tests
+, knot-dns
+, nixosTests
+, systemd
+, tracee
+}:
 
 stdenv.mkDerivation rec {
   pname = "libbpf";
-  version = "0.5.0";
+  version = "1.4.5";
 
   src = fetchFromGitHub {
-    owner  = "libbpf";
-    repo   = "libbpf";
-    rev    = "v${version}";
-    sha256 = "sha256-L23Ba+slJW/ALj8AepwByrrHgYMY5/Jh+AoD0p4qryI=";
+    owner = "libbpf";
+    repo = "libbpf";
+    rev = "v${version}";
+    hash = "sha256-GQbx3LaGrFTwEtUsP7V/Y1Keoa4dSmDxhmSTsML+tVk=";
   };
 
   nativeBuildInputs = [ pkg-config ];
-  buildInputs = [ libelf zlib ];
+  buildInputs = [ elfutils zlib ];
 
-  sourceRoot = "source/src";
   enableParallelBuilding = true;
-  makeFlags = [ "PREFIX=$(out)" ];
+  makeFlags = [ "PREFIX=$(out)" "-C src" ];
+
+  passthru.tests = {
+    inherit knot-dns tracee;
+    bpf = nixosTests.bpf;
+    systemd = systemd.override { withLibBPF = true; };
+  };
+
+  postInstall = ''
+    # install linux's libbpf-compatible linux/btf.h
+    install -Dm444 include/uapi/linux/*.h -t $out/include/linux
+  '';
 
   # FIXME: Multi-output requires some fixes to the way the pkg-config file is
   # constructed (it gets put in $out instead of $dev for some reason, with
@@ -30,10 +47,10 @@ stdenv.mkDerivation rec {
   # outputs = [ "out" "dev" ];
 
   meta = with lib; {
-    description = "Upstream mirror of libbpf";
-    homepage    = "https://github.com/libbpf/libbpf";
-    license     = with licenses; [ lgpl21 /* or */ bsd2 ];
-    maintainers = with maintainers; [ thoughtpolice vcunat ];
-    platforms   = platforms.linux;
+    description = "Library for loading eBPF programs and reading and manipulating eBPF objects from user-space";
+    homepage = "https://github.com/libbpf/libbpf";
+    license = with licenses; [ lgpl21 /* or */ bsd2 ];
+    maintainers = with maintainers; [ thoughtpolice vcunat saschagrunert martinetd ];
+    platforms = platforms.linux;
   };
 }

@@ -1,30 +1,29 @@
 { lib, stdenv, fetchurl, fetchFromGitHub, ncurses, texinfo, writeScript
-, common-updater-scripts, git, nix, nixfmt, coreutils, gnused, nixosTests
-, gettext ? null, enableNls ? true, enableTiny ? false }:
+, common-updater-scripts, git, nix, nixfmt-classic, coreutils, gnused
+, callPackage, file ? null, gettext ? null, enableNls ? true, enableTiny ? false
+}:
 
 assert enableNls -> (gettext != null);
-
-with lib;
 
 let
   nixSyntaxHighlight = fetchFromGitHub {
     owner = "seitz";
     repo = "nanonix";
     rev = "bf8d898efaa10dce3f7972ff765b58c353b4b4ab";
-    sha256 = "0773s5iz8aw9npgyasb0r2ybp6gvy2s9sq51az8w7h52bzn5blnn";
+    hash = "sha256-1tJV7F+iwMPRV6FgnbTw+5m7vMhgaeXftYkr9GPR4xw=";
   };
 
 in stdenv.mkDerivation rec {
   pname = "nano";
-  version = "5.9";
+  version = "8.1";
 
   src = fetchurl {
     url = "mirror://gnu/nano/${pname}-${version}.tar.xz";
-    sha256 = "dX24zaS7KHNZnkd4OvRj47VHpiewyrsw6nv3H7TCSTc=";
+    hash = "sha256-k7Pj6RVa44n+nM+ct6s4DqwpYCg1ujB3si9k0PDL6Ms=";
   };
 
-  nativeBuildInputs = [ texinfo ] ++ optional enableNls gettext;
-  buildInputs = [ ncurses ];
+  nativeBuildInputs = [ texinfo ] ++ lib.optional enableNls gettext;
+  buildInputs = [ ncurses ] ++ lib.optional (!enableTiny) file;
 
   outputs = [ "out" "info" ];
 
@@ -34,14 +33,16 @@ in stdenv.mkDerivation rec {
     (lib.enableFeature enableTiny "tiny")
   ];
 
-  postInstall = ''
+  postInstall = if enableTiny then
+    null
+  else ''
     cp ${nixSyntaxHighlight}/nix.nanorc $out/share/nano/
   '';
 
   enableParallelBuilding = true;
 
   passthru = {
-    tests = { inherit (nixosTests) nano; };
+    tests = { expect = callPackage ./test-with-expect.nix { }; };
 
     updateScript = writeScript "update.sh" ''
       #!${stdenv.shell}
@@ -50,7 +51,7 @@ in stdenv.mkDerivation rec {
         lib.makeBinPath [
           common-updater-scripts
           git
-          nixfmt
+          nixfmt-classic
           nix
           coreutils
           gnused
@@ -71,11 +72,12 @@ in stdenv.mkDerivation rec {
     '';
   };
 
-  meta = {
+  meta = with lib; {
     homepage = "https://www.nano-editor.org/";
-    description = "A small, user-friendly console text editor";
+    description = "Small, user-friendly console text editor";
     license = licenses.gpl3Plus;
     maintainers = with maintainers; [ joachifm nequissimus ];
     platforms = platforms.all;
+    mainProgram = "nano";
   };
 }

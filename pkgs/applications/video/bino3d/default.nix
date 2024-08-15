@@ -1,25 +1,49 @@
-{ mkDerivation, lib, fetchurl, pkg-config, ffmpeg, glew, libass, openal, qtbase }:
+{
+  lib,
+  stdenv,
+  fetchgit,
+  cmake,
+  ninja,
+  pkg-config,
+  pandoc,
+  wrapQtAppsHook,
+  qtbase,
+  qtmultimedia,
+  qttools,
+}:
 
-mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "bino";
-  version = "1.6.7";
+  version = "2.2";
 
-  src = fetchurl {
-    url = "https://bino3d.org/releases/${pname}-${version}.tar.xz";
-    sha256 = "04yl7ibnhajlli4a5x77az8jxbzw6b2wjay8aa6px551nmiszn9k";
+  src = fetchgit {
+    url = "https://git.marlam.de/git/bino.git";
+    rev = "bino-${finalAttrs.version}";
+    hash = "sha256-t7bkpYOswGEjUg+k2gjUkWwZJjj44KIVrEQs5P4DoSI=";
   };
 
-  nativeBuildInputs = [ pkg-config ];
+  nativeBuildInputs = [
+    cmake
+    ninja
+    pkg-config
+    pandoc
+    wrapQtAppsHook
+  ];
 
-  buildInputs = [ ffmpeg glew libass openal qtbase ];
+  buildInputs = [
+    qtbase
+    qtmultimedia
+    qttools
+    # The optional QVR dependency is not currently packaged.
+  ];
 
-  enableParallelBuilding = true;
-
-  meta = with lib; {
-    description = "Stereoscopic 3D and multi-display video player";
+  meta = {
+    description = "Video player with a focus on 3D and Virtual Reality";
     homepage = "https://bino3d.org/";
-    license = licenses.gpl3Plus;
-    maintainers = with maintainers; [ orivej ];
-    platforms = platforms.linux;
+    sourceProvenance = [ lib.sourceTypes.fromSource ];
+    license = lib.licenses.gpl3Plus;
+    maintainers = [ lib.maintainers.orivej ];
+    platforms = lib.platforms.unix;
+    mainProgram = "bino";
   };
-}
+})

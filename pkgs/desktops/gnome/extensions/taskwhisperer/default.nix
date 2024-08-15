@@ -1,14 +1,14 @@
-{ lib, stdenv, substituteAll, fetchFromGitHub, taskwarrior, gettext, runtimeShell }:
+{ lib, stdenv, substituteAll, fetchFromGitHub, taskwarrior2, gettext, runtimeShell }:
 
 stdenv.mkDerivation rec {
   pname = "gnome-shell-extension-taskwhisperer";
-  version = "16";
+  version = "20";
 
   src = fetchFromGitHub {
     owner = "cinatic";
     repo = "taskwhisperer";
     rev = "v${version}";
-    sha256 = "05w2dfpr5vrydb7ij4nd2gb7c31nxix3j48rb798r4jzl1rakyah";
+    sha256 = "sha256-UVBLFXsbOPRXC4P5laZ82Rs08yXnNnzJ+pp5fbx6Zqc=";
   };
 
   nativeBuildInputs = [
@@ -16,7 +16,7 @@ stdenv.mkDerivation rec {
   ];
 
   buildInputs = [
-    taskwarrior
+    taskwarrior2
   ];
 
   passthru = {
@@ -31,7 +31,7 @@ stdenv.mkDerivation rec {
   patches = [
     (substituteAll {
       src = ./fix-paths.patch;
-      task = "${taskwarrior}/bin/task";
+      task = "${taskwarrior2}/bin/task";
       shell = runtimeShell;
     })
   ];

@@ -1,44 +1,87 @@
-{ lib
-, buildPythonPackage
-, pythonOlder
-, fetchFromGitHub
-, pytestCheckHook
-, hypothesis
-, pandas
-, numpy
+{
+  lib,
+  stdenv,
+  buildPythonPackage,
+  pythonOlder,
+  fetchFromGitHub,
+  cmake,
+  cython,
+  ninja,
+  scikit-build,
+  setuptools,
+  numpy,
+  hypothesis,
+  pandas,
+  pytestCheckHook,
+  rapidfuzz-cpp,
+  taskflow,
 }:
 
 buildPythonPackage rec {
   pname = "rapidfuzz";
-  version = "1.8.3";
+  version = "3.9.6";
+  pyproject = true;
 
-  disabled = pythonOlder "3.5";
+  disabled = pythonOlder "3.8";
 
   src = fetchFromGitHub {
     owner = "maxbachmann";
     repo = "RapidFuzz";
-    rev = "v${version}";
-    fetchSubmodules = true;
-    sha256 = "sha256-DjMUI5JBomv0f2AC1Nvb3DeqWn65AvZJWhWus4AZk7w=";
+    rev = "refs/tags/v${version}";
+    hash = "sha256-vO63Zkc2ltgfpAq81qRP5MjQ08GTkJhnfqwLIxP5eEI=";
   };
 
-  propagatedBuildInputs = [
-    numpy
+  postPatch = ''
+    substituteInPlace pyproject.toml \
+      --replace-fail "scikit-build~=0.18.0" "scikit-build" \
+      --replace-fail "Cython >=3.0.11, <3.1.0" "Cython"
+  '';
+
+  build-system = [
+    cmake
+    cython
+    ninja
+    scikit-build
+    setuptools
   ];
 
-  checkInputs = [
-    pytestCheckHook
+  dontUseCmakeConfigure = true;
+
+  buildInputs = [
+    rapidfuzz-cpp
+    taskflow
+  ];
+
+  preBuild =
+    ''
+      export RAPIDFUZZ_BUILD_EXTENSION=1
+    ''
+    + lib.optionalString (stdenv.isDarwin && stdenv.isx86_64) ''
+      export CMAKE_ARGS="-DCMAKE_CXX_COMPILER_AR=$AR -DCMAKE_CXX_COMPILER_RANLIB=$RANLIB"
+    '';
+
+  passthru.optional-dependencies = {
+    full = [ numpy ];
+  };
+
+  preCheck = ''
+    export RAPIDFUZZ_IMPLEMENTATION=cpp
+  '';
+
+  nativeCheckInputs = [
     hypothesis
     pandas
+    pytestCheckHook
   ];
 
-  disabledTests = [
-    "test_levenshtein_block" # hypothesis data generation too slow
+  disabledTests = lib.optionals (stdenv.isDarwin && stdenv.isx86_64) [
+    # segfaults
+    "test_cdist"
   ];
 
   pythonImportsCheck = [
+    "rapidfuzz.distance"
     "rapidfuzz.fuzz"
-    "rapidfuzz.string_metric"
     "rapidfuzz.process"
     "rapidfuzz.utils"
   ];
@@ -46,6 +89,7 @@ buildPythonPackage rec {
   meta = with lib; {
     description = "Rapid fuzzy string matching";
     homepage = "https://github.com/maxbachmann/RapidFuzz";
+    changelog = "https://github.com/maxbachmann/RapidFuzz/blob/${src.rev}/CHANGELOG.rst";
     license = licenses.mit;
     maintainers = with maintainers; [ dotlambda ];
   };

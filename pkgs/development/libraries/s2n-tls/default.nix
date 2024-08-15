@@ -1,39 +1,34 @@
-{ lib, stdenv
+{ lib
+, stdenv
 , fetchFromGitHub
-, fetchpatch
 , cmake
 , openssl
+, nix
 }:
 
 stdenv.mkDerivation rec {
   pname = "s2n-tls";
-  version = "1.0.17";
+  version = "1.4.17";
 
   src = fetchFromGitHub {
     owner = "aws";
-    repo = pname;
+    repo = "s2n-tls";
     rev = "v${version}";
-    sha256 = "sha256-6XqBpNURU8fzGkTt4jsijgMiOkzMebmLmPAq8yQsTg4=";
+    hash = "sha256-Go6p+6VidsoN7IMfBp7BMGnIcttaEA0q3CRAKDO5b+c=";
   };
-
-  patches = [
-    # Fix FindLibCrypto paths (https://github.com/aws/s2n-tls/pull/3067)
-    (fetchpatch {
-      url = "https://github.com/aws/s2n-tls/commit/bda649524402be4018c44bff07f6c64502a351ec.patch";
-      sha256 = "02jmxsrd506vhjzlrgh1p2z1f1sn4v8klks25zisiykyqkyaczkv";
-    })
-  ];
 
   nativeBuildInputs = [ cmake ];
 
-  outputs = [ "out" "dev"];
+  outputs = [ "out" "dev" ];
 
   buildInputs = [ openssl ]; # s2n-config has find_dependency(LibCrypto).
 
   cmakeFlags = [
     "-DBUILD_SHARED_LIBS=ON"
-    "-DCMAKE_SKIP_BUILD_RPATH=OFF"
     "-DUNSAFE_TREAT_WARNINGS_AS_ERRORS=OFF" # disable -Werror
+  ] ++ lib.optionals stdenv.hostPlatform.isMips64 [
+    # See https://github.com/aws/s2n-tls/issues/1592 and https://github.com/aws/s2n-tls/pull/1609
+    "-DS2N_NO_PQ=ON"
   ];
 
   propagatedBuildInputs = [ openssl ]; # s2n-config has find_dependency(LibCrypto).
@@ -45,6 +40,10 @@ stdenv.mkDerivation rec {
         --replace 'INTERFACE_INCLUDE_DIRECTORIES "''${_IMPORT_PREFIX}/include"' 'INTERFACE_INCLUDE_DIRECTORIES ""'
     done
   '';
+
+  passthru.tests = {
+    inherit nix;
+  };
 
   meta = with lib; {
     description = "C99 implementation of the TLS/SSL protocols";

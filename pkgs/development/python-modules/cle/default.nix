@@ -1,44 +1,54 @@
-{ lib
-, buildPythonPackage
-, cffi
-, fetchFromGitHub
-, minidump
-, nose
-, pefile
-, pyelftools
-, pytestCheckHook
-, pythonOlder
-, pyvex
-, pyxbe
-, sortedcontainers
+{
+  lib,
+  archinfo,
+  buildPythonPackage,
+  cart,
+  cffi,
+  fetchFromGitHub,
+  minidump,
+  pefile,
+  pyelftools,
+  pytestCheckHook,
+  pythonOlder,
+  pyvex,
+  pyxbe,
+  setuptools,
+  sortedcontainers,
 }:
 
 let
   # The binaries are following the argr projects release cycle
-  version = "9.0.10651";
+  version = "9.2.114";
 
   # Binary files from https://github.com/angr/binaries (only used for testing and only here)
   binaries = fetchFromGitHub {
     owner = "angr";
     repo = "binaries";
-    rev = "v${version}";
-    sha256 = "1qlrxfj1n34xvwkac6mbcc7zmixxbp34fj7lkf0fvp7zcz1rpla1";
+    rev = "refs/tags/v${version}";
+    hash = "sha256-M8agIZ4Gk67wKUfKI/13sYAYUta0sWk7cVkM5ayb0V0=";
   };
-
 in
 buildPythonPackage rec {
   pname = "cle";
   inherit version;
-  disabled = pythonOlder "3.6";
+  pyproject = true;
+
+  disabled = pythonOlder "3.11";
 
   src = fetchFromGitHub {
     owner = "angr";
-    repo = pname;
-    rev = "v${version}";
-    sha256 = "sha256-XhU0SS0zWPtI4t49oboc5/Fr34dR6oqm8hlI4f4q8Bk=";
+    repo = "cle";
+    rev = "refs/tags/v${version}";
+    hash = "sha256-PGAuLW0yTuKrAo+xxlLQnnxugiZAhXQmC89Ve2OY8aY=";
   };
 
-  propagatedBuildInputs = [
+  build-system = [ setuptools ];
+
+  pythonRelaxDeps = [ "pyvex" ];
+
+  dependencies = [
+    archinfo
+    cart
     cffi
     minidump
     pefile
@@ -48,8 +58,7 @@ buildPythonPackage rec {
     sortedcontainers
   ];
 
-  checkInputs = [
-    nose
+  nativeCheckInputs = [
     pytestCheckHook
   ];
 
@@ -64,15 +73,16 @@ buildPythonPackage rec {
     "test_ppc_rel24_relocation"
     "test_ppc_addr16_ha_relocation"
     "test_ppc_addr16_lo_relocation"
-    # Binary not found, seems to be missing in the current binaries release
     "test_plt_full_relro"
     # Test fails
     "test_tls_pe_incorrect_tls_data_start"
+    "test_x86"
+    "test_x86_64"
+    # The required parts is not present on Nix
+    "test_remote_file_map"
   ];
 
-  pythonImportsCheck = [
-    "cle"
-  ];
+  pythonImportsCheck = [ "cle" ];
 
   meta = with lib; {
     description = "Python loader for many binary formats";

@@ -1,23 +1,21 @@
-{ lib, fetchurl, buildDunePackage, stdlib-shims, ounit }:
+{ lib, fetchurl, buildDunePackage, ocaml, stdlib-shims, ounit2 }:
 
 buildDunePackage rec {
   pname = "sha";
-  version = "1.14";
+  version = "1.15.4";
 
   src = fetchurl {
-    url = "https://github.com/djs55/ocaml-${pname}/releases/download/v${version}/${pname}-v${version}.tbz";
-    sha256 = "114vydrfdp7fayigvgk3ckiby0kh4n49c1j53v8k40gk6nzm3l19";
+    url = "https://github.com/djs55/ocaml-${pname}/releases/download/v${version}/${pname}-${version}.tbz";
+    hash = "sha256-beWxITmxmZzp30zHiloxiGwqVHydRIvyhT+LU7zx8bE=";
   };
-
-  useDune2 = true;
 
   propagatedBuildInputs = [
     stdlib-shims
   ];
 
-  doCheck = true;
+  doCheck = lib.versionAtLeast ocaml.version "4.08";
   checkInputs = [
-    ounit
+    ounit2
   ];
 
   meta = with lib; {

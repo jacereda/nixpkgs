@@ -1,28 +1,18 @@
-{ lib, stdenv, fetchurl, autoreconfHook }:
-
-with lib;
+{ lib, stdenv, fetchFromGitHub, autoreconfHook }:
 
 stdenv.mkDerivation rec {
   pname = "libspf2";
-  version = "1.2.10";
+  version = "2.2.13";
 
-  src = fetchurl {
-    url = "https://www.libspf2.org/spf/libspf2-${version}.tar.gz";
-    sha256 = "1j91p0qiipzf89qxq4m1wqhdf01hpn1h5xj4djbs51z23bl3s7nr";
+  src = fetchFromGitHub {
+    owner = "helsinki-systems";
+    repo = "libspf2";
+    rev = "v${version}";
+    hash = "sha256-tkCHP3B1sBb0+scHBjX5lCvaeSrZryfaGKye02LFlYs=";
   };
 
-  patches = [
-    (fetchurl {
-      name = "0001-gcc-variadic-macros.patch";
-      url = "https://github.com/shevek/libspf2/commit/5852828582f556e73751076ad092f72acf7fc8b6.patch";
-      sha256 = "1v6ashqzpr0xidxq0vpkjd8wd66cj8df01kyzj678ljzcrax35hk";
-    })
-    (fetchurl {
-      name = "0002-CVE-2021-20314.patch";
-      url = "https://github.com/shevek/libspf2/commit/c37b7c13c30e225183899364b9f2efdfa85552ef.patch";
-      sha256 = "190nnh7mlz6328829ba6jajad16s3md8kraspn81qnvhwh0nkiak";
-    })
-  ];
+  nativeBuildInputs = [ autoreconfHook ];
+  strictDeps = true;
 
   postPatch = ''
     # disable static bins compilation
@@ -33,16 +23,14 @@ stdenv.mkDerivation rec {
       -e '/bin_PROGRAMS/s/spf_example_static//' src/spf_example/Makefile.am
   '';
 
-  # autoreconf necessary because we modified automake files
-  nativeBuildInputs = [ autoreconfHook ];
-
   doCheck = true;
 
-  meta = {
-    description = "Implementation of the Sender Policy Framework for SMTP authorization";
-    homepage = "https://www.libspf2.org";
+  meta = with lib; {
+    description = "Implementation of the Sender Policy Framework for SMTP " +
+                  "authorization (Helsinki Systems fork)";
+    homepage = "https://github.com/helsinki-systems/libspf2";
     license = with licenses; [ lgpl21Plus bsd2 ];
-    maintainers = with maintainers; [ pacien ];
+    maintainers = with maintainers; [ pacien ] ++ teams.helsinki-systems.members;
     platforms = platforms.all;
   };
 }

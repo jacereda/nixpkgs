@@ -1,34 +1,53 @@
-{ lib, fetchFromGitHub, rustPlatform, tree-sitter }:
+{ lib
+, fetchpatch
+, rustPlatform
+, fetchFromGitHub
+, testers
+, difftastic
+}:
 
+let
+  mimallocPatch = fetchpatch {
+    # fixes compilation error on x86_64-darwin
+    # remove after update to libmimalloc-sys >= 0.1.29
+    # (fixed in mimalloc >= 1.7.6 which is included with libmimalloc-sys >= 0.1.29)
+    url = "https://github.com/microsoft/mimalloc/commit/40e0507a5959ee218f308d33aec212c3ebeef3bb.patch";
+    hash = "sha256-DK0LqsVXXiEVQSQCxZ5jyZMg0UJJx9a/WxzCroYSHZc=";
+  };
+in
 rustPlatform.buildRustPackage rec {
   pname = "difftastic";
-  version = "0.11.0";
+  version = "0.60.0";
 
   src = fetchFromGitHub {
     owner = "wilfred";
     repo = pname;
     rev = version;
-    sha256 = "sha256-Arg1n5WFCNGHZay56BvLrPDAvvUKVurVNEKgTzHgIzI=";
+    hash = "sha256-eIHwmSCAY9Fn9Du7DJxZyGqJ3SUEyZ6VEtwxphGnSHw=";
   };
 
-  cargoSha256 = "sha256-ArIyIAxVgGmI+MdkVBo0xihDdw3RlRiPLJOhPcC1KLw=";
+  cargoLock = {
+    lockFile = ./Cargo.lock;
+  };
+
+  # skip flaky tests
+  checkFlags = [
+    "--skip=options::tests::test_detect_display_width"
+  ];
 
   postPatch = ''
-    pushd vendor
-    for grammar in */; do
-      if [ -d "${tree-sitter.grammars}/$grammar" ]; then
-        rm -r "$grammar"
-        ln -s "${tree-sitter.grammars}/$grammar"
-      fi
-    done
-    popd
+    patch -d $cargoDepsCopy/libmimalloc-sys-0.1.24/c_src/mimalloc \
+      -p1 < ${mimallocPatch}
   '';
 
+  passthru.tests.version = testers.testVersion { package = difftastic; };
+
   meta = with lib; {
-    description = "A syntax-aware diff";
+    description = "Syntax-aware diff";
     homepage = "https://github.com/Wilfred/difftastic";
-    changelog = "https://github.com/Wilfred/difftastic/raw/${version}/CHANGELOG.md";
+    changelog = "https://github.com/Wilfred/difftastic/blob/${version}/CHANGELOG.md";
     license = licenses.mit;
-    maintainers = with maintainers; [ ethancedwards8 figsoda ];
+    maintainers = with maintainers; [ ethancedwards8 figsoda matthiasbeyer ];
+    mainProgram = "difft";
   };
 }

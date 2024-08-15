@@ -5,13 +5,13 @@ mkDiscoursePlugin {
   src = fetchFromGitHub {
     owner = "discourse";
     repo = "discourse-checklist";
-    rev = "48855d81b7c3a3274f7f78a64312125c344d92d1";
-    sha256 = "0139v5wpyglfzvd07ka6gic1ssfysisgfiq09dsbjy519gnc9kjw";
+    rev = "6fcf9fed5c3ae3baf9ddd1cca9cef4dc089996c1";
+    sha256 = "sha256-RIuoqZo7dW1DXbfbWhyyhCOGe4R5sLerzFW2TT0zO6U=";
   };
   meta = with lib; {
     homepage = "https://github.com/discourse/discourse-checklist";
     maintainers = with maintainers; [ ryantm ];
     license = licenses.gpl2Only;
-    description = "A simple checklist rendering plugin for discourse ";
+    description = "Simple checklist rendering plugin for discourse";
   };
 }

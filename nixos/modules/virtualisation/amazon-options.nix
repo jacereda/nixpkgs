@@ -1,6 +1,6 @@
 { config, lib, pkgs, ... }:
 let
-  inherit (lib) types;
+  inherit (lib) literalExpression types;
 in {
   options = {
     ec2 = {
@@ -28,32 +28,32 @@ in {
             options = {
               mount = lib.mkOption {
                 description = "Where to mount this dataset.";
-                type = types.nullOr types.string;
+                type = types.nullOr types.str;
                 default = null;
               };
 
               properties = lib.mkOption {
                 description = "Properties to set on this dataset.";
-                type = types.attrsOf types.string;
+                type = types.attrsOf types.str;
                 default = {};
               };
             };
           });
         };
       };
-      hvm = lib.mkOption {
-        default = lib.versionAtLeast config.system.stateVersion "17.03";
-        internal = true;
-        description = ''
-          Whether the EC2 instance is a HVM instance.
-        '';
-      };
       efi = lib.mkOption {
         default = pkgs.stdenv.hostPlatform.isAarch64;
+        defaultText = literalExpression "pkgs.stdenv.hostPlatform.isAarch64";
         internal = true;
         description = ''
           Whether the EC2 instance is using EFI.
         '';
+      };
+      hvm = lib.mkOption {
+        description = "Unused legacy option. While support for non-hvm has been dropped, we keep this option around so that NixOps remains compatible with a somewhat recent `nixpkgs` and machines with an old `stateVersion`.";
+        internal = true;
+        default = true;
+        readOnly = true;
       };
     };
   };

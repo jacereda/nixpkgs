@@ -1,17 +1,23 @@
-{ stdenv, lib, fetchFromGitHub, installShellFiles }:
+{ lib
+, stdenv
+, fetchFromGitHub
+, installShellFiles
+}:
 
 stdenv.mkDerivation rec {
   pname = "cpufetch";
-  version = "1.00";
+  version = "1.05";
 
   src = fetchFromGitHub {
-    owner  = "Dr-Noob";
-    repo   = "cpufetch";
-    rev    = "v${version}";
-    sha256 = "sha256-2Iar7RwL3T4DrFbqKJFys/R+VENRg2lmYFkslEaZeVE=";
+    owner = "Dr-Noob";
+    repo = "cpufetch";
+    rev = "v${version}";
+    sha256 = "sha256-8g4nFV3PgYRagzUG7S2ifpuSaCCZ5HlwsjkQ+wdk4Yw=";
   };
 
-  nativeBuildInputs = [ installShellFiles ];
+  nativeBuildInputs = [
+    installShellFiles
+  ];
 
   installPhase = ''
     runHook preInstall
@@ -26,9 +32,10 @@ stdenv.mkDerivation rec {
 
   meta = with lib; {
     description = "Simplistic yet fancy CPU architecture fetching tool";
-    license = licenses.mit;
+    license = licenses.gpl2Only;
     homepage = "https://github.com/Dr-Noob/cpufetch";
     changelog = "https://github.com/Dr-Noob/cpufetch/releases/tag/v${version}";
     maintainers = with maintainers; [ devhell ];
+    mainProgram = "cpufetch";
   };
 }

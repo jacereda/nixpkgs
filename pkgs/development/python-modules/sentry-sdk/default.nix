@@ -1,67 +1,204 @@
-{ aiohttp
-, blinker
-, botocore
-, bottle
+{ lib
 , buildPythonPackage
-, celery
+, fetchFromGitHub
+
+# build-system
+, setuptools
+
+# dependencies
 , certifi
+, urllib3
+
+# optional-dependencies
+, aiohttp
+, anthropic
+, asyncpg
+, apache-beam
+, bottle
+, celery
+, celery-redbeat
 , chalice
+, clickhouse-driver
 , django
 , falcon
-, fetchPypi
+, fastapi
 , flask
-, iana-etc
-, isPy3k
-, libredirect
-, pyramid
+, blinker
+, markupsafe
+, grpcio
+, protobuf
+, httpx
+, huey
+, huggingface-hub
+, langchain
+, loguru
+, openai
+, tiktoken
+, pure-eval
+, executing
+, asttokens
+, pymongo
+, pyspark
+, quart
 , rq
 , sanic
 , sqlalchemy
-, lib
+, starlette
 , tornado
-, urllib3
-, trytond
-, werkzeug
-, executing
-, pure-eval
-, asttokens
+
+# checks
+, ipdb
+, jsonschema
+, pip
+, pyrsistent
+, pysocks
+, pytest-asyncio
+, pytestCheckHook
+, pytest-forked
+, pytest-localserver
+, pytest-xdist
+, pytest-watch
+, responses
 }:
 
 buildPythonPackage rec {
   pname = "sentry-sdk";
-  version = "1.4.3";
+  version = "2.13.0";
+  pyproject = true;
 
-  src = fetchPypi {
-    inherit pname version;
-    sha256 = "b9844751e40710e84a457c5bc29b21c383ccb2b63d76eeaad72f7f1c808c8828";
+  src = fetchFromGitHub {
+    owner = "getsentry";
+    repo = "sentry-python";
+    rev = "refs/tags/${version}";
+    hash = "sha256-TZzu9cR5HrgmsPRkuP1LqEBA7uosbBzLGT63LLj2yyc=";
   };
 
-  checkInputs = [ blinker botocore chalice django flask tornado bottle rq falcon sqlalchemy werkzeug trytond
-    executing pure-eval asttokens ]
-  ++ lib.optionals isPy3k [ celery pyramid sanic aiohttp ];
-
-  propagatedBuildInputs = [ urllib3 certifi ];
-
-
-  # The Sentry tests need access to `/etc/protocols` (the tests call
-  # `socket.getprotobyname('tcp')`, which reads from this file). Normally
-  # this path isn't available in the sandbox. Therefore, use libredirect
-  # to make on eavailable from `iana-etc`. This is a test-only operation.
-  preCheck = lib.optionalString doCheck ''
-    export NIX_REDIRECTS=/etc/protocols=${iana-etc}/etc/protocols
-    export LD_PRELOAD=${libredirect}/lib/libredirect.so
+  postPatch = ''
+    sed -i "/addopts =/d" pytest.ini
   '';
 
-  postCheck = "unset NIX_REDIRECTS LD_PRELOAD";
+  build-system = [
+    setuptools
+  ];
 
-  # no tests
-  doCheck = false;
+  dependencies = [
+    certifi
+    urllib3
+  ];
+
+  optional-dependencies = {
+    aiohttp = [ aiohttp ];
+    anthropic = [ anthropic ];
+    # TODO: arq
+    asyncpg = [ asyncpg ];
+    beam = [ apache-beam ];
+    bottle = [ bottle ];
+    celery = [ celery ];
+    celery-redbeat = [ celery-redbeat ];
+    chalice = [ chalice ];
+    clickhouse-driver = [ clickhouse-driver ];
+    django = [ django ];
+    falcon = [ falcon ];
+    fastapi = [ fastapi ];
+    flask = [
+      blinker
+      flask
+      markupsafe
+    ];
+    grpcio = [
+      grpcio
+      protobuf
+    ];
+    httpx = [ httpx ];
+    huey = [ huey ];
+    huggingface-hub = [ huggingface-hub ];
+    langchain = [ langchain ];
+    loguru = [ loguru ];
+    openai = [
+      openai
+      tiktoken
+    ];
+    # TODO: opentelemetry
+    # TODO: opentelemetry-experimental
+    pure_eval = [
+      asttokens
+      executing
+      pure-eval
+    ];
+    pymongo = [ pymongo ];
+    pyspark = [ pyspark ];
+    quart = [
+      blinker
+      quart
+    ];
+    rq = [ rq ];
+    sanic = [ sanic ];
+    sqlalchemy = [ sqlalchemy ];
+    starlette = [ starlette ];
+    # TODO: starlite
+    tornado = [ tornado ];
+  };
+
+  nativeCheckInputs = [
+    ipdb
+    pyrsistent
+    responses
+    pysocks
+    setuptools
+    executing
+    jsonschema
+    pip
+    pytest-asyncio
+    pytest-forked
+    pytest-localserver
+    pytest-xdist
+    pytest-watch
+    pytestCheckHook
+  ];
+
+  __darwinAllowLocalNetworking = true;
+
+  disabledTests = [
+    # depends on git revision
+    "test_default_release"
+    # tries to pip install old setuptools version
+    "test_error_has_existing_trace_context_performance_disabled"
+    "test_error_has_existing_trace_context_performance_enabled"
+    "test_error_has_new_trace_context_performance_disabled"
+    "test_error_has_new_trace_context_performance_enabled"
+    "test_traces_sampler_gets_correct_values_in_sampling_context"
+    "test_performance_error"
+    "test_performance_no_error"
+    "test_timeout_error"
+    "test_handled_exception"
+    "test_unhandled_exception"
+    # network access
+    "test_create_connection_trace"
+    "test_crumb_capture"
+    "test_getaddrinfo_trace"
+    "test_omit_url_data_if_parsing_fails"
+    "test_span_origin"
+    # AttributeError: type object 'ABCMeta' has no attribute 'setup_once'
+    "test_ensure_integration_enabled_async_no_original_function_enabled"
+    "test_ensure_integration_enabled_no_original_function_enabled"
+    # sess = envelopes[1]
+    # IndexError: list index out of range
+    "test_session_mode_defaults_to_request_mode_in_wsgi_handler"
+    # assert count_item_types["sessions"] == 1
+    # assert 0 == 1
+    "test_auto_session_tracking_with_aggregates"
+    # timing sensitive
+    "test_profile_captured"
+    "test_continuous_profiler_manual_start_and_stop"
+  ];
+
   pythonImportsCheck = [ "sentry_sdk" ];
 
   meta = with lib; {
+    description = "Official Python SDK for Sentry.io";
     homepage = "https://github.com/getsentry/sentry-python";
-    description = "New Python SDK for Sentry.io";
-    license = licenses.bsd2;
-    maintainers = with maintainers; [ gebner ];
+    changelog = "https://github.com/getsentry/sentry-python/blob/${src.rev}/CHANGELOG.md";
+    license = licenses.mit;
+    maintainers = with maintainers; [ hexa ];
   };
 }

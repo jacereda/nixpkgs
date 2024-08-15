@@ -1,17 +1,28 @@
-{ lib, buildPythonApplication, fetchFromGitHub, bash, cmake, flex
-, libclang, llvm, unifdef
-, pebble, psutil, pytestCheckHook, pytest-flake8
+{ lib
+, buildPythonApplication
+, fetchFromGitHub
+, cmake
+, colordiff
+, flex
+, libclang
+, llvm
+, unifdef
+, chardet
+, pebble
+, psutil
+, pytestCheckHook
 }:
 
 buildPythonApplication rec {
   pname = "cvise";
-  version = "2.3.0";
+  version = "2.10.0";
+  format = "other";
 
   src = fetchFromGitHub {
     owner = "marxin";
     repo = "cvise";
-    rev = "v${version}";
-    sha256 = "1x2i8nv0nncgvr07znhh2slngbrg8qcsz2zqx76bcyq9hssn6yal";
+    rev = "refs/tags/v${version}";
+    hash = "sha256-0gk4O1q90eH1FMhj4ncNVqX/MfVyaU0nckh1xny2wlM=";
   };
 
   patches = [
@@ -19,28 +30,45 @@ buildPythonApplication rec {
     ./unifdef.patch
   ];
 
-  nativeBuildInputs = [ cmake flex llvm.dev ];
-  buildInputs = [ bash libclang llvm llvm.dev unifdef ];
-  propagatedBuildInputs = [ pebble psutil ];
-  checkInputs = [ pytestCheckHook pytest-flake8 unifdef ];
-
-  # 'cvise --command=...' generates a script with hardcoded shebang.
   postPatch = ''
-    substituteInPlace cvise.py \
-      --replace "#!/bin/bash" "#!${bash}/bin/bash"
+    # Avoid blanket -Werror to evade build failures on less
+    # tested compilers.
+    substituteInPlace CMakeLists.txt \
+      --replace " -Werror " " "
+
+    substituteInPlace cvise/utils/testing.py \
+      --replace "'colordiff --version'" "'${colordiff}/bin/colordiff --version'" \
+      --replace "'colordiff'" "'${colordiff}/bin/colordiff'"
   '';
 
-  preCheck = ''
-    patchShebangs cvise.py
-  '';
+  nativeBuildInputs = [
+    cmake
+    flex
+    llvm.dev
+  ];
+
+  buildInputs = [
+    libclang
+    llvm
+    llvm.dev
+    unifdef
+  ];
+
+  propagatedBuildInputs = [
+    chardet
+    pebble
+    psutil
+  ];
+
+  nativeCheckInputs = [
+    pytestCheckHook
+    unifdef
+  ];
+
   disabledTests = [
     # Needs gcc, fails when run noninteractively (without tty).
     "test_simple_reduction"
   ];
-
-  dontUsePipInstall = true;
-  dontUseSetuptoolsBuild = true;
-  dontUseSetuptoolsCheck = true;
 
   meta = with lib; {
     homepage = "https://github.com/marxin/cvise";

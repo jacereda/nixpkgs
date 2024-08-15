@@ -47,6 +47,7 @@ in
         $highlight_bin = "${pkgs.highlight}/bin/highlight";
         ${cfg.extraConfig}
       '';
+      defaultText = literalMD "generated config file";
       type = types.path;
       readOnly = true;
       internal = true;
@@ -54,6 +55,6 @@ in
 
   };
 
-  meta.maintainers = with maintainers; [ ];
+  meta.maintainers = [ ];
 
 }

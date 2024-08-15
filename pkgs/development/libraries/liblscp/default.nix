@@ -1,17 +1,30 @@
-{ lib, stdenv, fetchurl, autoconf, automake, libtool, pkg-config }:
+{
+  lib,
+  stdenv,
+  fetchurl,
+  cmake,
+  pkg-config,
+}:
 
 stdenv.mkDerivation rec {
   pname = "liblscp";
-  version = "0.9.2";
+  version = "1.0.0";
 
   src = fetchurl {
     url = "https://download.linuxsampler.org/packages/${pname}-${version}.tar.gz";
-    sha256 = "sha256-GTW6SBQVCDtzeU+arLmAJi6N9jtN68NdI69p6RSazvs=";
+    sha256 = "sha256-ZaPfB3Veg1YCBHieoK9fFqL0tB4PiNsY81oJmn2rd/I=";
   };
 
-  nativeBuildInputs = [ autoconf automake libtool pkg-config ];
+  postPatch = ''
+    # fix prefix to only appear once
+    substituteInPlace CMakeLists.txt \
+      --replace-fail '"''${CONFIG_PREFIX}/' '"'
+  '';
 
-  preConfigure = "make -f Makefile.git";
+  nativeBuildInputs = [
+    cmake
+    pkg-config
+  ];
 
   enableParallelBuilding = true;
 
@@ -19,7 +32,7 @@ stdenv.mkDerivation rec {
     homepage = "http://www.linuxsampler.org";
     description = "LinuxSampler Control Protocol (LSCP) wrapper library";
     license = licenses.gpl2;
-    maintainers = [ maintainers.goibhniu ];
+    maintainers = [ ];
     platforms = platforms.linux;
   };
 }

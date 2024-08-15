@@ -55,9 +55,10 @@ in {
       domains = mkOption {
         type = types.str;
         default = "csl:${config.networking.hostName}";
+        defaultText = literalExpression ''"csl:''${config.networking.hostName}"'';
         example = "csl:example.com,mydomain.net";
         description = ''
-          Local domains set (see <literal>opendkim(8)</literal> for more information on datasets).
+          Local domains set (see `opendkim(8)` for more information on datasets).
           Messages from them are signed, not verified.
         '';
       };

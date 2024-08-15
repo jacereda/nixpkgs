@@ -1,20 +1,40 @@
-{ lib, python2Packages, fetchFromGitHub
+{ lib, python3Packages, fetchFromGitHub
+, ffmpeg-full
+, gtk3
+, pango
+, gobject-introspection
+, wrapGAppsHook3
 }:
 
-with python2Packages; buildPythonApplication {
+with python3Packages; buildPythonApplication {
   pname = "escrotum";
-  version = "unstable-2019-06-10";
+  version = "unstable-2020-12-07";
 
   src = fetchFromGitHub {
     owner  = "Roger";
     repo   = "escrotum";
-    rev    = "f6c300315cb4402e37f16b56aad2d206e24c5281";
-    sha256 = "0x7za74lkwn3v6j9j04ifgdwdlx9akh1izkw7vkkzj9ag9qjrzb0";
+    rev    = "a41d0f11bb6af4f08e724b8ccddf8513d905c0d1";
+    sha256 = "sha256-z0AyTbOEE60j/883X17mxgoaVlryNtn0dfEB0C18G2s=";
   };
 
-  propagatedBuildInputs = [ pygtk numpy ];
+  buildInputs = [
+    gtk3
+    pango
+  ];
+
+  nativeBuildInputs = [
+    gobject-introspection
+    wrapGAppsHook3
+  ];
+
+  propagatedBuildInputs = [ pygobject3 xcffib pycairo numpy ];
+
+  # Cannot find pango without strictDeps = false
+  strictDeps = false;
 
   outputs = [ "out" "man" ];
+
+  makeWrapperArgs = ["--prefix PATH : ${lib.makeBinPath [ ffmpeg-full ]}"];
 
   postInstall = ''
     mkdir -p $man/share/man/man1
@@ -27,5 +47,6 @@ with python2Packages; buildPythonApplication {
     platforms = platforms.linux;
     maintainers = with maintainers; [ rasendubi ];
     license = licenses.gpl3;
+    mainProgram = "escrotum";
   };
 }

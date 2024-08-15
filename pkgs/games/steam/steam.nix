@@ -2,15 +2,16 @@
 
 let
   traceLog = "/tmp/steam-trace-dependencies.log";
-  version = "1.0.0.73";
+  version = "1.0.0.74";
 
 in stdenv.mkDerivation {
   pname = "steam-original";
   inherit version;
 
   src = fetchurl {
-    url = "https://repo.steampowered.com/steam/pool/steam/s/steam/steam_${version}.tar.gz";
-    sha256 = "sha256-uVO6D1K8zGlq12lrIs7aTQEVnj1bk1P4wRUtkPWkNZE=";
+    # use archive url so the tarball doesn't 404 on a new release
+    url = "https://repo.steampowered.com/steam/archive/stable/steam_${version}.tar.gz";
+    sha256 = "sha256-sO07g3j1Qejato2LWJ2FrW3AzfMCcBz46HEw7aKxojQ=";
   };
 
   makeFlags = [ "DESTDIR=$(out)" "PREFIX=" ];
@@ -39,9 +40,15 @@ in stdenv.mkDerivation {
   '';
 
   meta = with lib; {
-    description = "A digital distribution platform";
+    description = "Digital distribution platform";
+    longDescription = ''
+      Steam is a video game digital distribution service and storefront from Valve.
+
+      To install on NixOS, please use the option `programs.steam.enable = true`.
+    '';
     homepage = "https://store.steampowered.com/";
     license = licenses.unfreeRedistributable;
-    maintainers = with maintainers; [ jagajaga jonringer ];
+    maintainers = with maintainers; [ jagajaga ];
+    mainProgram = "steam";
   };
 }

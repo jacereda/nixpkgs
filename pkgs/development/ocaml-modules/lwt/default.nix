@@ -1,30 +1,27 @@
-{ lib, fetchzip, pkg-config, ncurses, libev, buildDunePackage, ocaml
-, cppo, dune-configurator, ocplib-endian, result
-, mmap, seq
-, ocaml-syntax-shims
+{ lib, fetchFromGitHub, libev, buildDunePackage
+, cppo, dune-configurator, ocplib-endian
 }:
-
-let inherit (lib) optional versionAtLeast; in
 
 buildDunePackage rec {
   pname = "lwt";
-  version = "5.4.1";
+  version = "5.7.0";
 
-  useDune2 = true;
+  minimalOCamlVersion = "4.08";
 
-  src = fetchzip {
-    url = "https://github.com/ocsigen/${pname}/archive/${version}.tar.gz";
-    sha256 = "0cq2qy23sa1a5zk6nja3c652mp29i84yfrkcwks6i8sdqwli36jy";
+  src = fetchFromGitHub {
+    owner = "ocsigen";
+    repo = "lwt";
+    rev = version;
+    hash = "sha256-o0wPK6dPdnsr/LzwcSwbIGcL85wkDjdFuEcAxuS/UEs=";
   };
 
-  nativeBuildInputs = [ pkg-config cppo dune-configurator ];
-  buildInputs = optional (!versionAtLeast ocaml.version "4.08") ocaml-syntax-shims
-   ++ optional (!versionAtLeast ocaml.version "4.07") ncurses;
-  propagatedBuildInputs = [ libev mmap ocplib-endian seq result ];
+  nativeBuildInputs = [ cppo ];
+  buildInputs = [ dune-configurator ];
+  propagatedBuildInputs = [ libev ocplib-endian ];
 
   meta = {
     homepage = "https://ocsigen.org/lwt/";
-    description = "A cooperative threads library for OCaml";
+    description = "Cooperative threads library for OCaml";
     maintainers = [ lib.maintainers.vbgl ];
     license = lib.licenses.mit;
   };

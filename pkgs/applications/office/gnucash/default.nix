@@ -1,116 +1,167 @@
-{ fetchurl, fetchpatch, lib, stdenv, pkg-config, makeWrapper, cmake, gtest
-, boost, icu, libxml2, libxslt, gettext, swig, isocodes, gtk3, glibcLocales
-, webkitgtk, dconf, hicolor-icon-theme, libofx, aqbanking, gwenhywfar, libdbi
-, libdbiDrivers, guile, perl, perlPackages
+{ lib
+, stdenv
+, fetchFromGitHub
+, fetchurl
+, aqbanking
+, boost
+, cmake
+, gettext
+, glib
+, glibcLocales
+, gtest
+, guile
+, gwenhywfar
+, icu
+, libdbi
+, libdbiDrivers
+, libofx
+, libxml2
+, libxslt
+, makeWrapper
+, perlPackages
+, pkg-config
+, swig
+, webkitgtk
+, wrapGAppsHook3
 }:
-
-let
-
-  # Enable gnc-fq-* to run in command line.
-  perlWrapper = stdenv.mkDerivation {
-    name = perl.name + "-wrapper-for-gnucash";
-    nativeBuildInputs = [ makeWrapper ];
-    buildInputs = [ perl ] ++ (with perlPackages; [ FinanceQuote DateManip ]);
-    dontUnpack = true;
-
-    installPhase = ''
-      mkdir -p $out/bin
-      for script in ${perl}/bin/*; do
-        makeWrapper $script $out''${script#${perl}} \
-          --prefix "PERL5LIB" ":" "$PERL5LIB"
-      done
-    '';
-  };
-
-in
 
 stdenv.mkDerivation rec {
   pname = "gnucash";
-  version = "4.6";
+  version = "5.8";
 
+  # raw source code doesn't work out of box; fetchFromGitHub not usable
   src = fetchurl {
-    url = "mirror://sourceforge/gnucash/${pname}-${version}.tar.bz2";
-    sha256 = "0csp8iddhc901vv09gl5lj970g6ili696vwj4vdpkiprp7gh26r5";
+    url = "https://github.com/Gnucash/gnucash/releases/download/${version}/gnucash-${version}.tar.bz2";
+    hash = "sha256-osgj+3ALnUWYaS7IE5SVm944jY7xke/k6iwCQmu1JZM=";
   };
 
-  patches = [
-    # Fixes a warning about an initialized variable that kills enableDebugging gnucash builds on nix.
-    # This will most likely be part of the 4.7 release, it will be safe to remove then.
-    (fetchpatch {
-      url = "https://github.com/Gnucash/gnucash/commit/b42052464ba9701a3d1834fc58fa0deb32ab9afe.patch";
-      sha256 = "092957c8jqj4v70fv0ia1wpgl6x34hbwjrichxfbk5ja8l6535gc";
-    })
+  nativeBuildInputs = [
+    cmake
+    gettext
+    makeWrapper
+    wrapGAppsHook3
+    pkg-config
   ];
 
-  nativeBuildInputs = [ pkg-config makeWrapper cmake gtest swig ];
-
   buildInputs = [
-    boost icu libxml2 libxslt gettext isocodes gtk3 glibcLocales
-    webkitgtk dconf libofx aqbanking gwenhywfar libdbi
-    libdbiDrivers guile
-    perlWrapper perl
-  ] ++ (with perlPackages; [ FinanceQuote DateManip ]);
+    aqbanking
+    boost
+    glib
+    glibcLocales
+    gtest
+    guile
+    gwenhywfar
+    icu
+    libdbi
+    libdbiDrivers
+    libofx
+    libxml2
+    libxslt
+    swig
+    webkitgtk
+  ]
+  ++ (with perlPackages; [
+    JSONParse
+    FinanceQuote
+    perl
+  ]);
 
-  propagatedUserEnvPkgs = [ dconf ];
+  patches = [
+    # this patch disables test-gnc-timezone and test-gnc-datetime which fail due to nix datetime challenges
+    ./0001-disable-date-and-time-tests.patch
+    # this patch prevents the building of gnc-fq-update, a utility which updates the GnuCash cli utils
+    ./0002-disable-gnc-fq-update.patch
+    # this patch prevents the building of gnucash-valgrind
+    ./0003-remove-valgrind.patch
+    # this patch makes gnucash exec the Finance::Quote wrapper directly
+    ./0004-exec-fq-wrapper.patch
+    # this patch disables a flaky test
+    # see https://bugs.gnucash.org/show_bug.cgi?id=799289
+    ./0005-disable-test-lots.patch
+  ];
 
-  # glib-2.62 deprecations
-  NIX_CFLAGS_COMPILE = "-DGLIB_DISABLE_DEPRECATION_WARNINGS";
+  # this needs to be an environment variable and not a cmake flag to suppress
+  # guile warning
+  env.GUILE_AUTO_COMPILE = "0";
 
-  postPatch = ''
-    patchShebangs .
+  env.NIX_CFLAGS_COMPILE = toString (lib.optionals (stdenv.cc.isGNU && lib.versionAtLeast stdenv.cc.version "12") [
+    # Needed with GCC 12 but breaks on darwin (with clang) or older gcc
+    "-Wno-error=use-after-free"
+  ]);
+
+  doCheck = true;
+  enableParallelChecking = true;
+  checkTarget = "check";
+
+  passthru.docs = stdenv.mkDerivation {
+    pname = "gnucash-docs";
+    inherit version;
+
+    src = fetchFromGitHub {
+      owner = "Gnucash";
+      repo = "gnucash-docs";
+      rev = version;
+      hash = "sha256-3b1Nue3eEefDi4WI+o3ATfrsQ+H/I+QwTr4Nuc9J7Zg=";
+    };
+
+    nativeBuildInputs = [ cmake ];
+    buildInputs = [ libxml2 libxslt ];
+  };
+
+  preFixup = ''
+    gappsWrapperArgs+=(
+      # documentation
+      --prefix XDG_DATA_DIRS : ${passthru.docs}/share
+      # db drivers location
+      --set GNC_DBD_DIR ${libdbiDrivers}/lib/dbd
+      # gsettings schema location on Nix
+      --set GSETTINGS_SCHEMA_DIR ${glib.makeSchemaPath "$out" "gnucash-${version}"}
+    )
   '';
 
-  makeFlags = [ "GUILE_AUTO_COMPILE=0" ];
+  # wrapGAppsHook3 would wrap all binaries including the cli utils which need
+  # Perl wrapping
+  dontWrapGApps = true;
 
-  postInstall = ''
-    # Auto-updaters don't make sense in Nix.
-    rm $out/bin/gnc-fq-update
+  # gnucash is wrapped using the args constructed for wrapGAppsHook3.
+  # gnc-fq-* are cli utils written in Perl hence the extra wrapping
+  postFixup = ''
+    wrapProgram $out/bin/gnucash "''${gappsWrapperArgs[@]}"
+    wrapProgram $out/bin/gnucash-cli "''${gappsWrapperArgs[@]}"
 
-    # Unnecessary in the release build.
-    rm $out/bin/gnucash-valgrind
-
-    wrapProgram "$out/bin/gnucash" \
-      --prefix XDG_DATA_DIRS : "$GSETTINGS_SCHEMAS_PATH:$out/share/gsettings-schemas/${pname}-${version}" \
-      --prefix XDG_DATA_DIRS : "${hicolor-icon-theme}/share" \
-      --prefix PERL5LIB ":" "$PERL5LIB" \
-      --set GNC_DBD_DIR ${libdbiDrivers}/lib/dbd \
-      --prefix GIO_EXTRA_MODULES : "${lib.getLib dconf}/lib/gio/modules"
+    wrapProgram $out/bin/finance-quote-wrapper \
+      --prefix PERL5LIB : "${with perlPackages; makeFullPerlPath [ JSONParse FinanceQuote ]}"
   '';
 
-  # TODO: The following tests FAILED:
-  #   70 - test-load-c (Failed)
-  #   71 - test-modsysver (Failed)
-  #   72 - test-incompatdep (Failed)
-  #   73 - test-agedver (Failed)
-  #   77 - test-gnc-module-swigged-c (Failed)
-  #   78 - test-gnc-module-load-deps (Failed)
-  #   80 - test-gnc-module-scm-module (Failed)
-  #   81 - test-gnc-module-scm-multi (Failed)
-  preCheck = ''
-    export LD_LIBRARY_PATH=$PWD/lib:$PWD/lib/gnucash:$PWD/lib/gnucash/test''${LD_LIBRARY_PATH:+:}$LD_LIBRARY_PATH
-    export NIX_CFLAGS_LINK="-lgtest -lgtest_main"
-  '';
-  doCheck = false;
+  passthru.updateScript = ./update.sh;
 
-  meta = {
-    description = "Personal and small-business financial-accounting application";
-
+  meta = with lib; {
+    homepage = "https://www.gnucash.org/";
+    description = "Free software for double entry accounting";
     longDescription = ''
       GnuCash is personal and small-business financial-accounting software,
       freely licensed under the GNU GPL and available for GNU/Linux, BSD,
-      Solaris, macOS and Microsoft Windows.
+      Solaris, Mac OS X and Microsoft Windows.
 
-      Designed to be easy to use, yet powerful and flexible, GnuCash allows
-      you to track bank accounts, stocks, income and expenses.  As quick and
+      Designed to be easy to use, yet powerful and flexible, GnuCash allows you
+      to track bank accounts, stocks, income and expenses. As quick and
       intuitive to use as a checkbook register, it is based on professional
       accounting principles to ensure balanced books and accurate reports.
+
+      Some interesting features:
+
+      - Double-Entry Accounting
+      - Stock/Bond/Mutual Fund Accounts
+      - Small-Business Accounting
+      - Reports, Graphs
+      - QIF/OFX/HBCI Import, Transaction Matching
+      - Scheduled Transactions
+      - Financial Calculations
     '';
-
-    license = lib.licenses.gpl2Plus;
-
-    homepage = "http://www.gnucash.org/";
-
-    maintainers = [ lib.maintainers.domenkozar ];
-    platforms = lib.platforms.gnu ++ lib.platforms.linux;
+    license = licenses.gpl2Plus;
+    maintainers = with maintainers; [ domenkozar AndersonTorres rski nevivurn ];
+    platforms = platforms.unix;
+    mainProgram = "gnucash";
   };
 }
+# TODO: investigate Darwin support

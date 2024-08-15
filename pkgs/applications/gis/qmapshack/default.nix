@@ -1,26 +1,18 @@
-{ mkDerivation, lib, fetchFromGitHub, cmake, substituteAll
-, qtscript, qttranslations, qtwebengine, gdal, proj, routino, quazip }:
+{ lib, stdenv, fetchFromGitHub, cmake, wrapQtAppsHook
+, qtscript, qtwebengine, gdal, proj, routino, quazip }:
 
-mkDerivation rec {
+stdenv.mkDerivation rec {
   pname = "qmapshack";
-  version = "1.16.0";
+  version = "1.17.1";
 
   src = fetchFromGitHub {
     owner = "Maproom";
-    repo = pname;
+    repo = "qmapshack";
     rev = "V_${version}";
-    sha256 = "1yzgkdjxwyg8ggbxyjwr0zjrx99ckrbz2p2524iii9i7qqn8wfsx";
+    hash = "sha256-wqztKmaUxY3qd7IgPM7kV7x0BsrTMTX3DbcdM+lsarI=";
   };
 
-  patches = [
-    # See https://github.com/NixOS/nixpkgs/issues/86054
-    (substituteAll {
-      src = ./fix-qttranslations-path.patch;
-      inherit qttranslations;
-    })
-  ];
-
-  nativeBuildInputs = [ cmake ];
+  nativeBuildInputs = [ cmake wrapQtAppsHook ];
 
   buildInputs = [ qtscript qtwebengine gdal proj routino quazip ];
 
@@ -33,8 +25,9 @@ mkDerivation rec {
   ];
 
   meta = with lib; {
-    homepage = "https://github.com/Maproom/qmapshack";
     description = "Consumer grade GIS software";
+    homepage = "https://github.com/Maproom/qmapshack";
+    changelog = "https://github.com/Maproom/qmapshack/blob/V_${version}/changelog.txt";
     license = licenses.gpl3Plus;
     maintainers = with maintainers; [ dotlambda sikmir ];
     platforms = with platforms; linux;

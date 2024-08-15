@@ -1,27 +1,67 @@
-{ stdenv, lib, rustPlatform, fetchFromGitHub, pkg-config, ncurses, python3, openssl, libgpg-error, gpgme, xorg, AppKit, Security, installShellFiles }:
+{ stdenv
+, lib
+, rustPlatform
+, fetchFromGitHub
+, pkg-config
+, python3
+, openssl
+, libgpg-error
+, gpgme
+, xorg
+, nettle
+, clang
+, AppKit
+, Security
+, installShellFiles
+}:
 
-with rustPlatform;
-buildRustPackage rec {
-  version = "0.5.1";
+rustPlatform.buildRustPackage rec {
+  version = "0.6.4";
   pname = "ripasso-cursive";
 
   src = fetchFromGitHub {
     owner = "cortex";
     repo = "ripasso";
-    rev  = "release-${version}";
-    sha256 = "1jx6qv7skikl1ap3g1r34rkz4ab756kra7dgwwv45vl2fb6x74k4";
+    rev = "release-${version}";
+    hash = "sha256-9wBaFq2KVfLTd1j8ZPoUlmZJDW2UhvGBAaCGX+qg92s=";
   };
 
-  patches = [ ./fix-tests.patch ];
+  patches = [
+    ./fix-tests.patch
+  ];
 
-  cargoSha256 = "1li1gmcs7lnjr4qhzs0rrgngdcxy1paiibjwk9zx2rrs71021cgk";
+  cargoPatches = [
+    ./fix-build.patch
+  ];
+
+  cargoLock = {
+    lockFile = ./Cargo.lock;
+    outputHashes = {
+      "qml-0.0.9" = "sha256-ILqvUaH7nSu2JtEs8ox7KroOzYnU5ai44k1HE4Bz5gg=";
+    };
+  };
 
   cargoBuildFlags = [ "-p ripasso-cursive" ];
 
-  nativeBuildInputs = [ pkg-config gpgme python3 installShellFiles ];
+  nativeBuildInputs = [
+    pkg-config
+    gpgme
+    python3
+    installShellFiles
+    clang
+    rustPlatform.bindgenHook
+  ];
+
   buildInputs = [
-    ncurses openssl libgpg-error gpgme xorg.libxcb
-  ] ++ lib.optionals stdenv.isDarwin [ AppKit Security ];
+    openssl
+    libgpg-error
+    gpgme
+    xorg.libxcb
+    nettle
+  ] ++ lib.optionals stdenv.isDarwin [
+    AppKit
+    Security
+  ];
 
   preCheck = ''
     export HOME=$TMPDIR
@@ -32,7 +72,8 @@ buildRustPackage rec {
   '';
 
   meta = with lib; {
-    description = "A simple password manager written in Rust";
+    description = "Simple password manager written in Rust";
+    mainProgram = "ripasso-cursive";
     homepage = "https://github.com/cortex/ripasso";
     license = licenses.gpl3;
     maintainers = with maintainers; [ sgo ];

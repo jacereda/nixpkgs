@@ -2,14 +2,15 @@
 
 stdenv.mkDerivation rec {
   name = "it87-${version}-${kernel.version}";
-  version = "2018-08-14";
+  version = "unstable-2024-06-09";
 
-  # The original was deleted from github, but this seems to be an active fork
+  # Original is no longer maintained.
+  # This is the same upstream as the AUR uses.
   src = fetchFromGitHub {
-    owner = "hannesha";
+    owner = "frankcrawford";
     repo = "it87";
-    rev = "5515f5b78838cb6be551943ffef5d1792012724c";
-    sha256 = "1ygi4mwds4q7byhg8gqnh3syamdj5rpjy3jj012k7vl54gdgrmgm";
+    rev = "a82899557b4779b87d444a43caf126615e03bb4a";
+    hash = "sha256-aMMK3QoeXr6mPbo4SDXE8UuWc/oJ3lpgyK7wyEDKaEM=";
   };
 
   hardeningDisable = [ "pic" ];
@@ -29,8 +30,8 @@ stdenv.mkDerivation rec {
   meta = with lib; {
     description = "Patched module for IT87xx superio chip sensors support";
     homepage = "https://github.com/hannesha/it87";
-    license = licenses.gpl2;
+    license = licenses.gpl2Plus;
     platforms = [ "x86_64-linux" "i686-linux" ];
-    maintainers = with maintainers; [ yorickvp ];
+    maintainers = teams.lumiguide.members;
   };
 }

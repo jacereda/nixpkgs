@@ -1,10 +1,11 @@
 {lib, stdenv, fetchurl, curl}:
 
-stdenv.mkDerivation {
-  name = "libnxml-0.18.3";
+stdenv.mkDerivation rec {
+  pname = "libnxml";
+  version = "0.18.3";
 
   src = fetchurl {
-    url = "https://www.autistici.org/bakunin/libnxml/libnxml-0.18.3.tar.gz";
+    url = "https://www.autistici.org/bakunin/libnxml/libnxml-${version}.tar.gz";
     sha256 = "0ix5b9bxd7r517vhgcxwdviq4m0g0pq46s5g3h04gcqnpbin150g";
   };
 
@@ -16,6 +17,6 @@ stdenv.mkDerivation {
     license = lib.licenses.lgpl2;
 
     platforms = lib.platforms.all;
-    maintainers = [ lib.maintainers.viric ];
+    maintainers = [ ];
   };
 }

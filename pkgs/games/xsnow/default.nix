@@ -2,11 +2,11 @@
 
 stdenv.mkDerivation rec {
   pname = "xsnow";
-  version = "3.3.1";
+  version = "3.4.4";
 
   src = fetchurl {
     url = "https://ratrabbit.nl/downloads/xsnow/xsnow-${version}.tar.gz";
-    sha256 = "sha256-3piLgcZXQicHisAqr5XxbFqAMHyK7HzU5Re0mvfOBhE=";
+    sha256 = "sha256-fPMy5AxKspFkcWphf/IjMc/ZQtayljThKxbcMtvOjRc=";
   };
 
   nativeBuildInputs = [ pkg-config ];
@@ -17,7 +17,8 @@ stdenv.mkDerivation rec {
   enableParallelBuilding = true;
 
   meta = with lib; {
-    description = "An X-windows application that will let it snow on the root, in between and on windows";
+    description = "X-windows application that will let it snow on the root, in between and on windows";
+    mainProgram = "xsnow";
     homepage = "https://ratrabbit.nl/ratrabbit/xsnow/";
     license = licenses.gpl3Plus;
     maintainers = with maintainers; [ robberer ];

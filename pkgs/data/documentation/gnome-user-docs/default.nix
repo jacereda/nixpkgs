@@ -9,11 +9,11 @@
 
 stdenv.mkDerivation rec {
   pname = "gnome-user-docs";
-  version = "41.0";
+  version = "46.4";
 
   src = fetchurl {
     url = "mirror://gnome/sources/gnome-user-docs/${lib.versions.major version}/${pname}-${version}.tar.xz";
-    sha256 = "0lfxj8irwm88n3ba351ak85r97pqlds6y2hqbsic714yj4k8df1a";
+    hash = "sha256-J3YHLxX5K9BQKDRfOsigk9RCYN5SpiDWJpPA5e6iBTQ=";
   };
 
   nativeBuildInputs = [

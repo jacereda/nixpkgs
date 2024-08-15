@@ -1,47 +1,121 @@
-{ lib, buildPythonPackage, fetchPypi
-, billiard, click, click-didyoumean, click-plugins, click-repl, kombu, pytz, vine
-, boto3, case, moto, pytest, pytest-celery, pytest-subtests, pytest-timeout
+{
+  lib,
+  stdenv,
+  billiard,
+  buildPythonPackage,
+  click-didyoumean,
+  click-plugins,
+  click-repl,
+  click,
+  fetchPypi,
+  google-cloud-storage,
+  kombu,
+  moto,
+  msgpack,
+  nixosTests,
+  pymongo,
+  redis,
+  pytest-celery,
+  pytest-click,
+  pytest-subtests,
+  pytest-timeout,
+  pytest-xdist,
+  pytestCheckHook,
+  python-dateutil,
+  pythonOlder,
+  pyyaml,
+  setuptools,
+  tzdata,
+  vine,
 }:
 
 buildPythonPackage rec {
   pname = "celery";
-  version = "5.1.2";
+  version = "5.4.0";
+  pyproject = true;
+
+  disabled = pythonOlder "3.8";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "8d9a3de9162965e97f8e8cc584c67aad83b3f7a267584fa47701ed11c3e0d4b0";
+    hash = "sha256-UEoZFA6NMCnVrK2IMwxUHUw/ZMeJ2F+UdWdi2Lyn5wY=";
   };
 
-  # click  is only used for the repl, in most cases this shouldn't impact
-  # downstream packages
-  postPatch = ''
-    substituteInPlace requirements/test.txt \
-      --replace "moto==1.3.7" moto
-    substituteInPlace requirements/default.txt \
-      --replace "click>=7.0,<8.0" click
-  '';
+  build-system = [ setuptools ];
 
-  propagatedBuildInputs = [ billiard click click-didyoumean click-plugins click-repl kombu pytz vine ];
+  dependencies = [
+    billiard
+    click
+    click-didyoumean
+    click-plugins
+    click-repl
+    kombu
+    python-dateutil
+    tzdata
+    vine
+  ];
 
-  checkInputs = [ boto3 case moto pytest pytest-celery pytest-subtests pytest-timeout ];
+  passthru.optional-dependencies = {
+    gcs = [ google-cloud-storage ];
+    mongodb = [ pymongo ];
+    msgpack = [ msgpack ];
+    yaml = [ pyyaml ];
+    redis = [ redis ];
+  };
 
-  # ignore test that's incompatible with pytest5
-  # test_eventlet touches network
-  # test_mongodb requires pymongo
-  # test_multi tries to create directories under /var
-  checkPhase = ''
-    pytest -k 'not restore_current_app_fallback and not msgpack and not on_apply and not pytest' \
-      --ignore=t/unit/contrib/test_pytest.py \
-      --ignore=t/unit/concurrency/test_eventlet.py \
-      --ignore=t/unit/bin/test_multi.py \
-      --ignore=t/unit/apps/test_multi.py \
-      --ignore=t/unit/backends/test_mongodb.py
-  '';
+  nativeCheckInputs = [
+    moto
+    pytest-celery
+    pytest-click
+    pytest-subtests
+    pytest-timeout
+    pytest-xdist
+    pytestCheckHook
+  ] ++ lib.flatten (builtins.attrValues passthru.optional-dependencies);
+
+  disabledTestPaths = [
+    # test_eventlet touches network
+    "t/unit/concurrency/test_eventlet.py"
+    # test_multi tries to create directories under /var
+    "t/unit/bin/test_multi.py"
+    "t/unit/apps/test_multi.py"
+    # Test requires moto<5
+    "t/unit/backends/test_s3.py"
+  ];
+
+  disabledTests =
+    [
+      "msgpack"
+      "test_check_privileges_no_fchown"
+      # seems to only fail on higher core counts
+      # AssertionError: assert 3 == 0
+      "test_setup_security_disabled_serializers"
+      # Test is flaky, especially on hydra
+      "test_ready"
+      # Tests fail with pytest-xdist
+      "test_itercapture_limit"
+      "test_stamping_headers_in_options"
+      "test_stamping_with_replace"
+    ]
+    ++ lib.optionals stdenv.isDarwin [
+      # Too many open files on hydra
+      "test_cleanup"
+      "test_with_autoscaler_file_descriptor_safety"
+      "test_with_file_descriptor_safety"
+    ];
+
+  pythonImportsCheck = [ "celery" ];
+
+  passthru.tests = {
+    inherit (nixosTests) sourcehut;
+  };
 
   meta = with lib; {
-    homepage = "https://github.com/celery/celery/";
     description = "Distributed task queue";
+    homepage = "https://github.com/celery/celery/";
+    changelog = "https://github.com/celery/celery/releases/tag/v${version}";
     license = licenses.bsd3;
-    maintainers = [ ];
+    maintainers = with maintainers; [ fab ];
+    mainProgram = "celery";
   };
 }

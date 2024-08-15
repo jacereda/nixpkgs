@@ -1,19 +1,26 @@
-{ lib, stdenv, fetchFromGitHub, cairo, libjpeg, libXft, pkg-config, python2, wafHook }:
+{ lib, stdenv, fetchFromGitHub, cairo, libjpeg, libXft, pkg-config, python3, wafHook }:
 
 stdenv.mkDerivation rec {
   pname = "ntk";
-  version = "1.3.1000";
+  version = "1.3.1001";
   src = fetchFromGitHub {
-    owner = "original-male";
+    owner = "linuxaudio";
     repo = "ntk";
     rev = "v${version}";
-    sha256 = "0j38mhnfqy6swcrnc5zxcwlqi8b1pgklyghxk6qs1lf4japv2zc0";
+    sha256 = "sha256-NyEdg6e+9CI9V+TIgdpPyH1ei+Vq8pUxD3wPzWY5fEU=";
   };
 
   nativeBuildInputs = [ pkg-config wafHook ];
   buildInputs = [
-    cairo libjpeg libXft python2
+    cairo libjpeg libXft python3
   ];
+
+  # NOTE: ntk provides its own waf script that is incompatible with new
+  # python versions. If the script is not present, wafHook will install
+  # a compatible version from nixpkgs.
+  prePatch = ''
+    rm waf
+  '';
 
   meta = {
     description = "Fork of FLTK 1.3.0 with additional functionality";

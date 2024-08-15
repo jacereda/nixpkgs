@@ -7,7 +7,7 @@ let
   cfg = config.services.flatpak;
 in {
   meta = {
-    doc = ./flatpak.xml;
+    doc = ./flatpak.md;
     maintainers = pkgs.flatpak.meta.maintainers;
   };
 
@@ -15,6 +15,8 @@ in {
   options = {
     services.flatpak = {
       enable = mkEnableOption "flatpak";
+
+      package = mkPackageOption pkgs "flatpak" { };
     };
   };
 
@@ -28,11 +30,16 @@ in {
       }
     ];
 
-    environment.systemPackages = [ pkgs.flatpak ];
+    environment.systemPackages = [ cfg.package ];
 
-    services.dbus.packages = [ pkgs.flatpak ];
+    security.polkit.enable = true;
 
-    systemd.packages = [ pkgs.flatpak ];
+    fonts.fontDir.enable = true;
+
+    services.dbus.packages = [ cfg.package ];
+
+    systemd.packages = [ cfg.package ];
+    systemd.tmpfiles.packages = [ cfg.package ];
 
     environment.profiles = [
       "$HOME/.local/share/flatpak/exports"

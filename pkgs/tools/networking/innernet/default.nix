@@ -1,52 +1,59 @@
-{ lib, stdenv, rustPlatform, fetchFromGitHub, llvmPackages, sqlite, installShellFiles, Security, libiconv }:
+{ lib
+, stdenv
+, rustPlatform
+, fetchFromGitHub
+, sqlite
+, installShellFiles
+, Security
+, libiconv
+, innernet
+, testers
+}:
 
 rustPlatform.buildRustPackage rec {
   pname = "innernet";
-  version = "1.5.1";
+  version = "1.6.1";
 
   src = fetchFromGitHub {
     owner = "tonarino";
     repo = "innernet";
-    rev = "v${version}";
-    sha256 = "1ja7khvc4cy317ckglnlf11wfmin62ihic061phdp6rmfv95cza0";
+    rev = "refs/tags/v${version}";
+    hash = "sha256-dFMAzLvPO5xAfJqUXdiLf13uh5H5ay+CI9aop7Fhprk=";
   };
-  cargoSha256 = "18xpwav48xv7xm7r3w9qplmv2i18cg09pkahyvs5l4akdjgxyw10";
 
-  nativeBuildInputs = with llvmPackages; [
-    llvm
-    clang
+  cargoHash = "sha256-39LryfisVtNMX2XLPh/AEQ1KzVtwdE3wuTaTbxGMaBI=";
+
+  nativeBuildInputs = [
+    rustPlatform.bindgenHook
     installShellFiles
   ];
-  buildInputs = [ sqlite ] ++ lib.optionals stdenv.isDarwin [ Security libiconv ];
 
-  LIBCLANG_PATH = "${llvmPackages.libclang.lib}/lib";
+  buildInputs = [
+    sqlite
+  ] ++ lib.optionals stdenv.isDarwin [
+    Security
+    libiconv
+  ];
 
   postInstall = ''
     installManPage doc/innernet-server.8.gz
     installManPage doc/innernet.8.gz
     installShellCompletion doc/innernet.completions.{bash,fish,zsh}
     installShellCompletion doc/innernet-server.completions.{bash,fish,zsh}
-  '';
+  '' + (lib.optionalString stdenv.isLinux ''
+    find . -regex '.*\.\(target\|service\)' | xargs install -Dt $out/lib/systemd/system
+    find $out/lib/systemd/system -type f | xargs sed -i "s|/usr/bin/innernet|$out/bin/innernet|"
+  '');
 
-  doInstallCheck = true;
-  installCheckPhase = ''
-    if [[ "$("$out/bin/${pname}"-server --version)" == "${pname}-server ${version}" ]]; then
-      echo '${pname}-server smoke check passed'
-    else
-      echo '${pname}-server smoke check failed'
-      return 1
-    fi
-    if [[ "$("$out/bin/${pname}" --version)" == "${pname} ${version}" ]]; then
-      echo '${pname} smoke check passed'
-    else
-      echo '${pname} smoke check failed'
-      return 1
-    fi
-  '';
+  passthru.tests = {
+    serverVersion = testers.testVersion { package = innernet; command = "innernet-server --version"; };
+    version = testers.testVersion { package = innernet; command = "innernet --version"; };
+  };
 
   meta = with lib; {
-    description = "A private network system that uses WireGuard under the hood";
+    description = "Private network system that uses WireGuard under the hood";
     homepage = "https://github.com/tonarino/innernet";
+    changelog = "https://github.com/tonarino/innernet/releases/tag/v${version}";
     license = licenses.mit;
     maintainers = with maintainers; [ tomberek _0x4A6F ];
   };

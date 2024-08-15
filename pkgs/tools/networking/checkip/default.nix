@@ -5,21 +5,21 @@
 
 buildGoModule rec {
   pname = "checkip";
-  version = "0.2.2";
+  version = "0.47.5";
 
   src = fetchFromGitHub {
     owner = "jreisinger";
     repo = pname;
-    rev = "v${version}";
-    sha256 = "065426z4iak72h56qvp1vk86r2vw5rdqy3qi1zbw1l0hnyq83zwq";
+    rev = "refs/tags/v${version}";
+    hash = "sha256-iAMSNz5TDSId0gBm982hFkM+JR4naEREXKS7mi6z5dw=";
   };
 
-  vendorSha256 = "10hk2wfkpvnavs20q390qgaj1gj10j1fy8vlqb9s9f76gpb130h4";
+  vendorHash = "sha256-awqaDEdWILm8RcQ8hrtJFMTJQA5TzGZhiBTMfexmtA0=";
 
-  postFixup = ''
-    # Rename binary
-    mv $out/bin/cmd $out/bin/${pname}
-  '';
+  ldflags = [
+    "-w"
+    "-s"
+  ];
 
   # Requires network
   doCheck = false;
@@ -27,7 +27,9 @@ buildGoModule rec {
   meta = with lib; {
     description = "CLI tool that checks an IP address using various public services";
     homepage = "https://github.com/jreisinger/checkip";
+    changelog = "https://github.com/jreisinger/checkip/releases/tag/v${version}";
     license = licenses.asl20;
     maintainers = with maintainers; [ fab ];
+    mainProgram = "checkip";
   };
 }

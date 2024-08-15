@@ -1,19 +1,25 @@
-{ lib, stdenv, fetchpatch, fetchFromGitLab, kernel }:
+{ lib, stdenv, fetchFromGitLab, kernel, fetchpatch }:
 
 stdenv.mkDerivation rec {
   pname = "ddcci-driver";
-  # XXX: We apply a patch for the upcoming version to the source of version 0.4.1
-  # XXX: When 0.4.2 is actually released, don't forget to remove this comment,
-  # XXX: fix the rev in fetchFromGitLab, and remove the patch.
-  version = "0.4.2";
+  version = "0.4.4";
   name = "${pname}-${kernel.version}-${version}";
 
   src = fetchFromGitLab {
     owner = "${pname}-linux";
     repo = "${pname}-linux";
-    rev = "v0.4.1";
-    sha256 = "1qhsm0ccwfmwn0r6sbc6ms4lf4a3iqfcgqmbs6afr6hhxkqll3fg";
+    rev = "v${version}";
+    hash = "sha256-4pCfXJcteWwU6cK8OOSph4XlhKTk289QqLxsSWY7cac=";
   };
+
+  patches = [
+    # See https://gitlab.com/ddcci-driver-linux/ddcci-driver-linux/-/merge_requests/15
+    (fetchpatch {
+      name = "fix-build-with-linux68.patch";
+      url = "https://gitlab.com/ddcci-driver-linux/ddcci-driver-linux/-/commit/3eb20df68a545d07b8501f13fa9d20e9c6f577ed.patch";
+      hash = "sha256-Y1ktYaJTd9DtT/mwDqtjt/YasW9cVm0wI43wsQhl7Bg=";
+    })
+  ];
 
   hardeningDisable = [ "pic" ];
 
@@ -28,13 +34,6 @@ stdenv.mkDerivation rec {
       --replace depmod \#
   '';
 
-  patches = [
-    (fetchpatch {
-      url = "https://gitlab.com/ddcci-driver-linux/ddcci-driver-linux/-/commit/bf9d79852cbd0aa5c2e288ce51b8280f74a1f5d2.patch";
-      sha256 = "sha256-ShqVzkoRnlX4Y5ARY11YVYatFI1K7bAtLulP3/8/nwg=";
-    })
-  ];
-
   makeFlags = kernel.makeFlags ++ [
     "KDIR=${kernel.dev}/lib/modules/${kernel.modDirVersion}/build"
     "KVER=${kernel.modDirVersion}"
@@ -46,7 +45,7 @@ stdenv.mkDerivation rec {
     description = "Kernel module driver for DDC/CI monitors";
     homepage = "https://gitlab.com/ddcci-driver-linux/ddcci-driver-linux";
     license = licenses.gpl2Plus;
-    maintainers = with maintainers; [ ];
+    maintainers = with maintainers; [ kiike ];
     platforms = platforms.linux;
     broken = kernel.kernelOlder "5.1";
   };

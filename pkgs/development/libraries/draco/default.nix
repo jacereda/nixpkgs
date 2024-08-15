@@ -1,38 +1,67 @@
-{ lib, stdenv, fetchFromGitHub, cmake
+{ lib
+, stdenv
+, fetchFromGitHub
+, nix-update-script
+, cmake
+, python3
+, gtest
+, withAnimation ? true
+, withTranscoder ? true
+, eigen
+, ghc_filesystem
+, tinygltf
 }:
 
-stdenv.mkDerivation rec {
-  version = "1.4.3";
+let
+  cmakeBool = b: if b then "ON" else "OFF";
+in
+stdenv.mkDerivation (finalAttrs: {
+  version = "1.5.7";
   pname = "draco";
 
   src = fetchFromGitHub {
     owner = "google";
     repo = "draco";
-    rev = version;
-    sha256 = "sha256-eSu6tkWbRHzJkWwPgljaScAuL0gRkp8PJUHWC8mUvOw=";
+    rev = finalAttrs.version;
+    hash = "sha256-p0Mn4kGeBBKL7Hoz4IBgb6Go6MdkgE7WZgxAnt1tE/0=";
+    fetchSubmodules = true;
   };
 
-  nativeBuildInputs = [ cmake ];
+  # ld: unknown option: --start-group
+  postPatch = ''
+    substituteInPlace cmake/draco_targets.cmake \
+      --replace "^Clang" "^AppleClang"
+  '';
+
+  buildInputs = [ gtest ]
+    ++ lib.optionals withTranscoder [ eigen ghc_filesystem tinygltf ];
+
+  nativeBuildInputs = [ cmake python3 ];
 
   cmakeFlags = [
-    # Fake these since we are building from a tarball
-    "-Ddraco_git_hash=${version}"
-    "-Ddraco_git_desc=${version}"
-
-    "-DBUILD_UNITY_PLUGIN=1"
+    "-DDRACO_ANIMATION_ENCODING=${cmakeBool withAnimation}"
+    "-DDRACO_GOOGLETEST_PATH=${gtest}"
+    "-DBUILD_SHARED_LIBS=${cmakeBool true}"
+    "-DDRACO_TRANSCODER_SUPPORTED=${cmakeBool withTranscoder}"
+  ] ++ lib.optionals withTranscoder [
+    "-DDRACO_EIGEN_PATH=${eigen}/include/eigen3"
+    "-DDRACO_FILESYSTEM_PATH=${ghc_filesystem}"
+    "-DDRACO_TINYGLTF_PATH=${tinygltf}"
   ];
 
-  # Upstream mistakenly installs to /nix/store/.../nix/store/.../*, work around that
-  postInstall = ''
-    mv $out/nix/store/*/* $out
-    rm -rf $out/nix
-  '';
+  CXXFLAGS = [
+    # error: expected ')' before 'value' in 'explicit GltfValue(uint8_t value)'
+    "-include cstdint"
+  ];
+
+  passthru.updateScript = nix-update-script { };
 
   meta = with lib; {
     description = "Library for compressing and decompressing 3D geometric meshes and point clouds";
     homepage = "https://google.github.io/draco/";
+    changelog = "https://github.com/google/draco/releases/tag/${finalAttrs.version}";
     license = licenses.asl20;
     maintainers = with maintainers; [ jansol ];
     platforms = platforms.all;
   };
-}
+})

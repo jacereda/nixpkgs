@@ -9,21 +9,22 @@
 , appstream
 , python3
 , shared-mime-info
-, wrapGAppsHook
+, wrapGAppsHook3
 , gtk3
 , pantheon
 , libgee
+, libhandy
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "gnonograms";
-  version = "1.4.5";
+  version = "2.1.2";
 
   src = fetchFromGitHub {
     owner = "jeremypw";
     repo = "gnonograms";
-    rev = "v${version}";
-    sha256 = "1ly3inp6dvjrixdysz5hdfwlhbs49ks0lf8062z2iq6gaf8ivkb2";
+    rev = "v${finalAttrs.version}";
+    sha256 = "sha256-TkEVjrwlr4Q5FsfcdY+9fxwaMq+DFs0RwGI2E+GT5Mk=";
   };
 
   postPatch = ''
@@ -39,17 +40,19 @@ stdenv.mkDerivation rec {
     appstream
     python3
     shared-mime-info
-    wrapGAppsHook
+    wrapGAppsHook3
   ];
 
   buildInputs = [
     gtk3
     pantheon.granite
     libgee
+    libhandy
   ];
 
   meta = with lib; {
     description = "Nonograms puzzle game";
+    mainProgram = "com.github.jeremypw.gnonograms";
     longDescription = ''
       An implementation of the Japanese logic puzzle "Nonograms" written in
       Vala, allowing the user to:
@@ -61,4 +64,4 @@ stdenv.mkDerivation rec {
     homepage = "https://github.com/jeremypw/gnonograms";
     platforms = platforms.all;
   };
-}
+})

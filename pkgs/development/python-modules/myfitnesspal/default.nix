@@ -1,34 +1,72 @@
-{ lib, fetchPypi, buildPythonPackage
-, blessed, keyring, keyrings-alt, lxml, measurement, python-dateutil, requests, six, rich
-, pytestCheckHook, mock, nose }:
-
-# TODO: Define this package in "all-packages.nix" using "toPythonApplication".
-# This currently errors out, complaining about not being able to find "etree" from "lxml" even though "lxml" is defined in "propagatedBuildInputs".
+{
+  lib,
+  blessed,
+  browser-cookie3,
+  buildPythonPackage,
+  cloudscraper,
+  fetchPypi,
+  keyring,
+  keyrings-alt,
+  lxml,
+  measurement,
+  mock,
+  pytestCheckHook,
+  python-dateutil,
+  pythonOlder,
+  requests,
+  rich,
+  setuptools,
+  typing-extensions,
+}:
 
 buildPythonPackage rec {
   pname = "myfitnesspal";
-  version = "1.16.4";
+  version = "2.1.0";
+  pyproject = true;
+
+  disabled = pythonOlder "3.7";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "44b31623fd71fedd891c3f66be3bc1caa6f1caf88076a75236ab74f8807f6ae5";
+    hash = "sha256-H9oKSio+2x4TDCB4YN5mmERUEeETLKahPlW3TDDFE/E=";
   };
 
-  # Remove overly restrictive version constraints
+  nativeBuildInputs = [ setuptools ];
+
+  propagatedBuildInputs = [
+    blessed
+    browser-cookie3
+    cloudscraper
+    keyring
+    keyrings-alt
+    lxml
+    measurement
+    python-dateutil
+    requests
+    rich
+    typing-extensions
+  ];
+
+  nativeCheckInputs = [
+    mock
+    pytestCheckHook
+  ];
+
   postPatch = ''
-    sed -i 's/keyring>=.*/keyring/' requirements.txt
-    sed -i 's/keyrings.alt>=.*/keyrings.alt/' requirements.txt
-    sed -i 's/rich>=.*/rich/' requirements.txt
+    # Remove overly restrictive version constraints
+    sed -i -e "s/>=.*//" requirements.txt
   '';
 
-  propagatedBuildInputs = [ blessed keyring keyrings-alt lxml measurement python-dateutil requests six rich ];
+  disabledTests = [
+    # Integration tests require an account to be set
+    "test_integration"
+  ];
 
-  # Integration tests require an account to be set
-  disabledTests = [ "test_integration" ];
-  checkInputs = [ pytestCheckHook mock nose ];
+  pythonImportsCheck = [ "myfitnesspal" ];
 
   meta = with lib; {
-    description = "Access your meal tracking data stored in MyFitnessPal programatically";
+    description = "Python module to access meal tracking data stored in MyFitnessPal";
+    mainProgram = "myfitnesspal";
     homepage = "https://github.com/coddingtonbear/python-myfitnesspal";
     license = licenses.mit;
     maintainers = with maintainers; [ bhipple ];

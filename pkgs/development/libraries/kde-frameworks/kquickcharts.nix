@@ -1,11 +1,11 @@
 {
   mkDerivation,
   extra-cmake-modules,
-  qtquickcontrols2, qtbase,
+  qtquickcontrols2,
 }:
 
 mkDerivation {
-  name = "kquickcharts";
+  pname = "kquickcharts";
   nativeBuildInputs = [ extra-cmake-modules ];
   propagatedBuildInputs = [ qtquickcontrols2 ];
   outputs = [ "out" "dev" ];

@@ -1,5 +1,8 @@
-{ lib, stdenv, fetchurl, xercesc }:
+{ lib, gccStdenv, fetchurl, xercesc }:
 
+let
+  stdenv = gccStdenv;
+in
 stdenv.mkDerivation rec {
   pname = "libcutl";
   version = "1.10.0";
@@ -14,7 +17,7 @@ stdenv.mkDerivation rec {
     homepage = "https://codesynthesis.com/projects/libcutl/";
     changelog = "https://git.codesynthesis.com/cgit/libcutl/libcutl/plain/NEWS?h=${version}";
     platforms = platforms.all;
-    maintainers = with maintainers; [ ];
+    maintainers = [ ];
     license = licenses.mit;
   };
 
@@ -26,4 +29,6 @@ stdenv.mkDerivation rec {
 
   buildInputs = [ xercesc ];
   enableParallelBuilding = true;
+
+  env.NIX_CFLAGS_COMPILE = toString [ "-std=c++14" ];
 }

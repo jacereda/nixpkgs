@@ -1,28 +1,30 @@
-{ lib, buildPythonApplication, fetchFromGitHub, pyyaml }:
+{ lib, buildPythonApplication, fetchFromGitHub, python-dotenv, pyyaml, setuptools, pypaBuildHook }:
 
 buildPythonApplication rec {
-  version = "0.2.0pre-2021-05-18";
+  version = "1.2.0";
   pname = "podman-compose";
+  pyproject = true;
 
-  # "This project is still under development." -- README.md
-  #
-  # As of May 2021, the latest release (0.1.5) has fewer than half of all
-  # commits. This project seems to have no release management, so the last
-  # commit is the best one until proven otherwise.
   src = fetchFromGitHub {
     repo = "podman-compose";
     owner = "containers";
-    rev = "62d2024feecf312e9591cc145f49cee9c70ab4fe";
-    sha256 = "17992imkvi6129wvajsp0iz5iicfmh53i20qy2mzz17kcz30r2pp";
+    rev = "v${version}";
+    hash = "sha256-40RatexY/6eRfCodaiBeJpyt1sDUj2STSPL0gBECdRs=";
   };
 
-  propagatedBuildInputs = [ pyyaml ];
+  build-system = [
+    setuptools
+  ];
+
+  dependencies = [ python-dotenv pyyaml ];
+  propagatedBuildInputs = [ pypaBuildHook ];
 
   meta = {
-    description = "An implementation of docker-compose with podman backend";
+    description = "Implementation of docker-compose with podman backend";
     homepage = "https://github.com/containers/podman-compose";
-    license = lib.licenses.gpl2;
-    platforms = lib.platforms.linux;
+    license = lib.licenses.gpl2Only;
+    platforms = lib.platforms.unix;
     maintainers = [ lib.maintainers.sikmir ] ++ lib.teams.podman.members;
+    mainProgram = "podman-compose";
   };
 }

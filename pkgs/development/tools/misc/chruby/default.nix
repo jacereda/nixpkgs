@@ -37,7 +37,8 @@ in stdenv.mkDerivation rec {
     description = "Changes the current Ruby";
     homepage = "https://github.com/postmodern/chruby";
     license = licenses.mit;
+    maintainers = [ ];
+    mainProgram = "chruby-exec";
     platforms = platforms.unix;
-    maintainers = with maintainers; [ cstrahan ];
   };
 }

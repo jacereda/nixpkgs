@@ -2,14 +2,16 @@
 
 stdenv.mkDerivation rec {
   pname = "proverif";
-  version = "2.03";
+  version = "2.05";
 
   src = fetchurl {
     url    = "https://bblanche.gitlabpages.inria.fr/proverif/proverif${version}.tar.gz";
-    sha256 = "sha256:1q5mp9il09jylimcaqczb3kh34gb5px88js127gxv0jj5b4bqfc7";
+    hash = "sha256-SHH1PDKrSgRmmgYMSIa6XZCASWlj+5gKmmLSxCnOq8Q=";
   };
 
-  buildInputs = with ocamlPackages; [ ocaml findlib ];
+  strictDeps = true;
+
+  nativeBuildInputs = with ocamlPackages; [ ocaml findlib ];
 
   buildPhase = "./build -nointeract";
   installPhase = ''

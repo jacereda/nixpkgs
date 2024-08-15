@@ -13,21 +13,18 @@ let
     "grapheme"
     "run"
   ];
-
-  # Courtesy of sternenseemann and FRidh, commit c9a7fdfcfb420be8e0179214d0d91a34f5974c54
-  mesonFeatureFlag = opt: b: "-D${opt}=${if b then "enabled" else "disabled"}";
 in
 
 stdenv.mkDerivation rec {
   pname = "fcft";
-  version = "2.5.0";
+  version = "3.1.8";
 
   src = fetchFromGitea {
     domain = "codeberg.org";
     owner = "dnkl";
     repo = "fcft";
     rev = version;
-    sha256 = "0agqldh68hn898d3f6k99kjbz8had5j5k0jyvi71d4k9vhx8cy7c";
+    hash = "sha256-Wgm2QdW4rg573soF/8HhDmlyN4S2cA0VWOejow464gU=";
   };
 
   depsBuildBuild = [ pkg-config ];
@@ -35,14 +32,16 @@ stdenv.mkDerivation rec {
   buildInputs = [ freetype fontconfig pixman tllist ]
     ++ lib.optionals (withShapingTypes != []) [ harfbuzz ]
     ++ lib.optionals (builtins.elem "run" withShapingTypes) [ utf8proc ];
-  checkInputs = [ check ];
+  nativeCheckInputs = [ check ];
 
   mesonBuildType = "release";
   mesonFlags = builtins.map (t:
-    mesonFeatureFlag "${t}-shaping" (lib.elem t withShapingTypes)
+    lib.mesonEnable "${t}-shaping" (lib.elem t withShapingTypes)
   ) availableShapingTypes;
 
   doCheck = true;
+
+  outputs = [ "out" "doc" "man" ];
 
   passthru.tests = {
     noShaping = fcft.override { withShapingTypes = []; };
@@ -57,7 +56,7 @@ stdenv.mkDerivation rec {
       fionera
       sternenseemann
     ];
-    license = licenses.mit;
+    license = with licenses; [ mit zlib ];
     platforms = with platforms; linux;
   };
 }

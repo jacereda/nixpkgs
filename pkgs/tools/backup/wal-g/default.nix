@@ -1,17 +1,19 @@
-{ lib, buildGoModule, fetchFromGitHub, brotli, libsodium }:
+{ lib, buildGoModule, fetchFromGitHub, brotli, libsodium, installShellFiles }:
 
 buildGoModule rec {
   pname = "wal-g";
-  version = "1.1";
+  version = "3.0.3";
 
   src = fetchFromGitHub {
     owner = "wal-g";
     repo = "wal-g";
     rev = "v${version}";
-    sha256 = "1hiym5id310rvw7vr8wir2vpf0p5qz71rx6v5i2gpjqml7c97cls";
+    sha256 = "sha256-r46svvUAMjZx+Oc/vTWet9iZLEiXkRFevUz4x0OixVI=";
   };
 
-  vendorSha256 = "09z9x20zna1czhfpl47i98r8163a266mnr6xi17npjsfdvsjkppn";
+  vendorHash = "sha256-CfXLeFQA7ix1DP+DB5qWQryS2tLFNlfZrA3OBYxIpjU=";
+
+  nativeBuildInputs = [ installShellFiles ];
 
   buildInputs = [ brotli libsodium ];
 
@@ -19,16 +21,20 @@ buildGoModule rec {
 
   tags = [ "brotli" "libsodium" ];
 
-  ldflags = [ "-s" "-w" "-X github.com/wal-g/wal-g/cmd/pg.WalgVersion=${version}" "-X github.com/wal-g/wal-g/cmd/pg.GitRevision=${src.rev}" ];
+  ldflags = [ "-s" "-w" "-X github.com/wal-g/wal-g/cmd/pg.walgVersion=${version}" "-X github.com/wal-g/wal-g/cmd/pg.gitRevision=${src.rev}" ];
 
   postInstall = ''
     mv $out/bin/pg $out/bin/wal-g
+    installShellCompletion --cmd wal-g \
+      --bash <($out/bin/wal-g completion bash) \
+      --zsh <($out/bin/wal-g completion zsh)
   '';
 
   meta = with lib; {
     homepage = "https://github.com/wal-g/wal-g";
     license = licenses.asl20;
-    description = "An archival restoration tool for PostgreSQL";
-    maintainers = with maintainers; [ marsam ];
+    description = "Archival restoration tool for PostgreSQL";
+    mainProgram = "wal-g";
+    maintainers = [ ];
   };
 }

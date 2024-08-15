@@ -9,7 +9,8 @@ let
     gemset = ./gemset.nix;
   };
 in stdenv.mkDerivation {
-  name = "papertrail-${(import ./gemset.nix).papertrail.version}";
+  pname = "papertrail";
+  version = (import ./gemset.nix).papertrail.version;
 
   dontUnpack = true;
 
@@ -22,6 +23,7 @@ in stdenv.mkDerivation {
 
   meta = with lib; {
     description = "Command-line client for Papertrail log management service";
+    mainProgram = "papertrail";
     homepage    = "https://github.com/papertrail/papertrail-cli/";
     license     = licenses.mit;
     maintainers = with maintainers; [ nicknovitski ];

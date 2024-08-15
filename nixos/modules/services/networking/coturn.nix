@@ -193,6 +193,7 @@ in {
       realm = mkOption {
         type = types.str;
         default = config.networking.hostName;
+        defaultText = literalExpression "config.networking.hostName";
         example = "example.com";
         description = ''
           The default realm to be used for the users when no explicit
@@ -334,9 +335,10 @@ in {
         preStart = ''
           cat ${configFile} > ${runConfig}
           ${optionalString (cfg.static-auth-secret-file != null) ''
-            STATIC_AUTH_SECRET="$(head -n1 ${cfg.static-auth-secret-file} || :)"
-            sed -e "s,#static-auth-secret#,$STATIC_AUTH_SECRET,g" \
-              -i ${runConfig}
+            ${pkgs.replace-secret}/bin/replace-secret \
+              "#static-auth-secret#" \
+              ${cfg.static-auth-secret-file} \
+              ${runConfig}
           '' }
           chmod 640 ${runConfig}
         '';

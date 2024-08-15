@@ -2,21 +2,32 @@
 
 buildGoModule rec {
   pname = "mark";
-  version = "6.4";
+  version = "10.0.1";
 
   src = fetchFromGitHub {
     owner  = "kovetskiy";
     repo   = "mark";
     rev    = version;
-    sha256 = "sha256-Ti7qxNb+7S67bXdvEWPyi/v/OAsAI4pd41dlF7GFjjo=";
+    sha256 = "sha256-i1luJsAADk7VqrZAqnI52XGrbWeNLBMnzW0wxEO5LXQ=";
   };
 
-  vendorSha256 = "sha256-y3Q8UebNbLy1jmxUC37mv+2l8dCU3b/Fk8XHn5u57p0=";
+  vendorHash = "sha256-g8KN8M1jB4lTjXNfTw6gnjTCN4HDBTqtNS6c+5tJQv4=";
 
   ldflags = [ "-s" "-w" "-X main.version=${version}" ];
 
+  checkFlags =
+    let
+      skippedTests = [
+        # Expects to be able to launch google-chrome
+        "TestExtractMermaidImage"
+      ];
+    in [
+      "-skip=^${builtins.concatStringsSep "$|^" skippedTests}$"
+    ];
+
   meta = with lib; {
-    description = "A tool for syncing your markdown documentation with Atlassian Confluence pages";
+    description = "Tool for syncing your markdown documentation with Atlassian Confluence pages";
+    mainProgram = "mark";
     homepage = "https://github.com/kovetskiy/mark";
     license = licenses.asl20;
     maintainers = with maintainers; [ rguevara84 ];

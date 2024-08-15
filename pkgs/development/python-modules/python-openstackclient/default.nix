@@ -1,47 +1,89 @@
-{ lib
-, buildPythonPackage
-, fetchPypi
-, ddt
-, osc-lib
-, pbr
-, python-cinderclient
-, python-keystoneclient
-, python-novaclient
-, requests-mock
-, stestr
+{
+  lib,
+  buildPythonPackage,
+  fetchPypi,
+  ddt,
+  openstackdocstheme,
+  osc-lib,
+  pbr,
+  python-barbicanclient,
+  python-cinderclient,
+  python-designateclient,
+  python-heatclient,
+  python-ironicclient,
+  python-keystoneclient,
+  python-manilaclient,
+  python-openstackclient,
+  requests-mock,
+  requests,
+  setuptools,
+  sphinxHook,
+  sphinxcontrib-apidoc,
+  stestr,
+  testers,
 }:
 
 buildPythonPackage rec {
   pname = "python-openstackclient";
-  version = "5.7.0";
+  version = "7.0.0";
+  pyproject = true;
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "c65e3d51018f193cce2daf3d0fd69daa36003bdb2b85df6b07b973e4c39e2f92";
+    hash = "sha256-1HDjWYySnZI/12j9+Gb1G9NKkb+xfrcMoTY/q7aL0uA=";
   };
 
-  propagatedBuildInputs = [
+  build-system = [
+    openstackdocstheme
+    setuptools
+    sphinxHook
+    sphinxcontrib-apidoc
+  ];
+
+  sphinxBuilders = [ "man" ];
+
+  dependencies = [
     osc-lib
     pbr
     python-cinderclient
     python-keystoneclient
-    python-novaclient
+    requests
   ];
 
-  checkInputs = [
+  nativeCheckInputs = [
     ddt
-    stestr
     requests-mock
+    stestr
   ];
 
   checkPhase = ''
+    runHook preCheck
     stestr run
+    runHook postCheck
   '';
 
   pythonImportsCheck = [ "openstackclient" ];
 
+  passthru = {
+    optional-dependencies = {
+      # See https://github.com/openstack/python-openstackclient/blob/master/doc/source/contributor/plugins.rst
+      cli-plugins = [
+        python-barbicanclient
+        python-designateclient
+        python-heatclient
+        python-ironicclient
+        python-manilaclient
+      ];
+    };
+    tests.version = testers.testVersion {
+      package = python-openstackclient;
+      command = "openstack --version";
+    };
+  };
+
   meta = with lib; {
     description = "OpenStack Command-line Client";
+    mainProgram = "openstack";
     homepage = "https://github.com/openstack/python-openstackclient";
     license = licenses.asl20;
     maintainers = teams.openstack.members;

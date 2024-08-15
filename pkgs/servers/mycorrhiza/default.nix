@@ -4,16 +4,16 @@
 
 buildGoModule rec {
   pname = "mycorrhiza";
-  version = "1.5.0";
+  version = "1.15.0";
 
   src = fetchFromGitHub {
     owner = "bouncepaw";
     repo = "mycorrhiza";
     rev = "v${version}";
-    sha256 = "0manay7gfybzk28dp9a8xdfpbhxm1dbnvcyp4mjhh449n8jlp4bq";
+    sha256 = "sha256-ovlLOacVhf8phL9LNrMf55oo5KgaCKYeS/of/abE8Bo=";
   };
 
-  vendorSha256 = "1br1p8cnyv2xpwnld3ydd87zxbdwl962f6yww8i8xbsm7881bl0d";
+  vendorHash = "sha256-0O831ILIwv2uyTU23x+tnLbUbkrp9ew316uPmqjhxWM=";
 
   subPackages = [ "." ];
 
@@ -30,5 +30,6 @@ buildGoModule rec {
     license = licenses.agpl3Only;
     maintainers = with maintainers; [ chekoopa ];
     platforms = platforms.linux;
+    mainProgram = "mycorrhiza";
   };
 }

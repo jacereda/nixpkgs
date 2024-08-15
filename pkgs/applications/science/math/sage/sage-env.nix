@@ -2,9 +2,10 @@
 , lib
 , writeTextFile
 , sagelib
-, sage_docbuild
+, sage-docbuild
 , env-locations
 , gfortran
+, ninja
 , bash
 , coreutils
 , gnused
@@ -15,8 +16,7 @@
 , pkg-config
 , pari
 , gap
-, ecl
-, maxima-ecl
+, maxima
 , singular
 , fflas-ffpack
 , givaro
@@ -40,17 +40,15 @@
 , ecm
 , lcalc
 , rubiks
-, flintqs
 , blas
 , lapack
-, flint
+, flint3
 , gmp
 , mpfr
-, pynac
 , zlib
 , gsl
 , ntl
-, jdk8
+, jdk
 , less
 }:
 
@@ -61,13 +59,12 @@ assert (!blas.isILP64) && (!lapack.isILP64);
 # dependencies.
 
 let
-  jdk = jdk8; # TODO: remove override https://github.com/NixOS/nixpkgs/pull/89731
-
   runtimepath = (lib.makeBinPath ([
     "@sage-local@"
     "@sage-local@/build"
     pythonEnv
     gfortran # for inline fortran
+    ninja # for inline fortran via numpy.f2py
     stdenv.cc # for cython
     bash
     coreutils
@@ -77,8 +74,8 @@ let
     pkg-config
     pari
     gap
-    ecl
-    maxima-ecl
+    maxima.lisp-compiler
+    maxima
     singular
     giac
     palp
@@ -97,7 +94,6 @@ let
     ecm
     lcalc
     rubiks
-    flintqs
     jdk # only needed for `jmol` which may be replaced in the future
     less # needed to prevent transient test errors until https://github.com/ipython/ipython/pull/11864 is resolved
   ]
@@ -155,16 +151,16 @@ writeTextFile rec {
 
     # needed for cython
     export CC='${stdenv.cc}/bin/${stdenv.cc.targetPrefix}cc'
+    export CXX='${stdenv.cc}/bin/${stdenv.cc.targetPrefix}c++'
     # cython needs to find these libraries, otherwise will fail with `ld: cannot find -lflint` or similar
     export LDFLAGS='${
       lib.concatStringsSep " " (map (pkg: "-L${pkg}/lib") [
-        flint
+        flint3
         gap
         glpk
         gmp
         mpfr
         pari
-        pynac
         zlib
         eclib
         gsl
@@ -178,21 +174,21 @@ writeTextFile rec {
         singular
         gmp.dev
         glpk
-        flint
+        flint3
         gap
-        pynac
         mpfr.dev
       ])
     }'
+    export CXXFLAGS=$CFLAGS
 
     export SAGE_LIB='${sagelib}/${python3.sitePackages}'
 
     export SAGE_EXTCODE='${sagelib.src}/src/sage/ext_data'
 
   # for find_library
-    export DYLD_LIBRARY_PATH="${lib.makeLibraryPath [stdenv.cc.libc singular]}''${DYLD_LIBRARY_PATH:+:}$DYLD_LIBRARY_PATH"
+    export DYLD_LIBRARY_PATH="${lib.makeLibraryPath [stdenv.cc.libc singular giac]}''${DYLD_LIBRARY_PATH:+:}$DYLD_LIBRARY_PATH"
   '';
 } // { # equivalent of `passthru`, which `writeTextFile` doesn't support
   lib = sagelib;
-  docbuild = sage_docbuild;
+  docbuild = sage-docbuild;
 }

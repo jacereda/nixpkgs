@@ -1,15 +1,16 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, options, pkgs, ... }:
 
 with lib;
 
 let
   top = config.services.kubernetes;
+  otop = options.services.kubernetes;
   cfg = top.controllerManager;
 in
 {
   imports = [
     (mkRenamedOptionModule [ "services" "kubernetes" "controllerManager" "address" ] ["services" "kubernetes" "controllerManager" "bindAddress"])
-    (mkRenamedOptionModule [ "services" "kubernetes" "controllerManager" "port" ] ["services" "kubernetes" "controllerManager" "insecurePort"])
+    (mkRemovedOptionModule [ "services" "kubernetes" "controllerManager" "insecurePort" ] "")
   ];
 
   ###### interface
@@ -30,6 +31,7 @@ in
     clusterCidr = mkOption {
       description = "Kubernetes CIDR Range for Pods in cluster.";
       default = top.clusterCidr;
+      defaultText = literalExpression "config.${otop.clusterCidr}";
       type = str;
     };
 
@@ -42,15 +44,10 @@ in
     };
 
     featureGates = mkOption {
-      description = "List set of feature gates";
+      description = "Attribute set of feature gates.";
       default = top.featureGates;
-      type = listOf str;
-    };
-
-    insecurePort = mkOption {
-      description = "Kubernetes controller manager insecure listening port.";
-      default = 0;
-      type = int;
+      defaultText = literalExpression "config.${otop.featureGates}";
+      type = attrsOf bool;
     };
 
     kubeconfig = top.lib.mkKubeConfigOptions "Kubernetes controller manager";
@@ -67,6 +64,7 @@ in
         service account's token secret.
       '';
       default = top.caFile;
+      defaultText = literalExpression "config.${otop.caFile}";
       type = nullOr path;
     };
 
@@ -100,7 +98,7 @@ in
     verbosity = mkOption {
       description = ''
         Optional glog verbosity level for logging statements. See
-        <link xlink:href="https://github.com/kubernetes/community/blob/master/contributors/devel/logging.md"/>
+        <https://github.com/kubernetes/community/blob/master/contributors/devel/logging.md>
       '';
       default = null;
       type = nullOr int;
@@ -123,13 +121,12 @@ in
           --bind-address=${cfg.bindAddress} \
           ${optionalString (cfg.clusterCidr!=null)
             "--cluster-cidr=${cfg.clusterCidr}"} \
-          ${optionalString (cfg.featureGates != [])
-            "--feature-gates=${concatMapStringsSep "," (feature: "${feature}=true") cfg.featureGates}"} \
+          ${optionalString (cfg.featureGates != {})
+            "--feature-gates=${concatStringsSep "," (builtins.attrValues (mapAttrs (n: v: "${n}=${trivial.boolToString v}") cfg.featureGates))}"} \
           --kubeconfig=${top.lib.mkKubeConfig "kube-controller-manager" cfg.kubeconfig} \
           --leader-elect=${boolToString cfg.leaderElect} \
           ${optionalString (cfg.rootCaFile!=null)
             "--root-ca-file=${cfg.rootCaFile}"} \
-          --port=${toString cfg.insecurePort} \
           --secure-port=${toString cfg.securePort} \
           ${optionalString (cfg.serviceAccountKeyFile!=null)
             "--service-account-private-key-file=${cfg.serviceAccountKeyFile}"} \
@@ -167,4 +164,6 @@ in
 
     services.kubernetes.controllerManager.kubeconfig.server = mkDefault top.apiserverAddress;
   };
+
+  meta.buildDocsInSandbox = false;
 }

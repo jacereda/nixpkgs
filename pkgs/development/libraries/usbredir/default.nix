@@ -1,6 +1,5 @@
 { lib
 , stdenv
-, cmake
 , fetchFromGitLab
 , pkg-config
 , meson
@@ -11,14 +10,14 @@
 
 stdenv.mkDerivation rec {
   pname = "usbredir";
-  version = "0.11.0";
+  version = "0.13.0";
 
   src = fetchFromGitLab {
     domain = "gitlab.freedesktop.org";
     owner = "spice";
     repo = "usbredir";
     rev = "${pname}-${version}";
-    sha256 = "1ra8vpi6wdq1fvvqzx4ny2ga0p0q1cwz72gr15nghyfp75y3d31l";
+    sha256 = "sha256-zehf0DkqSSvmatbk/UB1oySjyqiFUYTuIhqb5xKeK7I=";
   };
 
   nativeBuildInputs = [
@@ -45,9 +44,10 @@ stdenv.mkDerivation rec {
 
   meta = with lib; {
     description = "USB traffic redirection protocol";
+    mainProgram = "usbredirect";
     homepage = "https://www.spice-space.org/usbredir.html";
     license = licenses.lgpl21Plus;
     maintainers = with maintainers; [ offline ];
-    platforms = platforms.linux;
+    platforms = platforms.unix;
   };
 }
