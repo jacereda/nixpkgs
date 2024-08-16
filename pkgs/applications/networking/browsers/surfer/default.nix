@@ -1,5 +1,5 @@
 { stdenv, lib, fetchFromGitHub
-, pkgconfig, wrapGAppsHook
+, pkg-config, wrapGAppsHook
 , gtk3
 , webkitgtk
 , glib
@@ -25,7 +25,7 @@ stdenv.mkDerivation rec {
   substituteInPlace Makefile --replace '$(DESTDIR)/usr' "$out"
   '';
 
-  nativeBuildInputs = [ pkgconfig wrapGAppsHook ];
+  nativeBuildInputs = [ pkg-config wrapGAppsHook ];
   buildInputs = [
     webkitgtk
     gtk3

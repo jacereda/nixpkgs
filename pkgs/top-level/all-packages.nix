@@ -33732,8 +33732,6 @@ with pkgs;
     gconf = pkgs.gnome2.GConf;
   };
 
-  surf-display = callPackage ../desktops/surf-display { };
-
   surge = callPackage ../applications/audio/surge {
     git = gitMinimal;
   };
@@ -34123,6 +34121,8 @@ with pkgs;
   };
 
   tremc = callPackage ../applications/networking/p2p/tremc { };
+
+  tribler = callPackage ../applications/networking/p2p/tribler { };
 
   trillian-im = callPackage ../applications/networking/instant-messengers/trillian-im { };
 
