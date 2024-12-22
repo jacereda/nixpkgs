@@ -1,42 +1,50 @@
-{ lib
-, stdenv
-, buildGoModule
-, fetchFromGitHub
-, Carbon
-, Cocoa
-, Kernel
-, UserNotifications
-, xorg
-, libglvnd
-, pkg-config
-, withGui ? true
+{
+  lib,
+  stdenv,
+  buildGoModule,
+  fetchFromGitHub,
+  Carbon,
+  Cocoa,
+  Kernel,
+  UserNotifications,
+  xorg,
+  libglvnd,
+  pkg-config,
+  withGui ? true,
 }:
 
 buildGoModule rec {
   pname = "go2tv" + lib.optionalString (!withGui) "-lite";
-  version = "1.16.1";
+  version = "1.17.1";
 
   src = fetchFromGitHub {
     owner = "alexballas";
     repo = "go2tv";
     rev = "refs/tags/v${version}";
-    hash = "sha256-7m5GikrdcrJyl+KYuSk1JWLW2SsHOcBJNJuq2BahxHc=";
+    hash = "sha256-NCfr6FXxHFFTe9l7K68MkKU71Hu/vWQFZcJXFAB94q8=";
   };
 
-  vendorHash = "sha256-na79rF/9o+s6E4i08Ocs6u98IABc19sTGFvjI6yeJFo=";
+  vendorHash = "sha256-5XiY3tSgd6lmQMbkUxt8IylSNXXW4fsmquy3SIMMsWw=";
 
   nativeBuildInputs = [ pkg-config ];
 
-  buildInputs = [
-    xorg.libX11
-    xorg.libXcursor
-    xorg.libXrandr
-    xorg.libXinerama
-    xorg.libXi
-    xorg.libXext
-    xorg.libXxf86vm
-    libglvnd
-  ] ++ lib.optionals stdenv.isDarwin [ Carbon Cocoa Kernel UserNotifications ];
+  buildInputs =
+    [
+      xorg.libX11
+      xorg.libXcursor
+      xorg.libXrandr
+      xorg.libXinerama
+      xorg.libXi
+      xorg.libXext
+      xorg.libXxf86vm
+      libglvnd
+    ]
+    ++ lib.optionals stdenv.hostPlatform.isDarwin [
+      Carbon
+      Cocoa
+      Kernel
+      UserNotifications
+    ];
 
   ldflags = [
     "-s"

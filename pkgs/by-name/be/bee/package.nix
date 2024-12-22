@@ -5,16 +5,16 @@
 
 buildGoModule rec {
   pname = "bee";
-  version = "2.1.0";
+  version = "2.3.1";
 
   src = fetchFromGitHub {
     owner = "ethersphere";
     repo = "bee";
     rev = "v${version}";
-    sha256 = "sha256-FflPGsHF2kZ5eh0bNFtK5aMLon5m5B/se/5PdIIafzo=";
+    hash = "sha256-pl0zx1Vmu1pC1JSGrz1M72ObzckUT1HbtgKb8hV1RG8=";
   };
 
-  vendorHash = "sha256-XbOp0821HeCU5c+es3/UJNF0StDSDKKT+sasBJ+uTLM=";
+  vendorHash = "sha256-kxfdreEGRY9NHxpGwgvdeYBg0m+itEhy7ih1JSD2E44=";
 
   subPackages = [ "cmd/bee" ];
 
@@ -28,7 +28,7 @@ buildGoModule rec {
     "-X github.com/ethersphere/bee/v2/pkg/postage/listener.batchFactorOverridePublic=5"
   ];
 
-  CGO_ENABLED = 0;
+  env.CGO_ENABLED = 0;
 
   postInstall = ''
     mkdir -p $out/lib/systemd/system

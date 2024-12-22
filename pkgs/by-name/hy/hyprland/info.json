@@ -1,7 +1,7 @@
 {
-  "branch": "main",
-  "commit_hash": "9a09eac79b85c846e3a865a9078a3f8ff65a9259",
-  "commit_message": "props: bump version to 0.42.0",
-  "date": "2024-08-07",
-  "tag": "v0.42.0"
+  "branch": "v0.46.1-b",
+  "commit_hash": "254fc2bc6000075f660b4b8ed818a6af544d1d64",
+  "commit_message": "version: bump to 0.46.1",
+  "date": "2024-12-17",
+  "tag": "v0.46.1"
 }

@@ -1,30 +1,28 @@
-{ lib
-, stdenv
-, fetchFromGitHub
-, cmake
-, pkg-config
-, cairo
-, hyprlang
-, librsvg
-, libzip
-, tomlplusplus
-, nix-update-script
+{
+  lib,
+  gcc14Stdenv,
+  fetchFromGitHub,
+  cmake,
+  pkg-config,
+  cairo,
+  hyprlang,
+  librsvg,
+  libzip,
+  xcur2png,
+  tomlplusplus,
+  nix-update-script,
+  fetchpatch,
 }:
-stdenv.mkDerivation (finalAttrs: {
+gcc14Stdenv.mkDerivation (finalAttrs: {
   pname = "hyprcursor";
-  version = "0.1.9";
+  version = "0.1.10";
 
   src = fetchFromGitHub {
     owner = "hyprwm";
     repo = "hyprcursor";
     rev = "refs/tags/v${finalAttrs.version}";
-    hash = "sha256-FIN1wMoyePBTtibCbaeJaoKNLuAYIGwLCWAYC1DJanw=";
+    hash = "sha256-NqihN/x8T4+wumSP1orwCCdEmD2xWgLR5QzfY+kAtuU=";
   };
-
-  patches = [
-    # fix icon directories system search path
-    "${finalAttrs.src}/nix/dirs.patch"
-  ];
 
   nativeBuildInputs = [
     cmake
@@ -36,6 +34,7 @@ stdenv.mkDerivation (finalAttrs: {
     hyprlang
     librsvg
     libzip
+    xcur2png
     tomlplusplus
   ];
 
@@ -45,6 +44,14 @@ stdenv.mkDerivation (finalAttrs: {
     "lib"
   ];
 
+  patches = [
+    # NOTE: remove after next release
+    (fetchpatch {
+      name = "001-add-fstream-include";
+      url = "https://github.com/hyprwm/hyprcursor/commit/c18572a92eb39e4921b4f4c2bca8521b6f701b58.patch";
+      hash = "sha256-iHRRd/18xEAgvJgmZeSzMp53s+zdIpuaP/sayRfcft4=";
+    })
+  ];
   passthru.updateScript = nix-update-script { };
 
   meta = {

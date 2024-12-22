@@ -8,19 +8,20 @@
 
 buildPythonPackage rec {
   pname = "pyhomeworks";
-  version = "1.1.0";
+  version = "1.1.2";
   pyproject = true;
 
   disabled = pythonOlder "3.6";
 
   src = fetchPypi {
     inherit pname version;
-    hash = "sha256-9S0SYn4e/qaCRgdwlU4gPaj0eKAQJrYigvAP6eaPzRM=";
+    hash = "sha256-Jq+rjhjmnPFNaEuCHyi+8i20RgLf1rpZg6QqwE7ax7M=";
   };
 
   postPatch = ''
     substituteInPlace pyproject.toml \
-      --replace-fail "setuptools~=69.2.0" "setuptools"
+      --replace-fail "setuptools~=69.2.0" "setuptools" \
+      --replace-fail ', "wheel~=0.43.0"' ""
   '';
 
   build-system = [ setuptools ];

@@ -3,7 +3,7 @@
   python3,
   melpaBuild,
   fetchFromGitHub,
-  substituteAll,
+  replaceVars,
   acm,
   markdown-mode,
   basedpyright,
@@ -19,30 +19,31 @@ let
     ps: with ps; [
       epc
       orjson
+      packaging
       paramiko
       rapidfuzz
       setuptools
       sexpdata
       six
+      watchdog
     ]
   );
 in
 melpaBuild {
   pname = "lsp-bridge";
-  version = "0-unstable-2024-08-06";
+  version = "0-unstable-2024-12-20";
 
   src = fetchFromGitHub {
     owner = "manateelazycat";
     repo = "lsp-bridge";
-    rev = "49b5497243873b1bddea09a4a988e3573ed7cc3e";
-    hash = "sha256-bGO5DjsetInDyGDHog5QJtAgz499kJEj52iWYIzdp5Y=";
+    rev = "acebc35d9fed200bfb8237087074a50fcb0d71d2";
+    hash = "sha256-PwielZ2uTW+snP2D0p1pwSCTRQ83EO1sU90lMrd0pvE=";
   };
 
   patches = [
     # Hardcode the python dependencies needed for lsp-bridge, so users
     # don't have to modify their global environment
-    (substituteAll {
-      src = ./hardcode-dependencies.patch;
+    (replaceVars ./hardcode-dependencies.patch {
       python = python.interpreter;
     })
   ];
@@ -77,7 +78,6 @@ melpaBuild {
   checkPhase = ''
     runHook preCheck
 
-    cd "$sourceRoot"
     mkfifo test.log
     cat < test.log &
     HOME=$(mktemp -d) python -m test.test

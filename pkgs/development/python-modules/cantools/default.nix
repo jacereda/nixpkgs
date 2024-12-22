@@ -18,14 +18,14 @@
 
 buildPythonPackage rec {
   pname = "cantools";
-  version = "39.4.5";
+  version = "39.4.13";
   pyproject = true;
 
   disabled = pythonOlder "3.8";
 
   src = fetchPypi {
     inherit pname version;
-    hash = "sha256-WU8q6A3q24xrCOjhMi1C4lj0DULIDWiG2E4BQ/kLWiM=";
+    hash = "sha256-rYT7Vh9asgzNKkW3/LKQkwCPbImByfY28tlGE+03w9E=";
   };
 
   nativeBuildInputs = [
@@ -42,12 +42,12 @@ buildPythonPackage rec {
     textparser
   ];
 
-  passthru.optional-dependencies.plot = [ matplotlib ];
+  optional-dependencies.plot = [ matplotlib ];
 
   nativeCheckInputs = [
     parameterized
     pytestCheckHook
-  ] ++ passthru.optional-dependencies.plot;
+  ] ++ optional-dependencies.plot;
 
   pythonImportsCheck = [ "cantools" ];
 

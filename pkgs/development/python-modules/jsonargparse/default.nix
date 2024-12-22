@@ -23,7 +23,7 @@
 
 buildPythonPackage rec {
   pname = "jsonargparse";
-  version = "4.32.0";
+  version = "4.35.0";
   pyproject = true;
 
   disabled = pythonOlder "3.11";
@@ -32,14 +32,14 @@ buildPythonPackage rec {
     owner = "omni-us";
     repo = "jsonargparse";
     rev = "refs/tags/v${version}";
-    hash = "sha256-enI9MNaktDNC1RAMALqy82w66n7ZPm/mtAvrmzPr59c=";
+    hash = "sha256-+gxwajChbdcsIa8Jp0iva3ik5vZeMRa38KuoQwIGNoU=";
   };
 
   build-system = [ setuptools ];
 
   dependencies = [ pyyaml ];
 
-  passthru.optional-dependencies = {
+  optional-dependencies = {
     all = [
       argcomplete
       fsspec

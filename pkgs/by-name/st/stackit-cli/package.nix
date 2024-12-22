@@ -1,30 +1,31 @@
-{ lib
-, buildGoModule
-, fetchFromGitHub
-, installShellFiles
-, makeWrapper
-, less
-, xdg-utils
-, testers
-, stackit-cli
+{
+  lib,
+  buildGoModule,
+  fetchFromGitHub,
+  installShellFiles,
+  makeWrapper,
+  less,
+  xdg-utils,
+  testers,
+  stackit-cli,
 }:
 
 buildGoModule rec {
   pname = "stackit-cli";
-  version = "0.10.0";
+  version = "0.19.0";
 
   src = fetchFromGitHub {
     owner = "stackitcloud";
     repo = "stackit-cli";
     rev = "v${version}";
-    hash = "sha256-+kIfw2lCRaQcpz4UUCZt6wTthF/otgma9JTQx3n+N5c=";
+    hash = "sha256-gqNWdZUQHT7Oa222+cbFgbmTBeg9nM/ot0WSVSCzMn8=";
   };
 
-  vendorHash = "sha256-1jUfhLodmJhV5X1EkRgOJ8jQF83Lu+8U+tC8tDoyCdk=";
+  vendorHash = "sha256-f7SkRCe8AknhCCJ79iKqC4BeSW/jM33LdA6HTQpa+3o=";
 
   subPackages = [ "." ];
 
-  CGO_ENABLED = 0;
+  env.CGO_ENABLED = 0;
 
   ldflags = [
     "-s"
@@ -32,10 +33,13 @@ buildGoModule rec {
     "-X main.version=${version}"
   ];
 
-  nativeBuildInputs = [ installShellFiles makeWrapper ];
+  nativeBuildInputs = [
+    installShellFiles
+    makeWrapper
+  ];
 
   postInstall = ''
-    mv $out/bin/{${pname},stackit} # rename the binary
+    mv $out/bin/{stackit-cli,stackit} # rename the binary
 
     installShellCompletion --cmd stackit \
       --bash <($out/bin/stackit completion bash) \
@@ -47,7 +51,12 @@ buildGoModule rec {
 
   postFixup = ''
     wrapProgram $out/bin/stackit \
-      --suffix PATH : ${lib.makeBinPath [ less xdg-utils ]}
+      --suffix PATH : ${
+        lib.makeBinPath [
+          less
+          xdg-utils
+        ]
+      }
   '';
 
   nativeCheckInputs = [ less ];

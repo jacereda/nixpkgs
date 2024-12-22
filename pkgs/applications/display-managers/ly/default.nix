@@ -1,5 +1,14 @@
-{ stdenv, lib, fetchFromGitHub, linux-pam, libxcb, makeBinaryWrapper, zig_0_12
-, callPackage }:
+{
+  stdenv,
+  lib,
+  fetchFromGitHub,
+  linux-pam,
+  libxcb,
+  makeBinaryWrapper,
+  zig_0_12,
+  callPackage,
+  nixosTests,
+}:
 
 stdenv.mkDerivation {
   pname = "ly";
@@ -12,12 +21,20 @@ stdenv.mkDerivation {
     hash = "sha256-VUtNEL7Te/ba+wvL0SsUHlyv2NPmkYKs76TnW8r3ysw=";
   };
 
-  nativeBuildInputs = [ makeBinaryWrapper zig_0_12.hook ];
-  buildInputs = [ libxcb linux-pam ];
+  nativeBuildInputs = [
+    makeBinaryWrapper
+    zig_0_12.hook
+  ];
+  buildInputs = [
+    libxcb
+    linux-pam
+  ];
 
   postPatch = ''
     ln -s ${callPackage ./deps.nix { }} $ZIG_GLOBAL_CACHE_DIR/p
   '';
+
+  passthru.tests = { inherit (nixosTests) ly; };
 
   meta = with lib; {
     description = "TUI display manager";

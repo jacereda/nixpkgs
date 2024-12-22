@@ -17,16 +17,16 @@
 
 buildGoModule rec {
   pname = "fyne";
-  version = "2.5.0";
+  version = "2.5.3";
 
   src = fetchFromGitHub {
     owner = "fyne-io";
     repo = "fyne";
     rev = "refs/tags/v${version}";
-    hash = "sha256-DUXCaPFMb6f7ROI8DC2RVCX12xf5F9MEtBJyi8CuoE4=";
+    hash = "sha256-DSJZMsvAs1hB1nv5B36yjSSSdw/VaextWw8lchCQ38E=";
   };
 
-  vendorHash = "sha256-Mz+p2kpPtqFb/wDkwOdIUQ2fCvzWqTH49YRjWmSlF4M=";
+  vendorHash = "sha256-X6K7IV+yjKXw/1A5HikS0T8rtrn7gLZM2d0VoyIdOT4=";
 
   nativeBuildInputs = [ pkg-config ];
 
@@ -40,7 +40,7 @@ buildGoModule rec {
       libXrandr
       libXxf86vm
     ]
-    ++ (lib.optionals stdenv.isDarwin (
+    ++ (lib.optionals stdenv.hostPlatform.isDarwin (
       with darwin.apple_sdk_11_0.frameworks;
       [
         Carbon

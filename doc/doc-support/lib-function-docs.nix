@@ -74,7 +74,7 @@
     }
     {
       name = "customisation";
-      description = "Functions to customise (derivation-related) functions, derivatons, or attribute sets";
+      description = "Functions to customise (derivation-related) functions, derivations, or attribute sets";
     }
     {
       name = "meta";
@@ -95,7 +95,7 @@ stdenvNoCC.mkDerivation {
     fileset = ../../lib;
   };
 
-  buildInputs = [
+  nativeBuildInputs = [
     nixdoc
     nix
   ];
@@ -106,6 +106,7 @@ stdenvNoCC.mkDerivation {
       --arg nixpkgsPath "./." \
       --argstr revision ${nixpkgs.rev or "master"} \
       --argstr libsetsJSON ${lib.escapeShellArg (builtins.toJSON libsets)} \
+      --store $(mktemp -d) \
       > locations.json
 
     function docgen {

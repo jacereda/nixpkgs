@@ -1,6 +1,7 @@
 {
   lib,
   buildPythonPackage,
+  callPackage,
   fetchFromGitHub,
   pytestCheckHook,
   pythonOlder,
@@ -36,15 +37,16 @@ buildPythonPackage rec {
     "packaging"
   ];
 
-  dependencies = [
-    build
-    coloredlogs
-    packaging
-    pip
-    urllib3
-  ] ++ lib.optionals (pythonOlder "3.11") [ toml ]
-    ++ lib.optionals (pythonOlder "3.10") [ importlib-metadata ]
-  ;
+  dependencies =
+    [
+      build
+      coloredlogs
+      packaging
+      pip
+      urllib3
+    ]
+    ++ lib.optionals (pythonOlder "3.11") [ toml ]
+    ++ lib.optionals (pythonOlder "3.10") [ importlib-metadata ];
 
   pythonImportsCheck = [
     "bork"
@@ -60,6 +62,8 @@ buildPythonPackage rec {
     # tries to call python -m bork
     "test_repo"
   ];
+
+  passthru.tests = callPackage ./tests.nix { };
 
   meta = with lib; {
     description = "Python build and release management tool";

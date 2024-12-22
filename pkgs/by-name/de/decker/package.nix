@@ -9,13 +9,13 @@
 
 stdenv.mkDerivation rec {
   pname = "decker";
-  version = "1.47";
+  version = "1.52";
 
   src = fetchFromGitHub {
     owner = "JohnEarnest";
     repo = "Decker";
     rev = "v${version}";
-    hash = "sha256-r0vBg9/IT9RQBea+XQSc270Q0+D3HzxbzdZV9oIh5vA=";
+    hash = "sha256-D9GaOi6jqTJ0c/hn4Qfdx96vf1RqCIzzKJ/MfhgYVE4=";
   };
 
   buildInputs = [
@@ -38,6 +38,10 @@ stdenv.mkDerivation rec {
     make docs
     runHook postBuild
   '';
+
+  env.NIX_CFLAGS_COMPILE = toString (lib.optionals stdenv.cc.isClang [
+    "-Wno-error=implicit-const-int-float-conversion"
+  ]);
 
   installPhase = ''
     runHook preInstall

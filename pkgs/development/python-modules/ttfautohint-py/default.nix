@@ -1,4 +1,5 @@
 {
+  stdenv,
   lib,
   buildPythonPackage,
   fetchFromGitHub,
@@ -24,7 +25,7 @@ buildPythonPackage rec {
 
   postPatch = ''
     substituteInPlace src/python/ttfautohint/__init__.py \
-      --replace-fail 'find_library("ttfautohint")' '"${lib.getLib ttfautohint}/lib/libttfautohint.so"'
+      --replace-fail 'find_library("ttfautohint")' '"${lib.getLib ttfautohint}/lib/libttfautohint${stdenv.hostPlatform.extensions.sharedLibrary}"'
   '';
 
   env.TTFAUTOHINTPY_BUNDLE_DLL = false;
@@ -45,7 +46,7 @@ buildPythonPackage rec {
   pythonImportsCheck = [ "ttfautohint" ];
 
   meta = {
-    description = "Command line utility and Python library that merges two UFO source format fonts into a single file";
+    description = "Python wrapper for ttfautohint, a free auto-hinter for TrueType fonts";
     homepage = "https://github.com/fonttools/ttfautohint-py";
     changelog = "https://github.com/fonttools/ttfautohint-py/releases/tag/v${version}";
     license = lib.licenses.mit;

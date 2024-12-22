@@ -50,6 +50,9 @@ rustPlatform.buildRustPackage {
   ];
 
   postPatch = ''
+    # Use our Cargo.lock
+    cp ${./Cargo.lock} Cargo.lock
+
     # Force vek to build in unstable mode
     cat <<'EOF' | tee "$cargoDepsCopy"/vek-*/build.rs
     fn main() {
@@ -117,6 +120,9 @@ rustPlatform.buildRustPackage {
     license = licenses.gpl3;
     mainProgram = "veloren-voxygen";
     platforms = platforms.linux;
-    maintainers = with maintainers; [ rnhmjoj tomodachi94 ];
+    maintainers = with maintainers; [
+      rnhmjoj
+      tomodachi94
+    ];
   };
 }
